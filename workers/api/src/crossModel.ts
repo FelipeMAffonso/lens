@@ -30,12 +30,16 @@ export async function runCrossModelCheck(
   ].join("\n");
 
   const tasks: Array<Promise<CrossModelCheck | null>> = [];
-  if (env.OPENAI_API_KEY) tasks.push(callOpenAI(env.OPENAI_API_KEY, "gpt-5", question, rec));
-  if (env.GOOGLE_API_KEY) tasks.push(callGoogle(env.GOOGLE_API_KEY, "gemini-3-pro", question, rec));
-  if (env.OPENROUTER_API_KEY) tasks.push(callOpenRouter(env.OPENROUTER_API_KEY, "kimi-k2", question, rec));
+  // Use stable widely-available models. Switch to newer flagship IDs once confirmed.
+  if (env.OPENAI_API_KEY) tasks.push(callOpenAI(env.OPENAI_API_KEY, "gpt-4o", question, rec));
+  if (env.GOOGLE_API_KEY) tasks.push(callGoogle(env.GOOGLE_API_KEY, "gemini-2.5-flash", question, rec));
+  if (env.OPENROUTER_API_KEY)
+    tasks.push(callOpenRouter(env.OPENROUTER_API_KEY, "meta-llama/llama-3.3-70b-instruct", question, rec));
 
   const results = await Promise.all(tasks);
-  return results.filter((r): r is CrossModelCheck => r !== null);
+  const picked = results.filter((r): r is CrossModelCheck => r !== null);
+  console.log("[crossModel] dispatched=%d succeeded=%d", tasks.length, picked.length);
+  return picked;
 }
 
 async function callOpenAI(
@@ -55,7 +59,11 @@ async function callOpenAI(
         max_tokens: 80,
       }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      console.error("[crossModel] %s/%s HTTP %d: %s", model, res.status, res.status, errText.slice(0, 200));
+      return null;
+    }
     const data = (await res.json()) as any;
     const content: string = data.choices?.[0]?.message?.content ?? "";
     return buildCheck("openai", model, content, rec, Date.now() - t);
@@ -83,7 +91,11 @@ async function callGoogle(
         }),
       },
     );
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      console.error("[crossModel] %s/%s HTTP %d: %s", model, res.status, res.status, errText.slice(0, 200));
+      return null;
+    }
     const data = (await res.json()) as any;
     const content: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
     return buildCheck("google", model, content, rec, Date.now() - t);
@@ -109,7 +121,11 @@ async function callOpenRouter(
         max_tokens: 80,
       }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      console.error("[crossModel] %s/%s HTTP %d: %s", model, res.status, res.status, errText.slice(0, 200));
+      return null;
+    }
     const data = (await res.json()) as any;
     const content: string = data.choices?.[0]?.message?.content ?? "";
     return buildCheck("openrouter", model, content, rec, Date.now() - t);
