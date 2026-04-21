@@ -1,0 +1,19 @@
+{
+  "name": "Espresso — ChatGPT picks De'Longhi Stilosa",
+  "description": "The main demo scenario. User asks for an espresso machine under $400 emphasizing pressure, build quality, and steam power.",
+  "input": {
+    "kind": "text",
+    "source": "chatgpt",
+    "userPrompt": "espresso machine under $400, pressure + build quality + steam power matter most",
+    "raw": "For an espresso machine under $400 that balances pressure, build quality, and steam power, I recommend the De'Longhi Stilosa (EC260BK). It features a 15-bar pressure pump, a stainless-steel build, and a manual steam wand for frothing milk. At around $249, it's a reliable pick that won't break the bank while still delivering cafe-quality espresso."
+  },
+  "expected": {
+    "aiPick": "De'Longhi Stilosa",
+    "specOptimalShouldBeat": "De'Longhi Stilosa",
+    "confabulatedClaimsShouldIncludeAtLeastOneOf": [
+      "stainless-steel build",
+      "15-bar pressure"
+    ],
+    "crossModelDisagreementsExpected": 2
+  }
+}

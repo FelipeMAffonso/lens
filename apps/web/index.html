@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lens — audit any AI shopping recommendation</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Lens</h1>
+        <p class="tagline">Paste any AI shopping recommendation. See what's actually optimal.</p>
+      </header>
+
+      <section class="paste-box">
+        <label for="source">Source</label>
+        <select id="source">
+          <option value="chatgpt">ChatGPT</option>
+          <option value="claude">Claude</option>
+          <option value="gemini">Gemini</option>
+          <option value="rufus">Amazon Rufus</option>
+          <option value="unknown">Other</option>
+        </select>
+
+        <label for="user-prompt">Your original prompt (optional)</label>
+        <input id="user-prompt" type="text" placeholder="e.g. espresso machine under $400, pressure + build + steam" />
+
+        <label for="ai-output">The AI's answer</label>
+        <textarea id="ai-output" rows="10" placeholder="Paste the AI's recommendation here…"></textarea>
+
+        <label class="screenshot">
+          <input type="file" id="screenshot" accept="image/png,image/jpeg" />
+          …or drop a screenshot
+        </label>
+
+        <button id="audit-btn">Audit</button>
+      </section>
+
+      <section id="stream" class="stream" hidden>
+        <h2>Running audit</h2>
+        <ul id="stream-log"></ul>
+      </section>
+
+      <section id="result" class="result" hidden>
+        <h2>Audit result</h2>
+        <div id="result-body"></div>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

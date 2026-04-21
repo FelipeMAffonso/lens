@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Lens</title>
+    <style>
+      body { width: 320px; font: 14px system-ui, -apple-system, "Segoe UI", sans-serif; padding: 12px; }
+      button { width: 100%; padding: 10px; font-weight: 600; border: 0; border-radius: 6px; background: #1a7f37; color: white; cursor: pointer; }
+      a { color: #8250df; text-decoration: none; }
+      #status { color: #57606a; font-size: 12px; margin-top: 8px; }
+    </style>
+  </head>
+  <body>
+    <h3 style="margin:0 0 8px">Lens</h3>
+    <p style="margin:0 0 12px; color:#57606a">Click to audit the current page's AI recommendation.</p>
+    <button id="audit">Audit this page</button>
+    <div id="status"></div>
+    <p style="margin-top:12px"><a href="https://github.com/felipemaffonso/lens" target="_blank">GitHub</a></p>
+    <script src="popup.js"></script>
+  </body>
+</html>

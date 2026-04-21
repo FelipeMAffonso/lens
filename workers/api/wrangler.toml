@@ -1,0 +1,18 @@
+name = "lens-api"
+main = "src/index.ts"
+compatibility_date = "2026-04-21"
+compatibility_flags = ["nodejs_compat"]
+
+# Secrets set via: wrangler secret put ANTHROPIC_API_KEY
+# [vars]                # non-secret config goes here
+
+[observability]
+enabled = true
+
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "<fill-in-after-wrangler-kv-namespace-create>"
+
+# [[r2_buckets]]
+# binding = "FIXTURES"
+# bucket_name = "lens-fixtures"
