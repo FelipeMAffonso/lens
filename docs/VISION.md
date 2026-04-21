@@ -1,57 +1,125 @@
 # Lens — Vision
 
-## One sentence
+## The thesis
 
-**Lens turns what you care about into a transparent ranking of real products — and catches any AI shopping assistant that got it wrong.**
+Every major shopping recommendation surface on the internet — Amazon's organic ranking, Google Shopping, Apple's App Store, Rufus, ChatGPT Shopping, Gemini, Copilot, and every retailer's "you might also like" — optimizes for the platform's revenue, not the shopper's welfare. The mechanisms differ (commission, ad placement, engagement, retention), but the shape is the same: a ranking is delivered with confidence and no explanation. The shopper has no way to audit which criteria were weighted, how heavily, or why Product A appeared above Product B. When AI assistants entered this space they inherited the same opacity and added a new failure mode: a peer-reviewed study of 18 frontier models across 382,000 trials (Affonso et al., submitted to *Nature*, 2026) showed these models pick a non-optimal product roughly 21% of the time and confabulate attribute-based justifications in 86% of cases. The AI sounds confident, the prose is fluent, and the bias that drove the output is invisible.
 
-## The real user problem
+Lens exists to invert this. The shopper's own priorities become the scoring function. Every weight is exposed. Every claim is verified against a live source. Every alternative the AI did not mention is surfaced. If Lens is wrong, the shopper can see exactly which criterion caused it and adjust. This is the welfare fix to AI shopping delegation, and it is why the major assistants cannot build it themselves — transparent math on top of their recommendations would cannibalize the business model those recommendations serve.
 
-Consumers delegate shopping decisions to recommendation systems every day: Amazon's ranking algorithm, Google Shopping, Wirecutter editors, Rufus, ChatGPT, Claude. Every one of these systems is a black box. The user cannot see which factors were weighted, how heavily, or why Product A appeared above Product B. In the AI-assistant case specifically, a peer-reviewed study of 18 frontier models across 382,000 trials (Affonso et al., submitted to *Nature*, 2026) showed these assistants pick a non-optimal product 21% of the time and confabulate attribute-based justifications 86% of the time — consumers are systematically steered toward familiar brands by models that then invent reasons.
+## What Lens is
 
-Lens is built on the premise that the fix is not smarter AI but **transparent math**. If the user's priorities are visible, the weights are visible, and the scoring is visible, the user stays in control and can verify any recommendation — AI-generated or not.
+A browser extension, web app, and open API that accepts any expression of shopping intent — a typed question, a pasted AI answer, a screenshot of an AI chat, a product-page URL, or even a voice note — and returns a single transparent audit card. The card contains the user's inferred weighted preferences, the spec-optimal product ranked against those preferences, every cited claim with a live verification verdict and citation, and a disagreement map across other frontier assistants asked the same question. Every weight, score, and source is inspectable. The ranking is deterministic; the same inputs always produce the same output. When the user drags a slider to re-weight, the ranking recomputes live in the browser.
 
-## Two jobs, one tool
+The product is open source under MIT. It runs on Cloudflare Workers with Claude Opus 4.7 as the reasoning engine and serves the frontend from Cloudflare Pages. Nothing proprietary sits between the user and the answer.
 
-**Job 1 — "I want to buy X" (primary).** The user describes what they want in natural language. Claude Opus 4.7 parses those words into a weighted utility function, searches the real web for matching products, ranks them with `U = Σ wᵢ · sᵢ`, and displays the result with every weight and score inspectable on hover. Sliders let the user tune weights; the ranking updates live. This is the welfare case — most shoppers never talked to ChatGPT.
+## Why this kills GPT Shopping and Rufus
 
-**Job 2 — "I already got an AI recommendation, is it any good?" (secondary, but the killer demo).** The user pastes or screenshots an answer from ChatGPT / Claude / Gemini / Rufus. Lens does Job 1 *plus* extracts the AI's cited claims, verifies each one against the live catalog, and runs the same question through three other frontier models via a Claude Managed Agent to surface where labs disagree. This is where the confabulation evidence lands.
+The incumbents compete on integration — being inside the surface the shopper is already using. Their structural weakness is that each one is bound to a revenue model Lens is not. ChatGPT Shopping earns a commission (reportedly a 2% affiliate fee per Sam Altman, and industry reporting mentions ~4% through the Shopify partnership) on every purchase that flows through its Agentic Commerce Protocol integrations. A full claim-verification layer that systematically contradicts ChatGPT's recommendations would contradict the revenue those recommendations generate. Amazon Rufus serves 250+ million users on top of Amazon's own catalog, where ranking is influenced by sponsored placement, first-party inventory, and commission margin tiers; any "better-value alternative" Rufus surfaces is a better alternative *on Amazon*, not on the open web. Google AI Mode runs over a 50-billion-product Shopping Graph where merchant fees and ad placement influence which products surface. Perplexity markets itself under the tagline "Shopping That Puts You First" but its ranking still operates inside a partner-feed plus subscription revenue model where weights are not exposed.
 
-Both jobs produce the same result format: a spec-optimal pick with full utility breakdown. Job 2 adds an "AI pick + verified claims + cross-model verdicts" overlay.
+None of these platforms can ship transparent user-editable weights, per-claim verification citing sources that contradict their own pick, or cross-assistant disagreement without reshaping the commercial incentives that fund them. This is structural, not a feature oversight.
 
-## What Lens is NOT
+Lens has no such conflict. It is an independent audit layer on top of whatever assistant the user consults, including none at all. When Lens says a claim is misleading or that the AI's pick is non-optimal by a measurable gap, there is no business relationship to protect. That independence is the moat. See `docs/COMPETITIVE_POSITIONING.md` for the full head-to-head with each competitor's 2026 state.
 
-- **Not a recommendation engine trained on user behavior.** No telemetry, no A/B tests, no personalized-to-you ranking that degrades over time. The ranking is a pure function of the user's stated criteria and the product specs.
-- **Not an editorial site.** No human reviewers, no opinion. Just a transparent optimization.
-- **Not a shopping comparison table.** Comparison tables show every attribute; Lens projects the product space onto the user's specific priorities and ranks along that projection.
-- **Not an ad network.** No paid placement, no sponsored rows, no affiliate-driven ranking. Affiliate links (if any) are labeled and do not affect the rank.
+## The 2026 market context
 
-## Why this is a welfare win
+The AI shopping space is not empty. It is dense with product on the assistant side (ChatGPT Shopping, Rufus, Google AI Mode, Perplexity, every retailer's in-house bot) and dense on the brand-side AI-visibility tracking (Alhena AI, Profound AI). The category that is empty in April 2026 is the consumer-side audit layer — the tool that inspects what the assistant recommended and verifies it against transparent math and live sources. Lens is the first product in that category.
 
-Every assumption baked into the ranking is exposed. If Lens gets the answer wrong, the user can see exactly which criterion or weight caused it and adjust. If a new AI shopping assistant gets popular next year, Lens is the independent layer that checks whether its recommendations are any good — no matter what vendor built it.
+The regulatory environment is leaning toward Lens's framing. The FTC had a March 11, 2026 deadline to publish its AI consumer-protection policy statement. Its January 2025 findings on algorithmic/surveillance pricing characterized those tools as a direct consumer-welfare harm, quantifying the margin boost at 2-5% and citing polling showing 72% of consumers oppose individualized pricing for any reason. The agency has publicly stated that transparency requirements alone are insufficient and that shifting the disclosure burden onto consumers "falls short of protecting consumers." Lens's welfare-delta metric — the dollar difference between what the AI recommended and what the specs supported — is the kind of evidence the agency is asking for. As aggregate audits accumulate across users, Lens becomes citable public data for the conversation the FTC is already holding.
+
+## The six pillars
+
+Lens is not one feature. It is six capabilities that only make sense in combination, because the value comes from the stack.
+
+### 1. Preference extraction
+
+Natural-language shopping intent gets parsed into a weighted utility function. The user writes *"espresso machine under $400, pressure and build matter more than price"* and Lens derives `{pressure: 0.40, build_quality: 0.35, price: 0.25}` along with inferred constraints (budget, category, brand preferences or anti-preferences). This uses Claude Opus 4.7's adaptive thinking — the model decides how much reasoning to spend based on how ambiguous the request is, and returns both the weights and a plain-English rationale for each weight. The user can accept the inferred weights, adjust them, or overwrite them entirely. Preferences are saved per category, so the next time the user asks about laptops their "I need 32GB minimum" constraint comes along automatically.
+
+### 2. Live product search
+
+The live search step uses Claude Opus 4.7's server-side web search tool (2026 edition, with dynamic filtering that keeps irrelevant snippets out of context) to pull 10-20 real candidate products from retailer and manufacturer pages. The spec sheets are loaded into Opus 4.7's 1M-token context alongside the user's criteria so every candidate is evaluated against every criterion in a single reasoning pass. For the hackathon demo and for latency-sensitive runs, Lens falls back to a hand-curated deterministic catalog across five categories.
+
+### 3. Transparent ranking
+
+Every candidate receives a utility score `U = Σ wᵢ · sᵢ` where each weight and score is visible on hover. The math is intentionally LLM-free. Rankings are deterministic and reproducible. Sliders in the UI let the user retune weights and watch the ranking update in real time, which is the clearest possible demonstration that the math is doing the work, not the AI. The spec-optimal pick is the top-ranked candidate; runners-up are shown with the gap explained ("Pick #2 costs $100 less but loses 0.07 utility on steam and 0.04 on build").
+
+### 4. Claim verification
+
+Every attribute assertion the AI made — "15-bar pressure," "stainless-steel build," "30 hours of battery" — gets checked against the candidate catalog. Verdicts are `true`, `false`, `misleading`, or `unverifiable`. A `misleading` verdict is reserved for claims that are technically true but selectively framed to favor a worse pick (e.g., citing "15-bar pressure" as if it were high when every alternative has 20). Every verdict carries a citation URL and a one-sentence explanation. If a claim cannot be verified, Lens says so rather than guessing.
+
+### 5. Cross-assistant disagreement
+
+The same question that the host assistant answered runs in parallel through three other frontier models — today GPT-5, Gemini 3, and Kimi K2 — delivered as a Claude Managed Agent so the long-running multi-provider fan-out is properly decoupled from the main audit request. The result is a disagreement map: "ChatGPT picked X, Claude picked Y, Gemini picked Y, Kimi K2 picked X." Over time, with enough audits, this becomes a public ticker of which assistants agree with which picks in which categories. Assistants that systematically recommend non-optimal products show up in the aggregate.
+
+### 6. Welfare analytics
+
+Over every audit the user runs, Lens tracks the gap between what the AI recommended and what the spec-optimal pick was — the "welfare delta." After ten audits the user sees a personal summary: "Across your last 10 AI-assisted shopping questions, Lens's picks averaged 0.12 higher utility at $63 lower average price." This single stat is the product's retention engine. Once a user sees that number once, Lens becomes the last step before buy, for everything.
+
+## What Lens is not
+
+Lens is not a recommendation engine trained on user behavior. There is no telemetry funnel, no personalized-to-you ranking drift, no ad auction. The output is a pure function of the user's stated criteria and the product catalog. Two different users with the same criteria get the same ranking.
+
+Lens is not an editorial site. No human reviewers, no opinion content. The opinion is distilled from the user's own words into weighted criteria and then applied with transparent math.
+
+Lens is not a comparison table. Comparison tables flatten the product space along every dimension; Lens projects the product space onto the specific criteria the user cares about in this purchase and ranks along that projection. The projection is different for every query.
+
+Lens is not an ad network. There are no sponsored slots, no paid rankings, no affiliate-driven sorting. Affiliate links, if present on any product-page link, are labeled and have zero effect on the ranking.
 
 ## Why Claude Opus 4.7 is load-bearing
 
-- **Adaptive thinking** decomposes ambiguous natural-language preferences into explicit weighted criteria. This is the turning-words-into-a-utility-function step.
-- **Server-side web search** (2026 edition, with dynamic filtering) pulls live product listings without a scraping stack.
-- **1M context** holds every product's full spec sheet alongside every cited claim, so verification is "look at both at once," not "RAG and hope."
-- **Vision** accepts a screenshot of any AI chat — mobile, desktop, any assistant — removing the friction of copy-paste.
-- **Claude Managed Agents** own the three-other-models fan-out as a long-running hand-off, which is what the $5K "Best Managed Agents" prize is asking for.
+Lens uses five Opus 4.7 capabilities, each of which carries meaningful weight in the system rather than appearing as decoration.
+
+**Adaptive thinking** decomposes ambiguous natural-language preferences into weighted criteria. This is a reasoning task where the right answer depends on context-sensitive interpretation (does "performance matters" mean CPU, GPU, battery, or network?). Opus 4.7 decides how much thinking to spend and returns a structured utility function plus a plain-English rationale for each weight, which is what makes the UI explainable.
+
+**Server-side web search (2026)** replaces an entire scraping, rate-limiting, and caching stack. Opus 4.7 refines its own queries, filters results dynamically, and hands back a structured candidate list. Because Anthropic runs the search, the subrequest surface from a Cloudflare Worker stays small and the caller does not have to maintain a Brave or Serper integration.
+
+**1M context** holds every candidate's full spec sheet alongside every cited claim in a single reasoning pass. This turns claim verification from a retrieval-and-hope pipeline into a single comparative reasoning step, which is why the `misleading` verdict is possible at all — the model can see that 15 bar is technically accurate for the AI's pick while also seeing that every comparable alternative has 20 bar.
+
+**Vision with high-resolution image support (3.75MP)** lets Lens accept screenshots of any AI chat — desktop, mobile, voice transcripts, embedded product pages — without requiring copy-paste. This is the surface-expansion that makes Lens viable on mobile, where most impulse AI-shopping happens.
+
+**Claude Managed Agents** own the cross-assistant fan-out as a long-running, multi-provider hand-off. The main `/audit` Worker stays fast and responsive; the Managed Agent handles rate limits, retries, and synthesis across three providers and returns a unified disagreement map. This maps directly to the hackathon's "Best use of Managed Agents" special prize.
 
 ## Scoring against the hackathon rubric
 
-| Criterion (weight) | Lens's edge |
+| Criterion (weight) | How Lens wins |
 |---|---|
-| Impact (30%) | Every online shopper, not just AI users. Welfare layer on top of opaque recommendation systems. |
-| Demo (25%) | Paste a ChatGPT espresso answer; watch Lens catch a bad recommendation in one screen. Then a second cut: no AI in the loop at all, user describes what they want, Lens just delivers. |
-| Opus 4.7 use (25%) | Adaptive thinking + web search + 1M context + vision + Managed Agents, all genuinely doing work, not decorating. |
-| Depth & execution (20%) | Peer-reviewed research base; a real published paper that frames the need. Clean open-source TypeScript monorepo. CI green. |
+| Impact (30%) | Every online shopper is in the market, not just AI users. The welfare-delta analytic turns one-time users into repeat users. The paper provides the credibility anchor that the problem is real and measurable. |
+| Demo (25%) | The demo plays twice: once with a paste of ChatGPT's answer (audit mode, catches the confabulation) and once with a cold user query (primary mode, no AI in the loop). Both land in under 20 seconds with visible parallel sub-agent activity. |
+| Opus 4.7 use (25%) | Five capabilities load-bearing: adaptive thinking, web search (2026), 1M context, vision, Managed Agents. Not decoration — each does work the product could not do without it. |
+| Depth & execution (20%) | Peer-reviewed research base; clean open-source TypeScript monorepo; CI green on every commit; deterministic fixtures for reproducibility; explicit threat model (ARCHITECTURE.md) showing what Lens does not claim. |
 
-## What would make this ship-grade (post-hackathon)
+## Product surface for the hackathon vs post-hackathon
 
-- Live retailer APIs for price + availability (Rainforest, Keepa, or affiliate feeds), not just web search.
-- User account with saved preferences per category.
-- Mobile app (not just extension + web).
-- Comparative ranking over time ("the Stilosa moved from rank 3 to rank 1 this month because …").
-- Open API so any retailer or publisher can embed the ranking on their pages.
+Six capabilities ship in the hackathon demo. Six more are roadmap.
 
-None of the above are in scope for the hackathon. They are the roadmap that makes the one-week demo credible as a product.
+**Shipping by Sun Apr 26:**
+1. Preference extraction from typed prompts (Opus 4.7 adaptive thinking).
+2. Preference extraction from screenshots (Opus 4.7 vision).
+3. Transparent ranking with live utility sliders.
+4. Claim verification against the candidate catalog.
+5. Cross-assistant disagreement (3 providers via Managed Agent).
+6. Welfare-delta summary after any audit.
+
+**Roadmap (visible in VISION.md, not in the demo):**
+
+- Saved per-category preference profiles, exportable as JSON.
+- Price/availability/review verification layers (beyond spec-sheet claims).
+- Bias detection across brand-familiarity, recency, sycophancy, sponsorship-contamination.
+- Counterfactual explainers ("if you had weighted X higher, Y would have won").
+- Public aggregate ticker: which assistants systematically under-recommend in which categories, updated from anonymized audits.
+- Lens Score API — any publisher or retailer can embed an independent Lens score next to a product, generated on demand.
+
+## The demo narrative
+
+Lens opens cold on a real ChatGPT conversation. ChatGPT recommends the De'Longhi Stilosa espresso machine with three reasons. Cut to Lens: the same paste, three seconds later, side-by-side with the spec-optimal Presswell Artisan P20. The "15-bar pressure" claim is accurate but misleading; every alternative in Lens's catalog has 20 bar. The "stainless-steel build" claim is flagged false — the housing is plastic, only the internal boiler is stainless. Two of three other frontier models agreed with Lens, not ChatGPT.
+
+Then the second act cuts away the AI entirely. A second user types, directly into Lens, "over-ear headphones under $300, noise cancellation and battery matter more than brand." Lens returns the Sennheiser Momentum 4, with every weight and score visible, and the user drags the "battery life" slider up to see the ranking re-sort live. No ChatGPT in the loop. This is what shopping should look like.
+
+The third act is the welfare number. "Across Felipe's last 10 AI-assisted shopping questions, Lens's picks averaged 0.12 higher utility at $63 lower average price. That's the delta between what the AI wanted to sell you and what the specs actually support."
+
+The close: one sentence, on a black screen. *"When the AI gives you a recommendation, Lens gives you the truth."*
+
+## Why this is the submission we want to win with
+
+The Opus 4.6 winner list (Mike Brown's CrossBeam, Michał's PostVisit, Kazibwe's TARA, Asep's Conductr, Jon McBee's Elisa) rewards three things in combination: domain expertise the builder uniquely has, a visible bottleneck the demo resolves, and aggressive use of Claude's distinctive capabilities. Lens has all three. Felipe has published research on exactly the failure mode Lens exploits. The bottleneck is concrete and visible to every online shopper. The Opus 4.7 usage is substantive across five capabilities rather than decorative in one.
+
+The expected-value calculation for Felipe is straightforward. The $50k first-place credit pool plus the $5k Managed Agents prize plus the $5k Keep Thinking prize, if all three land, funds the next eighteen months of the research program that produced the paper in the first place. The downside, if Lens does not place, is a publicly shipped open-source tool with a peer-reviewed paper attached that can serve as infrastructure for the follow-up studies already in the pipeline. Either outcome advances the research program.
