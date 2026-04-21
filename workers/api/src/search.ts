@@ -38,9 +38,9 @@ utilityScore, attributeScores, or utilityBreakdown — those are computed later.
     max_tokens: 8000,
     tools: [
       {
-        // NOTE: exact tool name to be confirmed from Opus 4.7 release notes / kickoff.
-        // Anthropic's server-side web search tool may be e.g. "web_search_20250305".
-        type: "web_search_20250305",
+        // Anthropic server-side web search tool (2026 edition with dynamic filtering).
+        // Docs: https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool
+        type: "web_search_20260209",
         name: "web_search",
         max_uses: 8,
       } as any,
@@ -68,5 +68,5 @@ utilityScore, attributeScores, or utilityBreakdown — those are computed later.
 
 function stripFences(s: string): string {
   const m = s.match(/```(?:json)?\s*([\s\S]*?)```/);
-  return (m ? m[1] : s).trim();
+  return (m && m[1] ? m[1] : s).trim();
 }

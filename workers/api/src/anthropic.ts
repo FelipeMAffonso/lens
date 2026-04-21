@@ -43,9 +43,9 @@ export async function opusExtendedThinking(
 
   let text = "";
   let thinking: string | null = null;
-  for (const block of response.content) {
-    if (block.type === "text") text += block.text;
-    if (block.type === "thinking") thinking = block.thinking;
+  for (const block of response.content as unknown as Array<{ type: string; text?: string; thinking?: string }>) {
+    if (block.type === "text" && block.text) text += block.text;
+    if (block.type === "thinking" && block.thinking) thinking = block.thinking;
   }
   return { text, thinking, raw: response };
 }

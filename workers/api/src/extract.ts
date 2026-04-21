@@ -63,5 +63,5 @@ export async function extractIntentAndRecommendation(
 
 function stripFences(s: string): string {
   const m = s.match(/```(?:json)?\s*([\s\S]*?)```/);
-  return (m ? m[1] : s).trim();
+  return (m && m[1] ? m[1] : s).trim();
 }

@@ -131,7 +131,7 @@ function buildCheck(
   return {
     provider,
     model,
-    pickedProduct: { name: firstLine, brand: undefined },
+    pickedProduct: { name: firstLine },
     agreesWithLens,
     reasoning: content,
     latencyMs,
