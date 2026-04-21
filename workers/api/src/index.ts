@@ -9,6 +9,12 @@ export interface Env {
   GOOGLE_API_KEY?: string;
   OPENROUTER_API_KEY?: string;
   CROSS_MODEL_AGENT_URL?: string;
+  /**
+   * "real" (default) = live Opus 4.7 web search; "fixture" = short-circuit to a hardcoded
+   * catalog for the category. Fixture mode exists to unblock demo latency and for CI-style
+   * regression tests against known inputs.
+   */
+  LENS_SEARCH_MODE?: "real" | "fixture";
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -25,8 +31,22 @@ app.post("/audit", async (c) => {
   if (!parsed.success) {
     return c.json({ error: "invalid_input", issues: parsed.error.issues }, 400);
   }
-  const result = await runAuditPipeline(parsed.data, c.env);
-  return c.json(result);
+  try {
+    const result = await runAuditPipeline(parsed.data, c.env);
+    return c.json(result);
+  } catch (err) {
+    const e = err as Error & { stage?: string; cause?: unknown };
+    console.error("audit pipeline failed:", e.stage ?? "unknown_stage", e.message, e.stack);
+    return c.json(
+      {
+        error: "pipeline_failed",
+        stage: e.stage ?? "unknown_stage",
+        message: e.message,
+        cause: String(e.cause ?? ""),
+      },
+      500,
+    );
+  }
 });
 
 app.post("/audit/stream", async (c) => {

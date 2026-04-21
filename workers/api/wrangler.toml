@@ -3,8 +3,12 @@ main = "src/index.ts"
 compatibility_date = "2026-04-21"
 compatibility_flags = ["nodejs_compat"]
 
+[vars]
+# "fixture" uses the hardcoded catalog in src/fixtureCatalog.ts (fast, deterministic — demo default).
+# "real" hits the live Opus 4.7 web_search tool.
+LENS_SEARCH_MODE = "fixture"
+
 # Secrets set via: wrangler secret put ANTHROPIC_API_KEY
-# [vars]                # non-secret config goes here
 
 [observability]
 enabled = true

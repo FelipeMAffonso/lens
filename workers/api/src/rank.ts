@@ -14,15 +14,21 @@ export async function rankCandidates(
   intent: UserIntent,
   candidates: Candidate[],
 ): Promise<Candidate[]> {
-  const scored = candidates.map((cand) => {
-    const breakdown = intent.criteria.map((crit) => {
-      const rawValues = candidates
-        .map((c) => toNumberIfPossible(c.specs[crit.name]))
+  const safeCandidates = candidates.filter((c): c is Candidate => !!c && typeof c.name === "string");
+  const safeCriteria =
+    intent.criteria && intent.criteria.length > 0
+      ? intent.criteria
+      : [{ name: "overall_quality", weight: 1, direction: "higher_is_better" as const }];
+
+  const scored = safeCandidates.map((cand) => {
+    const breakdown = safeCriteria.map((crit) => {
+      const rawValues = safeCandidates
+        .map((c) => toNumberIfPossible(c.specs?.[crit.name]))
         .filter((v): v is number => v !== null);
       const min = rawValues.length ? Math.min(...rawValues) : 0;
       const max = rawValues.length ? Math.max(...rawValues) : 1;
 
-      const raw = cand.specs[crit.name];
+      const raw = cand.specs?.[crit.name];
       let score = 0;
       const n = toNumberIfPossible(raw);
       if (n !== null && max !== min) {
