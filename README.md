@@ -1,5 +1,8 @@
 # Lens
 
+[![CI](https://github.com/FelipeMAffonso/lens/actions/workflows/ci.yml/badge.svg)](https://github.com/FelipeMAffonso/lens/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **Audit any AI shopping recommendation.** Paste an answer from ChatGPT, Claude, Gemini, or Amazon Rufus. Lens re-solves the problem with live product data, shows you the spec-optimal pick for your stated criteria, flags every attribute claim the AI got wrong, and shows where three other frontier models disagree.
 
 Built with Claude Opus 4.7 for the *Built with Opus 4.7: a Claude Code Hackathon* (Apr 21-26, 2026). Track: **Build From What You Know**.

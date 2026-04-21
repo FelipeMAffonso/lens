@@ -1,0 +1,18 @@
+{
+  "name": "Headphones — Gemini picks Sony WH-1000XM5 with a battery claim",
+  "description": "Act 3 montage scenario. User asks Gemini for over-ear ANC headphones under $300.",
+  "input": {
+    "kind": "text",
+    "source": "gemini",
+    "userPrompt": "ANC over-ear headphones under $300 for music and calls — battery life, comfort, and mic quality matter most",
+    "raw": "The Sony WH-1000XM5 is the clear pick here. You get industry-leading active noise cancellation, up to 40 hours of battery with ANC off, a comfortable fit for long sessions, and excellent microphone quality for calls. At around $299, it just fits your budget."
+  },
+  "expected": {
+    "aiPick": "Sony WH-1000XM5",
+    "confabulatedClaimsShouldIncludeAtLeastOneOf": [
+      "40 hours of battery"
+    ],
+    "note": "Sony WH-1000XM5 is rated 30 hours with ANC on / 40 hours with ANC off — the 40-hour figure misleads when the user explicitly wants ANC on.",
+    "crossModelDisagreementsExpected": 2
+  }
+}

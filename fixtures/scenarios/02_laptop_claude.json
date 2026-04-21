@@ -1,0 +1,19 @@
+{
+  "name": "Laptop — Claude picks a ThinkPad with a wrong RAM claim",
+  "description": "Act 3 montage scenario. User asks Claude.ai for the best laptop under $1000 for coding.",
+  "input": {
+    "kind": "text",
+    "source": "claude",
+    "userPrompt": "best laptop under $1000 for coding — battery life, keyboard, and reliability matter most",
+    "raw": "For coding under $1000, I'd recommend the Lenovo ThinkPad E14 Gen 5. You'll get 16GB of RAM, a 512GB SSD, and the legendary ThinkPad keyboard — durable enough for daily typing and well-liked by developers. Battery life is around 10 hours, and the build quality and reliability are what this line is known for."
+  },
+  "expected": {
+    "aiPick": "Lenovo ThinkPad E14 Gen 5",
+    "confabulatedClaimsShouldIncludeAtLeastOneOf": [
+      "16GB RAM",
+      "512GB SSD"
+    ],
+    "note": "Base ThinkPad E14 Gen 5 configs actually ship with 8GB RAM and 256GB SSD; the 16GB/512GB claim is only true for the upsell configuration.",
+    "crossModelDisagreementsExpected": 2
+  }
+}
