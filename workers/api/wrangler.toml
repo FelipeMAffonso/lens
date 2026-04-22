@@ -41,3 +41,12 @@ id = "49edb0b70c3945b3af1a89f7ba3d9ed4"
 [[r2_buckets]]
 binding = "LENS_R2"
 bucket_name = "lens-blobs"
+
+# F18 — Rate limit Durable Object
+[[durable_objects.bindings]]
+name = "RATE_LIMIT_DO"
+class_name = "RateLimitCounter"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["RateLimitCounter"]

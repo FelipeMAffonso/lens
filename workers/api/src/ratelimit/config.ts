@@ -1,0 +1,21 @@
+// F18 — per-route rate-limit policy.
+// Tiers: anon (unsigned-in) vs user (signed-in). Keys: `${tier}:${userId|anonUserId}:${route}`.
+
+export interface RateLimitPolicy {
+  route: string;
+  windowSeconds: number;
+  anonLimit: number;
+  userLimit: number;
+}
+
+export const POLICIES: RateLimitPolicy[] = [
+  { route: "audit", windowSeconds: 86_400, anonLimit: 30, userLimit: 500 },
+  { route: "score", windowSeconds: 86_400, anonLimit: 200, userLimit: 2000 },
+  { route: "voice", windowSeconds: 86_400, anonLimit: 20, userLimit: 200 },
+  { route: "review-scan", windowSeconds: 3600, anonLimit: 100, userLimit: 1000 },
+  { route: "passive-scan", windowSeconds: 3600, anonLimit: 60, userLimit: 600 },
+];
+
+export function findPolicy(route: string): RateLimitPolicy | undefined {
+  return POLICIES.find((p) => p.route === route);
+}

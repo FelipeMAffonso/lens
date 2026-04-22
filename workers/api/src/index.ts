@@ -23,6 +23,8 @@ import {
   handleWhoami as authHandleWhoami,
 } from "./auth/magic-link.js";
 import { authMiddleware, type AuthVars } from "./auth/middleware.js";
+import { rateLimitMiddleware } from "./ratelimit/middleware.js";
+export { RateLimitCounter } from "./ratelimit/counter-do.js";
 
 export interface Env {
   ANTHROPIC_API_KEY: string;
@@ -62,6 +64,7 @@ app.use(
   }),
 );
 app.use("*", authMiddleware);
+app.use("*", rateLimitMiddleware);
 
 app.get("/health", (c) =>
   c.json({
