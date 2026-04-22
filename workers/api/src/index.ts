@@ -27,6 +27,11 @@ import { rateLimitMiddleware } from "./ratelimit/middleware.js";
 import { handlePassiveScan } from "./passive-scan/handler.js";
 import { handlePriceHistory } from "./price-history/handler.js";
 import { handleTotalCost } from "./total-cost/handler.js";
+import {
+  handleRerank as handleValuesRerank,
+  handlePut as handleValuesPut,
+  handleGet as handleValuesGet,
+} from "./values/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -337,6 +342,11 @@ app.get("/price-history", (c) => handlePriceHistory(c as never));
 
 // S4-W24 — true-total-cost. Product URL + optional zip → itemized cost.
 app.get("/total-cost", (c) => handleTotalCost(c as never));
+
+// CJ-W46 — values overlay reranker + persistence.
+app.post("/values-overlay/rerank", (c) => handleValuesRerank(c as never));
+app.get("/values-overlay", (c) => handleValuesGet(c as never));
+app.put("/values-overlay", (c) => handleValuesPut(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these
