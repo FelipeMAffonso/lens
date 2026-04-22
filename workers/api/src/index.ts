@@ -32,6 +32,15 @@ import {
   handlePut as handleValuesPut,
   handleGet as handleValuesGet,
 } from "./values/handler.js";
+import {
+  handleScan as handleSubsScan,
+  handleList as handleSubsList,
+  handleUpcoming as handleSubsUpcoming,
+  handlePatch as handleSubsPatch,
+  handleDelete as handleSubsDelete,
+  handleCancelDraft as handleSubsCancelDraft,
+} from "./subs/handler.js";
+import "./subs/workflow.js"; // register subs.discover workflow
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -347,6 +356,14 @@ app.get("/total-cost", (c) => handleTotalCost(c as never));
 app.post("/values-overlay/rerank", (c) => handleValuesRerank(c as never));
 app.get("/values-overlay", (c) => handleValuesGet(c as never));
 app.put("/values-overlay", (c) => handleValuesPut(c as never));
+
+// S0-W5 — subscription discovery.
+app.post("/subs/scan", (c) => handleSubsScan(c as never));
+app.get("/subs", (c) => handleSubsList(c as never));
+app.get("/subs/upcoming", (c) => handleSubsUpcoming(c as never));
+app.patch("/subs/:id", (c) => handleSubsPatch(c as never));
+app.delete("/subs/:id", (c) => handleSubsDelete(c as never));
+app.post("/subs/:id/cancel-draft", (c) => handleSubsCancelDraft(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these

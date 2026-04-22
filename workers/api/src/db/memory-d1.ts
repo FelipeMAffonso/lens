@@ -228,7 +228,7 @@ export function createMemoryD1(): MemoryD1 {
 
   interface WherePart {
     col: string;
-    op: "=" | "!=" | "IS NULL" | "IS NOT NULL";
+    op: "=" | "!=" | "<" | ">" | "<=" | ">=" | "IS NULL" | "IS NOT NULL";
     kind: "param" | "null" | "literal";
     literal?: unknown;
     join: "AND" | "OR" | null;
@@ -248,6 +248,10 @@ export function createMemoryD1(): MemoryD1 {
       }
       const eqParam = tok.match(/^(\w+)\s*=\s*\?/);
       const neqParam = tok.match(/^(\w+)\s*!=\s*\?/);
+      const leParam = tok.match(/^(\w+)\s*<=\s*\?/);
+      const geParam = tok.match(/^(\w+)\s*>=\s*\?/);
+      const ltParam = tok.match(/^(\w+)\s*<\s*\?/);
+      const gtParam = tok.match(/^(\w+)\s*>\s*\?/);
       const eqNum = tok.match(/^(\w+)\s*=\s*(-?\d+(?:\.\d+)?)\s*$/);
       const neqNum = tok.match(/^(\w+)\s*!=\s*(-?\d+(?:\.\d+)?)\s*$/);
       const eqStr = tok.match(/^(\w+)\s*=\s*'([^']*)'\s*$/);
@@ -256,6 +260,10 @@ export function createMemoryD1(): MemoryD1 {
       const notNull = tok.match(/^(\w+)\s+IS\s+NOT\s+NULL$/i);
       if (eqParam) parts.push({ col: eqParam[1]!, op: "=", kind: "param", join });
       else if (neqParam) parts.push({ col: neqParam[1]!, op: "!=", kind: "param", join });
+      else if (leParam) parts.push({ col: leParam[1]!, op: "<=", kind: "param", join });
+      else if (geParam) parts.push({ col: geParam[1]!, op: ">=", kind: "param", join });
+      else if (ltParam) parts.push({ col: ltParam[1]!, op: "<", kind: "param", join });
+      else if (gtParam) parts.push({ col: gtParam[1]!, op: ">", kind: "param", join });
       else if (eqNum) parts.push({ col: eqNum[1]!, op: "=", kind: "literal", literal: Number(eqNum[2]!), join });
       else if (neqNum) parts.push({ col: neqNum[1]!, op: "!=", kind: "literal", literal: Number(neqNum[2]!), join });
       else if (eqStr) parts.push({ col: eqStr[1]!, op: "=", kind: "literal", literal: eqStr[2]!, join });
@@ -279,7 +287,29 @@ export function createMemoryD1(): MemoryD1 {
         else if (p.op === "IS NOT NULL") cellResult = row[p.col] != null;
         else {
           const expected = p.kind === "literal" ? p.literal : binds[bindIdx++];
-          cellResult = p.op === "=" ? row[p.col] === expected : row[p.col] !== expected;
+          const cell = row[p.col];
+          switch (p.op) {
+            case "=":
+              cellResult = cell === expected;
+              break;
+            case "!=":
+              cellResult = cell !== expected;
+              break;
+            case "<":
+              cellResult = cell != null && expected != null && (cell as number | string) < (expected as number | string);
+              break;
+            case ">":
+              cellResult = cell != null && expected != null && (cell as number | string) > (expected as number | string);
+              break;
+            case "<=":
+              cellResult = cell != null && expected != null && (cell as number | string) <= (expected as number | string);
+              break;
+            case ">=":
+              cellResult = cell != null && expected != null && (cell as number | string) >= (expected as number | string);
+              break;
+            default:
+              cellResult = false;
+          }
         }
         if (i === 0) result = cellResult;
         else if (p.join === "OR") result = result || cellResult;
