@@ -1,10 +1,22 @@
 # Lens — Vision
 
+## The one-line
+
+**Lens is the consumer's independent agent across every point of every purchase.**
+
+Every actor in the commerce stack has representation: retailers have pricing optimization software, brands have SEO firms, platforms have ad auctions, manufacturers have influencer networks, affiliates have tracking pixels, even consumer advocacy media has advertising revenue tied to the products they evaluate. The consumer alone walks into the transaction with no representation. Lens is the counter-party — the one agent in the stack whose only allegiance is to the consumer's welfare, structured so that no commission, no ad revenue, no partner relationship, no catalog ownership can bias its answer.
+
 ## The thesis
 
-Every major shopping recommendation surface on the internet — Amazon's organic ranking, Google Shopping, Apple's App Store, Rufus, ChatGPT Shopping, Gemini, Copilot, and every retailer's "you might also like" — optimizes for the platform's revenue, not the shopper's welfare. The mechanisms differ (commission, ad placement, engagement, retention), but the shape is the same: a ranking is delivered with confidence and no explanation. The shopper has no way to audit which criteria were weighted, how heavily, or why Product A appeared above Product B. When AI assistants entered this space they inherited the same opacity and added a new failure mode: a peer-reviewed study of 18 frontier models across 382,000 trials (Affonso et al., submitted to *Nature*, 2026) showed these models pick a non-optimal product roughly 21% of the time and confabulate attribute-based justifications in 86% of cases. The AI sounds confident, the prose is fluent, and the bias that drove the output is invisible.
+Every major shopping recommendation surface on the internet — Amazon's organic ranking, Google Shopping, Apple's App Store, Rufus, ChatGPT Shopping, Gemini, Copilot, Perplexity, and every retailer's "you might also like" — optimizes for the platform's revenue, not the shopper's welfare. The mechanisms differ (commission, ad placement, engagement, retention), but the shape is the same: a ranking is delivered with confidence and no explanation. The shopper has no way to audit which criteria were weighted, how heavily, or why Product A appeared above Product B.
 
-Lens exists to invert this. The shopper's own priorities become the scoring function. Every weight is exposed. Every claim is verified against a live source. Every alternative the AI did not mention is surfaced. If Lens is wrong, the shopper can see exactly which criterion caused it and adjust. This is the welfare fix to AI shopping delegation, and it is why the major assistants cannot build it themselves — transparent math on top of their recommendations would cannibalize the business model those recommendations serve.
+When AI assistants entered this space they inherited the same opacity and added a new failure mode: a peer-reviewed study of 18 frontier models across 382,000 trials (Affonso et al., submitted to *Nature*, 2026) showed these models pick a non-optimal product roughly 21% of the time and confabulate attribute-based justifications in 86% of cases. The AI sounds confident, the prose is fluent, and the bias that drove the output is invisible.
+
+AI recommendation bias is one specific harm. The underlying problem is larger. Across the full purchase lifecycle, consumers face systematic welfare erosion in every stage: confabulated claims during research, fake incentivized reviews during evaluation, algorithmic surveillance pricing at the moment of decision, dark patterns at checkout, hidden subscription traps after purchase, recall non-notification during ownership, un-claimed price-match refunds post-delivery, and lock-in costs across ecosystems. Each is documented in academic research, FTC findings, or consumer advocacy work. Each is a place where someone on the supply side has an agent working to extract value from the consumer, and the consumer has no corresponding agent working to protect their welfare.
+
+Lens exists to invert this. The shopper's own priorities become the scoring function. Every weight is exposed. Every claim is verified against a live source. Every alternative the platforms did not surface is visible. The three operations — **infer preferences, compute transparent math, verify against independent sources** — apply at every stage of every purchase, and Lens is the one tool that applies them consistently across the whole lifecycle.
+
+See `docs/CONSUMER_WORKFLOWS.md` for the full enumeration of 52 workflows across the nine-stage journey (need emergence, discovery, research, evaluation, decision, delivery, post-purchase, ongoing use, end of life). The spec-resistance paper is evidence that one specific harm is real and measurable; it is not the product. The product is the full surface.
 
 ## What Lens is
 
@@ -87,26 +99,27 @@ Lens uses five Opus 4.7 capabilities, each of which carries meaningful weight in
 | Opus 4.7 use (25%) | Five capabilities load-bearing: adaptive thinking, web search (2026), 1M context, vision, Managed Agents. Not decoration — each does work the product could not do without it. |
 | Depth & execution (20%) | Peer-reviewed research base; clean open-source TypeScript monorepo; CI green on every commit; deterministic fixtures for reproducibility; explicit threat model (ARCHITECTURE.md) showing what Lens does not claim. |
 
-## Product surface for the hackathon vs post-hackathon
+## Product surface — hackathon vs roadmap
 
-Six capabilities ship in the hackathon demo. Six more are roadmap.
+The full product surface is 52 workflows across the nine-stage customer journey, enumerated in `docs/CONSUMER_WORKFLOWS.md`. Eleven of those workflows ship in the hackathon demo; the other 41 live on the roadmap. The coherence argument is that all 52 workflows ride on the same three-operation spine (infer preferences, compute transparent math, verify against independent sources), which means adding any new workflow is a prompt and a panel rather than an architectural change.
 
 **Shipping by Sun Apr 26:**
-1. Preference extraction from typed prompts (Opus 4.7 adaptive thinking).
-2. Preference extraction from screenshots (Opus 4.7 vision).
-3. Transparent ranking with live utility sliders.
-4. Claim verification against the candidate catalog.
-5. Cross-assistant disagreement (3 providers via Managed Agent).
-6. Welfare-delta summary after any audit.
 
-**Roadmap (visible in VISION.md, not in the demo):**
+1. Preference elicitation from typed prompts (Workflow 8 — Opus 4.7 adaptive thinking).
+2. Spec-optimal discovery with live utility sliders (Workflow 10 — ★).
+3. Alternative surfacing at price tiers (Workflow 11).
+4. Cross-assistant disagreement via Managed Agent (Workflow 12 — ★ targets the $5k Managed Agents prize).
+5. AI recommendation audit (Workflow 14 — ★ demo headliner, the "gotcha" moment).
+6. Single-product URL evaluation (Workflow 15).
+7. Source provenance check (Workflow 16 — simplified).
+8. Claim verification against live sources (Workflow 20 — ★).
+9. Checkout-readiness summary (Workflow 28 — the unified audit card).
+10. Welfare-delta analytic (Workflow 32 — retention engine).
+11. Preference profile portability (Workflow 50 — localStorage).
 
-- Saved per-category preference profiles, exportable as JSON.
-- Price/availability/review verification layers (beyond spec-sheet claims).
-- Bias detection across brand-familiarity, recency, sycophancy, sponsorship-contamination.
-- Counterfactual explainers ("if you had weighted X higher, Y would have won").
-- Public aggregate ticker: which assistants systematically under-recommend in which categories, updated from anonymized audits.
-- Lens Score API — any publisher or retailer can embed an independent Lens score next to a product, generated on demand.
+**Roadmap (linked from README, not shipping this week):**
+
+The other 41 workflows cover review-authenticity analysis, dark-pattern detection, price-history and sale-legitimacy checks, true-total-cost reveal, data-disclosure audits, breach-history on sellers, scam / counterfeit detection, unboxing verification, warranty reality checks, recall monitoring, price-drop refund automation, returns-assistance drafting, subscription audits and cancellation drafting, firmware-update monitoring, lock-in cost tracking, repairability scoring, resale-value estimation, responsible-disposal routing, trade-in optimization, upgrade-timing analysis, values/ethics overlays, family/household profiles, gift-buying mode, group-buy pooling, the public disagreement ticker, and the Lens Score API for publishers. Each is enumerated with its Opus 4.7 capability dependency in `CONSUMER_WORKFLOWS.md`.
 
 ## The demo narrative
 

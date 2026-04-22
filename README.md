@@ -3,9 +3,11 @@
 [![CI](https://github.com/FelipeMAffonso/lens/actions/workflows/ci.yml/badge.svg)](https://github.com/FelipeMAffonso/lens/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Audit any AI shopping recommendation.** Paste an answer from ChatGPT, Claude, Gemini, or Amazon Rufus. Lens re-solves the problem with live product data, shows you the spec-optimal pick for your stated criteria, flags every attribute claim the AI got wrong, and shows where three other frontier models disagree.
+**Lens is the consumer's independent agent across every point of every purchase.** It turns what you care about into a transparent ranking of real products, verifies every claim the platforms make, catches recommendation bias from AI shopping assistants, flags dark patterns at checkout, analyzes review authenticity, tracks welfare-delta across your history, and does all of this with no commission, no ad revenue, no partner relationships, and no catalog ownership that would compromise the answer.
 
-Built with Claude Opus 4.7 for the *Built with Opus 4.7: a Claude Code Hackathon* (Apr 21-26, 2026). Track: **Build From What You Know**.
+Built with Claude Opus 4.7 for the *Built with Opus 4.7: a Claude Code Hackathon* (Apr 21-26, 2026). Track: **Build From What You Know**. Grounded in the *Nature*-submitted paper on AI shopping recommendation bias (Affonso et al., 2026 — 18 models, 382,000 trials).
+
+Eleven consumer welfare workflows ship in this week's demo. Forty-one more live on the roadmap. See [`docs/CONSUMER_WORKFLOWS.md`](docs/CONSUMER_WORKFLOWS.md) for the full customer-journey surface and [`docs/VISION.md`](docs/VISION.md) for the product thesis.
 
 ## Why this exists
 
