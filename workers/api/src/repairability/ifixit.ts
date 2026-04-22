@@ -33,11 +33,11 @@ export async function fetchIFixitRepairability(
   // Judge P0-2: read env.IFIXIT_API_KEY + env.LENS_KV directly so the env-drift
   // regression test (env.test.ts) covers the reference. Previously cast via
   // `as unknown as { ... }` which silently bypassed the drift guard.
-  const apiKey = env.IFIXIT_API_KEY;
+  const apiKey = env?.IFIXIT_API_KEY;
   if (!apiKey || apiKey.length === 0) return null;
 
   const cacheKey = `ifixit:${(req.brand ?? "").toLowerCase().trim()}|${req.productName.toLowerCase().trim()}`;
-  const kv = env.LENS_KV;
+  const kv = env?.LENS_KV;
   if (kv) {
     const cached = await kv.get(cacheKey);
     if (cached) {
