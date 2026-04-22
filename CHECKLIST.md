@@ -104,7 +104,7 @@
 | S6-W32 | Welfare-delta (server migrate) | 🟡 | 🔬 | |
 | S6-W33 | Recall monitoring | ✅ | `BLOCKS/S6-W33-recall-watch.md` | `35a9ca9` |
 | S6-W34 | Price-drop refund trigger | ✅ | `BLOCKS/S6-W34-price-drop-refund.md` | `d5b7a12` |
-| S6-W35 | Returns / warranty assistance | ⬜ | 🔬 | |
+| S6-W35 | Returns / warranty assistance | ✅ | `BLOCKS/S6-W35-returns-warranty.md` | `c6d7a05` |
 | S6-W36 | Subscription audit & cancel | ⬜ | 🔬 | |
 | S6-W37 | Performance tracking | ⬜ | 🔬 | |
 
