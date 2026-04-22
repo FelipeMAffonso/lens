@@ -81,7 +81,7 @@
 | # | Workflow | Status | File | Commit |
 |---|---|---|---|---|
 | S4-W21 | Price history + sale legitimacy | ⬜ | 🔬 | |
-| S4-W22 | Dark-pattern checkout scan (wire /passive-scan) | 🟡 | 🔬 | |
+| S4-W22 | Dark-pattern checkout scan (wire /passive-scan) | ✅ | `BLOCKS/S4-W22-passive-scan.md` | `59bd662` |
 | S4-W23 | Compatibility check | ⬜ | 🔬 | |
 | S4-W24 | True-total-cost reveal | ⬜ | 🔬 | |
 | S4-W25 | Data-disclosure audit | ⬜ | 🔬 | |
@@ -223,6 +223,7 @@
 - 2026-04-21: F1 ✅ — auth magic-link + anon LIVE. D1+KV+R2 provisioned on Cloudflare (via wrangler), JWT_SECRET set, migration 0001_auth.sql applied, 33 new tests (101 total green), backend endpoints + vanilla-TS frontend (session.ts, signin-modal.ts, callback.ts) + cross-site SameSite=None cookies. Live smoke confirmed. Commit `c27013f`.
 - 2026-04-21: F3 ✅ — workflow engine LIVE. Kahn's sort for parallel-batch DAG, typed event bus (12 events), per-node retry + timeout + abort-signal cancellation, D1 run log (migration 0002). Audit pipeline ported to 6-node diamond DAG. /workflows endpoint + ?legacy=1 fallback. 117/117 tests (16 new). Smoke: audit returns ULID 01KPSN... Commit `2a96393`.
 - 2026-04-22: F19 ✅ — secrets+env parity sweep: 3 new .dev.vars.example (cross-model, mcp, apps/web/.env.example), DEEPGRAM_API_KEY+LENS_COOKIE_DOMAIN added to API template, docs/secrets.md canonical reference, README install expanded. env.test.ts static drift-prevention test (5 tests) — every src env reference now provably documented. 301/301 tests green. Commit `750fffe`.
+- 2026-04-22: S4-W22 ✅ — /passive-scan Stage-2 dark-pattern verification LIVE. The Marriott worked example (VISION_COMPLETE.md §6) runs end-to-end: Stage-1 heuristic → per-host consent → Opus 4.7 verdict → FTC Junk Fees Rule (16 CFR Part 464) citation + $49/night fee breakdown + intervention pack. 6 new modules (types/prompt/verify/repo/handler + migration 0004), 40 new tests (341/341 total green), extension Stage-2 escalation wired, badges upgrade in place on confirm. Drive-by: MCP + email/oauth typecheck regressions fixed. Commit `59bd662`.
 
 ---
 
