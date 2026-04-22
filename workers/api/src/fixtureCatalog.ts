@@ -541,12 +541,22 @@ const CATALOG: Record<string, Candidate[]> = {
 export function lookupCatalog(category: string): Candidate[] {
   const key = category.trim().toLowerCase();
   if (CATALOG[key]) return deepCopy(CATALOG[key]);
-  // fuzzy: try contains
+  // Fuzzy match, but ONLY with a strong signal — both substrings must share
+  // a meaningful root. Previously this fell back to ESPRESSO_MACHINES for every
+  // uncovered category (Anker charger → espresso, women's underwear → espresso,
+  // literally anything → espresso). That was a category-switching bug pretending
+  // to be a demo convenience.
   for (const [k, v] of Object.entries(CATALOG)) {
-    if (key.includes(k) || k.includes(key)) return deepCopy(v);
+    // Require the shorter string be ≥ 4 chars and actually contained in the
+    // other — this guards against accidental 1-letter matches like "a" ⊂ "vacuum".
+    if (key.length >= 4 && k.length >= 4 && (key.includes(k) || k.includes(key))) {
+      return deepCopy(v);
+    }
   }
-  // default: return espresso so demos still produce something visible
-  return deepCopy(ESPRESSO_MACHINES);
+  // No match → return empty. The caller (search.ts) is responsible for falling
+  // back to live Opus web_search. Silent category substitution is worse than
+  // showing an honest "no candidates" + warning.
+  return [];
 }
 
 function deepCopy<T>(v: T): T {

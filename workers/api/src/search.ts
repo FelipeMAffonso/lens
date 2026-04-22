@@ -20,7 +20,7 @@ export async function searchCandidates(intent: UserIntent, env: Env): Promise<Ca
     const pack = findCategoryPack(intent.category);
     const skus = pack?.body.representativeSkus;
     if (skus && skus.length > 0) {
-      console.log("[search] using %d representativeSkus from pack %s", skus.length, pack.slug);
+      console.log("[search] fixture: using %d representativeSkus from pack %s", skus.length, pack.slug);
       return skus.map((s) => ({
         name: s.name,
         brand: s.brand,
@@ -34,8 +34,15 @@ export async function searchCandidates(intent: UserIntent, env: Env): Promise<Ca
         utilityBreakdown: [],
       }));
     }
-    // Fallback to legacy fixtureCatalog for categories without pack SKUs yet
-    return lookupCatalog(intent.category);
+    const legacy = lookupCatalog(intent.category);
+    if (legacy.length > 0) {
+      console.log("[search] fixture: using %d legacy catalog entries for %s", legacy.length, intent.category);
+      return legacy;
+    }
+    // Fixture missed — DO NOT silently return espresso. Fall through to live
+    // web_search so the user sees real products for their actual category,
+    // not a category-switching bait-and-switch.
+    console.warn("[search] fixture miss for category=%s — falling through to live web_search", intent.category);
   }
 
   // LIVE WEB SEARCH PATH

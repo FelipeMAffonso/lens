@@ -21,7 +21,13 @@ export async function rankCandidates(
     (c): c is Candidate => !!c && typeof c.name === "string" && c.name.trim().length > 0,
   );
   const VALID_DIRECTIONS = new Set(["higher_is_better", "lower_is_better", "target", "binary"] as const);
-  const DEFAULT_CRITERION = { name: "overall_quality", weight: 1, direction: "higher_is_better" as const };
+  type CriterionShape = {
+    name: string;
+    weight: number;
+    direction: "higher_is_better" | "lower_is_better" | "target" | "binary";
+    target: string | number | undefined;
+  };
+  const DEFAULT_CRITERION: CriterionShape = { name: "overall_quality", weight: 1, direction: "higher_is_better", target: undefined };
   const droppedCriteriaCount = { count: 0 };
   // Judge P1 #5, #6: coerce weight to a finite number + normalize direction. Drop
   // criteria where we cannot recover a sane shape.
@@ -46,7 +52,7 @@ export async function rankCandidates(
       const target = typeof rawTarget === "number" || typeof rawTarget === "string" ? rawTarget : undefined;
       return { name, weight, direction, target };
     })
-    .filter((c): c is { name: string; weight: number; direction: "higher_is_better" | "lower_is_better" | "target" | "binary"; target: string | number | undefined } => c !== null);
+    .filter((c): c is CriterionShape => c !== null);
   const fellBackToDefault = usableFromIntent.length === 0;
   const safeCriteria = fellBackToDefault ? [DEFAULT_CRITERION] : usableFromIntent;
   if (droppedCriteriaCount.count > 0 || fellBackToDefault) {
