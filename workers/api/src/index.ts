@@ -13,6 +13,9 @@ import { handleWebhook } from "./webhooks/handler.js";
 import { listWebhooks } from "./webhooks/registry.js";
 import { transcribe, TranscribeRequestSchema } from "./voice/transcribe.js";
 import { computeScore, EMBED_JS, ScoreQuerySchema } from "./public/score.js";
+import "./workflow/specs/ticker-aggregate.js"; // register cron-targeted workflow
+import { listTicker } from "./ticker/repo.js";
+import { handleAuthorize as gmailAuthorize, handleCallback as gmailCallback } from "./email/handler.js";
 import {
   handleRequest as authHandleRequest,
   handleSignout as authHandleSignout,
@@ -41,6 +44,9 @@ export interface Env {
   RESEND_FROM_EMAIL?: string;
   MAGIC_LINK_BASE_URL?: string;
   LENS_COOKIE_DOMAIN?: string;
+  GMAIL_OAUTH_CLIENT_ID?: string;
+  GMAIL_OAUTH_CLIENT_SECRET?: string;
+  GMAIL_OAUTH_REDIRECT_URI?: string;
 }
 
 const app = new Hono<{ Bindings: Env; Variables: AuthVars }>();
@@ -183,6 +189,29 @@ app.get("/embed.js", (c) => {
     },
   });
 });
+
+// F16 — Public disagreement ticker.
+app.get("/ticker", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const category = c.req.query("category");
+  const host = c.req.query("host");
+  const limit = Number(c.req.query("limit") ?? 50);
+  const opts: { category?: string; host?: string; limit?: number } = { limit };
+  if (category) opts.category = category;
+  if (host) opts.host = host;
+  const rows = await listTicker(d1 as never, opts);
+  return c.json({
+    kAnonymityMin: 5,
+    generatedAt: new Date().toISOString(),
+    bucketCount: rows.length,
+    buckets: rows,
+  });
+});
+
+// F12 — Gmail OAuth endpoints.
+app.get("/oauth/gmail/authorize", (c) => gmailAuthorize(c as never));
+app.get("/oauth/gmail/callback", (c) => gmailCallback(c as never));
 
 // F11 — voice transcription surface.
 app.post("/voice/transcribe", async (c) => {
