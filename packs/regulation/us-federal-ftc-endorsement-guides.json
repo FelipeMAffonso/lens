@@ -1,0 +1,37 @@
+{
+  "slug": "regulation/us-federal-ftc-endorsement-guides",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "FTC Endorsement Guides",
+  "summary": "Federal guidance requiring disclosure of material connections between endorsers and advertisers.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC Guides Concerning the Use of Endorsements and Testimonials in Advertising (16 CFR Part 255) were revised in 2023 to strengthen disclosure requirements for influencer marketing and affiliate content.", "sourceUrl": "https://www.ftc.gov/business-guidance/resources/ftcs-endorsement-guides-what-people-are-asking", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "us-federal",
+    "productCategories": [],
+    "businessScope": { "appliesTo": ["advertising", "endorsements", "influencer-content", "affiliate-content"] }
+  },
+  "body": {
+    "officialName": "FTC Guides Concerning the Use of Endorsements and Testimonials in Advertising",
+    "citation": "16 CFR Part 255",
+    "status": "in-force",
+    "effectiveDate": "2023-06-29",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "Requires clear and conspicuous disclosure of any material connection between an endorser and a brand — including monetary payments, free products, employment relationships, or affiliate commissions. Applies to social media, blog posts, video content, and customer reviews.",
+    "userRightsPlainLanguage": "If an influencer, reviewer, or 'expert' recommends a product but was paid, given the product free, or earns a commission from your purchase, they are required to tell you so clearly. Tiny hashtags buried in a bio don't count. If you don't see a clear disclosure, the content is likely violating the FTC Endorsement Guides.",
+    "enforcementSignals": [
+      { "action": "file-ftc-complaint", "url": "https://reportfraud.ftc.gov/", "description": "Report undisclosed sponsored content to the FTC." }
+    ],
+    "evidenceRefs": ["E1"]
+  }
+}

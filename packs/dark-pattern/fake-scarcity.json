@@ -1,0 +1,32 @@
+{
+  "slug": "dark-pattern/fake-scarcity",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Fake Scarcity",
+  "summary": "Invented or exaggerated low-inventory signals to pressure the user into buying.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Fake scarcity is listed in Brignull's canonical deceptive-patterns taxonomy under Pressure Tactics.", "sourceUrl": "https://www.deceptive.design/types/fake-scarcity", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["product", "cart", "checkout"] },
+  "body": {
+    "canonicalName": "Fake scarcity",
+    "brignullId": "fake-scarcity",
+    "description": "Messages like 'Only 3 left in stock!', 'Almost sold out!', or 'Hurry — limited supply' when stock is actually plentiful or the claim is unverifiable (E1).",
+    "severity": "deceptive",
+    "illegalInJurisdictions": [],
+    "detectionHeuristics": [
+      { "kind": "text-match", "patterns": ["only \\d+ (left|remaining)", "almost sold out", "limited supply", "going fast", "\\d+ sold in the last"], "caseSensitive": false },
+      { "kind": "dom", "selector": ".stock-counter, [data-stock], .urgency-badge, .scarcity-indicator" }
+    ],
+    "llmVerifyPrompt": "Given a product page with scarcity messaging, evaluate whether the scarcity claim is (a) verifiable (specific SKU in stock count), (b) persistent across visits (seen on every pageview, therefore likely not real-time), or (c) generic urgency copy not tied to inventory. Return verdict: real | persistent-fake | unverifiable.",
+    "remediation": "Warn the user that scarcity messaging is often theatrical. If the same message appears on repeat visits across days, flag as persistent-fake.",
+    "regulatoryLinks": [],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

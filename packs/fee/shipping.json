@@ -1,0 +1,36 @@
+{
+  "slug": "fee/shipping",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Shipping and handling fees",
+  "summary": "Shipping, handling, and delivery fees added at cart or checkout.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Shipping charges are explicitly excluded from the FTC Junk Fees Rule's Total Price requirement; they may be disclosed separately.", "sourceUrl": "https://www.ftc.gov/system/files/ftc_gov/pdf/r207011_udf_rule_2024_final_0.pdf", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "categoryContext": [], "pageTypes": ["cart", "checkout", "product"] },
+  "body": {
+    "canonicalName": "Shipping fee",
+    "description": "Fees for delivery of a physical product. Can be genuine cost pass-through, padded markup, or a dark-pattern lever used to raise the total after the user has committed to the purchase.",
+    "typicalRange": { "min": 0, "max": 50, "unit": "USD", "frequency": "per-order" },
+    "identificationSignals": [
+      { "kind": "text-match", "patterns": ["shipping", "delivery fee", "handling", "freight"], "caseSensitive": false },
+      { "kind": "dom", "selector": ".shipping-fee, .delivery-charge, [data-shipping]" }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "us-federal", "regulationSlug": null, "requirement": "Shipping not required in FTC Junk Fees Total Price (E1); may be disclosed separately." },
+      { "jurisdiction": "eu", "regulationSlug": "regulation/eu-digital-services-act", "requirement": "Must be disclosed before checkout under Consumer Rights Directive; hidden shipping is a UCPD unfair practice." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "sometimes",
+      "typicalSuccessRate": 0.3,
+      "script": "I'd like to know if you can waive the shipping fee on this order. Many of your competitors offer free shipping on orders over [X]. If not, I'll need to reconsider the purchase."
+    },
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "slug": "intervention/surface-and-warn",
+  "type": "intervention",
+  "version": "1.0.0",
+  "name": "Surface and warn",
+  "summary": "Display a visible badge/overlay on the page alerting the user to a detected issue, without blocking action.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "The Dapde Pattern Highlighter pioneered the 'highlight but don't block' model for dark-pattern interventions.", "sourceUrl": "https://github.com/Dapde/Pattern-Highlighter", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "triggerTypes": ["dark-pattern-detected", "fee-detected", "confabulation-flagged"] },
+  "body": {
+    "canonicalName": "Surface and warn",
+    "description": "Display an inline badge, overlay, or sidebar alert on the page when an issue is detected. Does NOT block the user's action. User remains in control; Lens's role is to inform. Model inspired by Dapde Pattern Highlighter (E1).",
+    "executionType": "surface-warn",
+    "consentTier": "explicit-one-time",
+    "prerequisites": [
+      { "kind": "extension-installed", "description": "User must have the Lens extension installed and granted page access." }
+    ],
+    "template": {
+      "format": "inline-badge",
+      "bodyTemplate": "⚠ Lens detected: {patternName}. {shortExplanation}. {primarySourceLink}"
+    },
+    "successSignals": [
+      { "kind": "user-viewed-warning", "description": "Telemetry: user hovered on or clicked the badge." }
+    ],
+    "failureFallback": null,
+    "regulatoryBasis": []
+  }
+}

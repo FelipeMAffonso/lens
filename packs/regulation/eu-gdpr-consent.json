@@ -1,0 +1,38 @@
+{
+  "slug": "regulation/eu-gdpr-consent",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "GDPR Consent Requirements (Article 7)",
+  "summary": "EU GDPR requirement that consent to data processing be freely given, specific, informed, and unambiguous.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "GDPR Article 7 and Recital 32 require consent to be freely given, specific, informed, and unambiguous, with an affirmative action (pre-ticked boxes are not valid consent).", "sourceUrl": "https://gdpr-info.eu/art-7-gdpr/", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "European Data Protection Board (EDPB) Guidelines 05/2020 on consent clarify that cookie walls, pre-ticked consent boxes, and consent-by-continued-browsing are not valid under GDPR.", "sourceUrl": "https://edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-052020-consent-under-regulation-2016679_en", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "eu",
+    "productCategories": [],
+    "businessScope": { "appliesTo": ["data-collection", "cookies", "tracking"], "userResidency": "eu-uk-eea" }
+  },
+  "body": {
+    "officialName": "General Data Protection Regulation (Regulation (EU) 2016/679), Article 7 — Conditions for Consent",
+    "citation": "Regulation (EU) 2016/679, Art. 7; Recital 32",
+    "status": "in-force",
+    "effectiveDate": "2018-05-25",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "Consent must be freely given, specific, informed, and unambiguous, indicated by an affirmative action. Pre-ticked boxes, consent bundling, and consent-by-continued-use are explicitly invalid (E1, E2).",
+    "userRightsPlainLanguage": "If you're in the EU, UK, or EEA, any website that asks you to 'accept cookies' or share your data must make consent a clear opt-in. Pre-ticked boxes don't count. You must be able to reject cookies as easily as you can accept them. You can withdraw consent at any time, and withdrawing must be as easy as giving it.",
+    "enforcementSignals": [
+      { "action": "national-data-protection-authority", "description": "Each EU member state has a national Data Protection Authority that accepts GDPR complaints." }
+    ],
+    "evidenceRefs": ["E1", "E2"]
+  }
+}

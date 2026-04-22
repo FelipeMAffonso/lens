@@ -1,0 +1,31 @@
+{
+  "slug": "dark-pattern/preselection",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Preselection",
+  "summary": "Default options pre-checked in favor of the business rather than the user.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Preselection is listed in Brignull's canonical deceptive-patterns taxonomy.", "sourceUrl": "https://www.deceptive.design/types/preselection", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["checkout", "signup", "settings", "cookie-banner"] },
+  "body": {
+    "canonicalName": "Preselection",
+    "brignullId": "preselection",
+    "description": "A checkbox, radio, or toggle is defaulted to the option that benefits the business (accept cookies, subscribe to newsletter, enable marketing, opt-in to data sharing, add protection plan) — relying on inattention to skip past (E1).",
+    "severity": "manipulative",
+    "illegalInJurisdictions": ["regulation/eu-gdpr-consent"],
+    "detectionHeuristics": [
+      { "kind": "dom", "selector": "input[type='checkbox'][checked], input[type='radio'][checked]", "description": "Pre-checked controls — verify whether the associated option advantages the business." }
+    ],
+    "llmVerifyPrompt": "For each pre-checked checkbox or radio, identify who benefits from the default (user, business, both, neither). Flag those benefiting the business.",
+    "remediation": "Highlight all pre-checked options. Recommend the user explicitly reconsider each before submitting.",
+    "regulatoryLinks": ["regulation/eu-gdpr-consent"],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

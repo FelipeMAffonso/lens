@@ -1,0 +1,34 @@
+{
+  "slug": "dark-pattern/disguised-ads",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Disguised Ads",
+  "summary": "Advertising dressed up as content, native UI elements, or editorial recommendations.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Disguised ads is listed in Brignull's canonical deceptive-patterns taxonomy.", "sourceUrl": "https://www.deceptive.design/types/disguised-ads", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "FTC Endorsement Guides require disclosure of material connections between endorsers and advertisers, and treat undisclosed sponsored content as deceptive.", "sourceUrl": "https://www.ftc.gov/business-guidance/resources/ftcs-endorsement-guides-what-people-are-asking", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["article", "search-results", "product-listing", "social-media", "video"] },
+  "body": {
+    "canonicalName": "Disguised ads",
+    "brignullId": "disguised-ads",
+    "description": "The user believes they are clicking editorial content or a native UI element, but the link is paid placement. Common forms: 'sponsored' rows hidden in organic search results, affiliate links not marked, paid partnerships in review articles without disclosure (E1, E2).",
+    "severity": "deceptive",
+    "illegalInJurisdictions": ["regulation/us-federal-ftc-endorsement-guides"],
+    "detectionHeuristics": [
+      { "kind": "text-match", "patterns": ["sponsored", "promoted", "ad", "#ad", "partnership"], "caseSensitive": false, "location": "near-content" },
+      { "kind": "dom", "selector": "[data-ad], [data-sponsored], .ad-label", "description": "Many sites mark ads in DOM attributes even when visual distinction is minimal." },
+      { "kind": "link-analysis", "trigger": "utm_source-or-affiliate-parameter-present", "description": "Outbound links containing affiliate codes (amzn.to, aff=, utm_medium=affiliate) indicate paid relationship." }
+    ],
+    "llmVerifyPrompt": "Given the page content and outbound link URLs, classify each product mention as (a) organic editorial, (b) clearly-disclosed sponsorship, or (c) undisclosed sponsored content. Check for affiliate parameters in outbound URLs.",
+    "remediation": "Label each product mention with its sponsorship status. If undisclosed, warn the user and flag the source for downranking in future Lens source-authority weighting.",
+    "regulatoryLinks": ["regulation/us-federal-ftc-endorsement-guides"],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

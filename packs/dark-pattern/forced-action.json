@@ -1,0 +1,32 @@
+{
+  "slug": "dark-pattern/forced-action",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Forced Action",
+  "summary": "Requiring the user to complete an unwanted action as a condition of completing the wanted one.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Forced action is listed in Brignull's canonical deceptive-patterns taxonomy.", "sourceUrl": "https://www.deceptive.design/types/forced-action", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["checkout", "signup", "download", "paywall"] },
+  "body": {
+    "canonicalName": "Forced action",
+    "brignullId": "forced-action",
+    "description": "The user wants to do X (buy a product, read an article, download software) but is required to do Y first (create an account, give email, install an extension, take a survey) as an enforced gate (E1).",
+    "severity": "manipulative",
+    "illegalInJurisdictions": [],
+    "detectionHeuristics": [
+      { "kind": "dom", "selector": "form[data-required], .signup-required, .paywall" },
+      { "kind": "text-match", "patterns": ["create an account to continue", "sign up to", "enter your email to", "complete survey to access"], "caseSensitive": false }
+    ],
+    "llmVerifyPrompt": "Given the user's stated goal and the page's gating requirements, determine whether the page requires the user to perform an unrelated action (account creation, email submission, survey completion) to access the intended functionality. Return: {hasForcedAction: boolean, requiredGate: string, originalUserGoal: string}.",
+    "remediation": "Warn the user. If the gate is email-only, recommend a privacy-protecting alternative (masked email, temporary inbox).",
+    "regulatoryLinks": [],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

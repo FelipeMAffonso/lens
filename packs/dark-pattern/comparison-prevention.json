@@ -1,0 +1,32 @@
+{
+  "slug": "dark-pattern/comparison-prevention",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Comparison Prevention",
+  "summary": "Features and prices combined or described in ways that prevent side-by-side comparison.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Comparison prevention is listed in Brignull's canonical deceptive-patterns taxonomy.", "sourceUrl": "https://www.deceptive.design/types/comparison-prevention", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["product", "pricing", "plans-comparison"] },
+  "body": {
+    "canonicalName": "Comparison prevention",
+    "brignullId": "comparison-prevention",
+    "description": "Features and prices are bundled into different combinations across tiers so that no two plans are directly comparable. Alternatively, similar products on the same site are listed with different attribute sets that prevent the user from matching like-to-like (E1).",
+    "severity": "manipulative",
+    "illegalInJurisdictions": [],
+    "detectionHeuristics": [
+      { "kind": "dom", "selector": ".pricing-table, .plan-comparison, [data-plan]", "description": "Multiple offered plans on one page." },
+      { "kind": "structural", "trigger": "pricing-tables-where-rows-differ-across-columns", "description": "In a pricing grid, the set of features listed under Plan A is not the same set listed under Plan B." }
+    ],
+    "llmVerifyPrompt": "Given the pricing or comparison page content, check whether every plan/product is described along the same feature axes. Return {allUseSameAxes: boolean, missingFeatureAxes: [{plan, missingFeature}], severityScore: 0..1}.",
+    "remediation": "Reconstruct a unified comparison table with all axes filled in; mark missing data as 'not disclosed'.",
+    "regulatoryLinks": [],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

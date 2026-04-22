@@ -1,0 +1,42 @@
+{
+  "slug": "intervention/file-ftc-complaint",
+  "type": "intervention",
+  "version": "1.0.0",
+  "name": "File FTC consumer complaint",
+  "summary": "Draft and route a complaint to the FTC's reportfraud.ftc.gov intake.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "The FTC operates reportfraud.ftc.gov as its primary consumer-complaint intake for deceptive business practices.", "sourceUrl": "https://reportfraud.ftc.gov/", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "triggerTypes": ["dark-pattern-detected-severity-deceptive", "fake-review-detected", "junk-fee-violation", "user-initiated-complaint"] },
+  "body": {
+    "canonicalName": "File FTC consumer complaint",
+    "description": "Draft a complaint with the user's details, the offending business, the alleged violation, and the supporting evidence Lens captured (screenshots, URLs, timestamps). User submits via reportfraud.ftc.gov (E1).",
+    "executionType": "escalate-regulator",
+    "consentTier": "explicit-per-action",
+    "prerequisites": [
+      { "kind": "violation-captured", "description": "Lens has captured evidence of the alleged violation (screenshot, URL, timestamp)." },
+      { "kind": "user-identity-provided", "description": "User has provided name and email (FTC requires for intake)." }
+    ],
+    "template": {
+      "format": "ftc-complaint-form",
+      "fields": {
+        "business_name": "{business_name}",
+        "website": "{url}",
+        "category": "{complaint_category}",
+        "description": "On {date}, I {interaction_summary}. The business engaged in {alleged_violation} as evidenced by the attached {evidence_type}. The applicable regulation is {regulation_citation}. I request FTC investigation.",
+        "evidence_attachments": "{screenshots_and_urls}"
+      }
+    },
+    "successSignals": [
+      { "kind": "ftc-confirmation-email", "description": "FTC acknowledges receipt." }
+    ],
+    "failureFallback": null,
+    "regulatoryBasis": ["regulation/us-federal-ftc-junk-fees", "regulation/us-federal-ftc-fake-reviews", "regulation/us-federal-ftc-endorsement-guides"]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "slug": "dark-pattern/fake-social-proof",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Fake Social Proof",
+  "summary": "Fabricated popularity signals — fake '17 people viewing', manufactured testimonials, bot-generated reviews.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Fake social proof is listed in Brignull's canonical deceptive-patterns taxonomy.", "sourceUrl": "https://www.deceptive.design/types/fake-social-proof", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "FTC issued a final Rule on the Use of Consumer Reviews and Testimonials (16 CFR Part 465) effective October 21 2024, which prohibits fake reviews and testimonials.", "sourceUrl": "https://www.ftc.gov/news-events/news/press-releases/2024/08/federal-trade-commission-announces-final-rule-banning-fake-reviews-testimonials", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["product", "checkout", "cart", "landing"] },
+  "body": {
+    "canonicalName": "Fake social proof",
+    "brignullId": "fake-social-proof",
+    "description": "Fabricated popularity signals: '17 people are viewing this', 'Sarah from Ohio just bought this', undisclosed incentivized reviews, or reviews with temporal/linguistic homogeneity indicating bulk generation (E1). Fake reviews explicitly prohibited by the FTC Fake Reviews Rule effective October 2024 (E2).",
+    "severity": "deceptive",
+    "illegalInJurisdictions": ["regulation/us-federal-ftc-fake-reviews"],
+    "detectionHeuristics": [
+      { "kind": "text-match", "patterns": ["\\d+ people are viewing", "\\w+ from \\w+ just (bought|purchased)", "\\d+ (viewing|looking at) (this|right now)"], "caseSensitive": false },
+      { "kind": "review-analysis", "trigger": "temporal-clustering OR language-homogeneity", "description": "Reviews posted within narrow windows, or reviews sharing distinctive phrasing, indicate potential fabrication." },
+      { "kind": "dom", "selector": ".social-proof-notification, .recent-activity, [data-viewer-count]" }
+    ],
+    "llmVerifyPrompt": "Given the page's social-proof elements and (if provided) the review corpus, assess: (1) Are viewer/buyer notifications verifiable or likely theatrical? (2) Do reviews cluster temporally in a way indicating bulk generation? (3) Are there language-homogeneity signals? Return {fakeSocialProofScore: 0..1, signalsFound: []}.",
+    "remediation": "Warn the user. For reviews specifically, trigger Workflow 17 (review authenticity analysis) for a detailed verdict.",
+    "regulatoryLinks": ["regulation/us-federal-ftc-fake-reviews"],
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/file-ftc-complaint"]
+  }
+}

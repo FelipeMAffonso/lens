@@ -1,0 +1,32 @@
+{
+  "slug": "dark-pattern/nagging",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Nagging",
+  "summary": "Persistent interruptions requesting the user to perform a secondary action the user has already declined.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Nagging is listed in Brignull's canonical deceptive-patterns taxonomy under Obstruction.", "sourceUrl": "https://www.deceptive.design/types/nagging", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["any"] },
+  "body": {
+    "canonicalName": "Nagging",
+    "brignullId": "nagging",
+    "description": "Repeated modals, push notifications, or in-page prompts asking the user to subscribe, enable notifications, install the app, or upgrade — after the user has already dismissed one or more (E1).",
+    "severity": "nuisance",
+    "illegalInJurisdictions": [],
+    "detectionHeuristics": [
+      { "kind": "behavioral", "trigger": "modal-reappears-after-dismiss", "description": "Track modal impressions per session; flag when same modal-id fires after a dismiss event." },
+      { "kind": "dom", "selector": ".modal, .popup, .overlay, [role='dialog']" }
+    ],
+    "llmVerifyPrompt": "Given a session's modal history (modal_id, dismissed_at timestamps), identify nagging patterns: same modal_id firing after an explicit dismiss. Return: {naggingModals: [{modalId, timesFired, timesDismissed}]}.",
+    "remediation": "Offer the user a one-click 'dismiss all nags from this site for 30 days' action (extension feature, v0.2).",
+    "regulatoryLinks": [],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "slug": "dark-pattern/fake-urgency",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Fake Urgency",
+  "summary": "Countdown timers, 'offer expires soon' messaging, and time-pressure tactics not tied to a real deadline.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Fake urgency is listed in Brignull's canonical deceptive-patterns taxonomy under Pressure Tactics.", "sourceUrl": "https://www.deceptive.design/types/fake-urgency", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["product", "cart", "checkout", "landing"] },
+  "body": {
+    "canonicalName": "Fake urgency",
+    "brignullId": "fake-urgency",
+    "description": "Countdown timers that reset when the page is reloaded, 'deal ends in 2 hours' claims that renew daily, 'flash sale' pricing that's actually the standard price — all designed to pressure the user into buying before the fake window closes (E1).",
+    "severity": "deceptive",
+    "illegalInJurisdictions": [],
+    "detectionHeuristics": [
+      { "kind": "dom", "selector": ".countdown-timer, [data-countdown], .deal-timer, [class*=countdown]" },
+      { "kind": "text-match", "patterns": ["ends in \\d+:\\d+", "hurry.*offer", "flash sale", "deal expires", "limited time only"], "caseSensitive": false },
+      { "kind": "behavioral", "trigger": "countdown-resets-on-reload OR countdown-resets-daily", "description": "Record the timer's displayed value; reload and compare. Persistent reset across reloads indicates theater." }
+    ],
+    "llmVerifyPrompt": "Given a product page with urgency messaging, classify the urgency as (a) real (tied to a stated end datetime that would fail a reasonable disclosure test), (b) rolling-reset (countdown resets on reload / daily), or (c) generic urgency copy without a timer. Return verdict.",
+    "remediation": "Warn the user that urgency framing is often theatrical. Capture the original price for the price-history pack (when available) to check whether the 'deal' price is really a discount.",
+    "regulatoryLinks": [],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

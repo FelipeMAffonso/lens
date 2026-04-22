@@ -1,0 +1,37 @@
+{
+  "slug": "fee/subscription-auto-renewal",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Subscription auto-renewal charge",
+  "summary": "Recurring billing that continues until the user affirmatively cancels.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "California SB-313 requires online-signup subscriptions to permit online cancellation.", "sourceUrl": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=17602.&lawCode=BPC", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "The federal FTC Click-to-Cancel Rule was vacated by the 8th Circuit on July 8 2025; state-level protections remain in force.", "sourceUrl": "https://briefings.brownrudnick.com/post/102kr1z/us-appeals-court-blocks-ftcs-click-to-cancel-subscriptions-rule-what-your-bus", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "categoryContext": [], "pageTypes": ["signup", "cart", "account"] },
+  "body": {
+    "canonicalName": "Subscription auto-renewal",
+    "description": "A charge that recurs on a periodic basis (monthly, annually) until the user affirmatively cancels. The user's explicit consent at signup is required; the cancellation mechanism must match the signup channel in states with click-to-cancel laws (E1).",
+    "typicalRange": { "min": 5, "max": 200, "unit": "USD", "frequency": "monthly-or-annual" },
+    "identificationSignals": [
+      { "kind": "text-match", "patterns": ["auto-renew", "automatically renews", "recurring billing", "subscription", "renews each"], "caseSensitive": false },
+      { "kind": "dom", "selector": "input[type='checkbox'][name*='renew']:checked, input[type='checkbox'][name*='subscription']:checked" }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "us-state/ca", "regulationSlug": "regulation/us-ca-sb-313-click-to-cancel", "requirement": "Must be disclosed before charge; cancellation channel must match signup channel (E1)." },
+      { "jurisdiction": "us-federal", "regulationSlug": "regulation/us-federal-ftc-click-to-cancel-vacated", "requirement": "Federal Click-to-Cancel Rule vacated July 2025 (E2). No current federal requirement." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "rarely",
+      "typicalSuccessRate": 0.15,
+      "script": "I want to cancel the auto-renewal on my subscription. Per [applicable state law], I'm entitled to cancel through the same channel I signed up through. Please confirm cancellation in writing."
+    },
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/draft-magnuson-moss-return"]
+  }
+}

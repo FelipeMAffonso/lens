@@ -1,0 +1,34 @@
+{
+  "slug": "fee/resort-fee",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Resort / destination fee",
+  "summary": "Mandatory lodging fee added at checkout purportedly for resort amenities.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC Junk Fees Rule (effective May 12, 2025) requires short-term lodging to include resort fees in the advertised Total Price.", "sourceUrl": "https://www.ftc.gov/system/files/ftc_gov/pdf/r207011_udf_rule_2024_final_0.pdf", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "categoryContext": ["hotels", "short-term-lodging", "travel"], "pageTypes": ["booking", "checkout"] },
+  "body": {
+    "canonicalName": "Resort fee (destination fee, amenity fee, facility fee)",
+    "description": "Mandatory surcharge added to hotel bookings purportedly for amenities (Wi-Fi, pool, gym, newspapers) often priced $20-50/night. Explicitly covered by the FTC Junk Fees Rule's short-term-lodging scope (E1); must now be included in the advertised Total Price.",
+    "typicalRange": { "min": 15, "max": 75, "unit": "USD", "frequency": "per-night" },
+    "identificationSignals": [
+      { "kind": "text-match", "patterns": ["resort fee", "destination fee", "amenity fee", "facility fee", "urban fee"], "caseSensitive": false }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "us-federal", "regulationSlug": "regulation/us-federal-ftc-junk-fees", "requirement": "Must be included in Total Price since May 12, 2025 (E1)." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "sometimes",
+      "typicalSuccessRate": 0.25,
+      "script": "I see a resort fee on my booking. I don't intend to use [Wi-Fi / pool / gym]. Would you waive the fee, or itemize which services it covers?"
+    },
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/file-ftc-complaint"]
+  }
+}

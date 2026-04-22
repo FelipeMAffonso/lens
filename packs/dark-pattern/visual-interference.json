@@ -1,0 +1,32 @@
+{
+  "slug": "dark-pattern/visual-interference",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Visual Interference",
+  "summary": "Visual design choices that hide, obscure, or make it hard to perceive information the user needs.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Visual interference is listed in Brignull's canonical deceptive-patterns taxonomy.", "sourceUrl": "https://www.deceptive.design/types/visual-interference", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["any"] },
+  "body": {
+    "canonicalName": "Visual interference",
+    "brignullId": "visual-interference",
+    "description": "Critical information — total price, cancellation options, data-sharing details — rendered in tiny font, low-contrast color, or hidden behind expandable sections. Buttons for business-preferred actions made visually prominent while user-preferred actions are minimized (E1).",
+    "severity": "manipulative",
+    "illegalInJurisdictions": [],
+    "detectionHeuristics": [
+      { "kind": "css-analysis", "trigger": "text-contrast-below-WCAG-AA OR font-size-below-12px-on-disclosure", "description": "Run axe-core-style accessibility checks on the page; flag disclosure text failing AA contrast or under 12px." },
+      { "kind": "visual-hierarchy", "trigger": "cancel-button-significantly-less-prominent-than-accept-button" }
+    ],
+    "llmVerifyPrompt": "Given the page's visual hierarchy, identify any disclosure text or user-preferred-action controls rendered in ways that reduce perceptibility (low contrast, small size, collapsed sections, off-screen). Return {violations: [{element, issue}]}.",
+    "remediation": "Surface the hidden disclosure in plain view. Summarize its content for the user.",
+    "regulatoryLinks": [],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "slug": "fee/ink-subscription-entanglement",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Printer ink subscription entanglement",
+  "summary": "Printers and similar appliances locked to proprietary consumable subscriptions.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "HP Instant Ink and similar printer subscription services use firmware locks to prevent non-subscription cartridges from being used in subscription-enrolled printers. Multiple class-action lawsuits (2023-2024) alleged this violates Magnuson-Moss tie-in prohibitions.", "sourceUrl": "https://www.theverge.com/2024/1/20/24045136/hp-instant-ink-class-action-lawsuit-ink-firmware-update", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "Magnuson-Moss 16 CFR 700.10 prohibits conditioning warranty coverage on use of branded parts unless the manufacturer provides those parts free.", "sourceUrl": "https://www.ecfr.gov/current/title-16/chapter-I/subchapter-G/part-700", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "categoryContext": ["printers", "coffee-makers", "appliances"], "pageTypes": ["product", "signup"] },
+  "body": {
+    "canonicalName": "Consumable-subscription entanglement",
+    "description": "An appliance that functions as designed only when paired with a manufacturer's proprietary consumable subscription. Firmware locks, DRM'd cartridges, or restricted warranty terms make third-party alternatives impossible or risky. Potential Magnuson-Moss tie-in violation (E2).",
+    "typicalRange": { "min": 3, "max": 60, "unit": "USD", "frequency": "monthly" },
+    "identificationSignals": [
+      { "kind": "text-match", "patterns": ["instant ink", "brew ID", "drink ID", "auto-refill", "proprietary cartridge", "only works with genuine"], "caseSensitive": false }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "us-federal", "regulationSlug": "regulation/us-federal-magnuson-moss", "requirement": "Warranty cannot be conditioned on proprietary-consumable use unless manufacturer provides free (E2)." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "not-typically",
+      "typicalSuccessRate": 0.05,
+      "script": "Please confirm in writing that use of third-party compatible cartridges will not void my warranty. Under the Magnuson-Moss Warranty Act, you cannot condition warranty coverage on the use of branded consumables unless you provide them free."
+    },
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/draft-magnuson-moss-return"]
+  }
+}

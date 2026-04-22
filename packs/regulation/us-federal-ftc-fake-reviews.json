@@ -1,0 +1,38 @@
+{
+  "slug": "regulation/us-federal-ftc-fake-reviews",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "FTC Rule on the Use of Consumer Reviews and Testimonials (Fake Reviews Rule)",
+  "summary": "Federal rule prohibiting fake reviews, review suppression, and undisclosed insider reviews.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC finalized the Fake Reviews Rule on August 14, 2024, effective October 21, 2024.", "sourceUrl": "https://www.ftc.gov/news-events/news/press-releases/2024/08/federal-trade-commission-announces-final-rule-banning-fake-reviews-testimonials", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "The rule specifically prohibits: (1) AI-generated fake reviews, (2) buying positive or negative reviews, (3) insider reviews without disclosure, (4) review suppression via legal threats or intimidation, (5) company-controlled review websites appearing independent, (6) fake indicators of social media influence.", "sourceUrl": "https://www.ftc.gov/legal-library/browse/rules/rule-use-consumer-reviews-testimonials-16-cfr-part-465", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "us-federal",
+    "productCategories": [],
+    "businessScope": { "appliesTo": ["product-reviews", "testimonials", "social-proof"] }
+  },
+  "body": {
+    "officialName": "Rule on the Use of Consumer Reviews and Testimonials",
+    "citation": "16 CFR Part 465",
+    "status": "in-force",
+    "effectiveDate": "2024-10-21",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "Prohibits: AI-generated fake reviews; buying positive or negative reviews; insider reviews without disclosure; review suppression via legal threats; company-controlled review websites presenting as independent; fake indicators of social media influence (E2).",
+    "userRightsPlainLanguage": "Fake reviews and testimonials are now illegal under federal US law. If you see a product with reviews that seem fake — bursts of identical phrasing, all five stars, all posted within a narrow window — and you believe they're violating this rule, you can report them to the FTC.",
+    "enforcementSignals": [
+      { "action": "file-ftc-complaint", "url": "https://reportfraud.ftc.gov/" }
+    ],
+    "evidenceRefs": ["E1", "E2"]
+  }
+}

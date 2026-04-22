@@ -1,0 +1,34 @@
+{
+  "slug": "fee/ticket-service-fee",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Live-event ticket service / convenience fee",
+  "summary": "Mandatory service, convenience, or processing fees on live-event ticket purchases.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC Junk Fees Rule (effective May 12, 2025) requires all mandatory fees on live-event tickets to be included in the advertised Total Price.", "sourceUrl": "https://www.ftc.gov/system/files/ftc_gov/pdf/r207011_udf_rule_2024_final_0.pdf", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "categoryContext": ["tickets", "live-events"], "pageTypes": ["booking", "checkout"] },
+  "body": {
+    "canonicalName": "Service / convenience / processing fee on ticket purchase",
+    "description": "Mandatory fees (service fee, convenience fee, processing fee, facility fee, order processing fee) added by ticket sellers at or near checkout. Explicitly covered by the FTC Junk Fees Rule's live-event-tickets scope (E1); must now be in the advertised Total Price.",
+    "typicalRange": { "min": 5, "max": 80, "unit": "USD", "frequency": "per-ticket-or-per-order" },
+    "identificationSignals": [
+      { "kind": "text-match", "patterns": ["service fee", "convenience fee", "processing fee", "order processing", "facility fee"], "caseSensitive": false }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "us-federal", "regulationSlug": "regulation/us-federal-ftc-junk-fees", "requirement": "Must be included in advertised Total Price since May 12, 2025 (E1)." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "rarely",
+      "typicalSuccessRate": 0.05,
+      "script": null
+    },
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/file-ftc-complaint"]
+  }
+}

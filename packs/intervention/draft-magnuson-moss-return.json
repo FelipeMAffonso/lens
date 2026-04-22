@@ -1,0 +1,39 @@
+{
+  "slug": "intervention/draft-magnuson-moss-return",
+  "type": "intervention",
+  "version": "1.0.0",
+  "name": "Draft Magnuson-Moss return/warranty claim",
+  "summary": "Generate a return or warranty-claim letter citing the user's Magnuson-Moss rights.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Magnuson-Moss permits private civil actions with attorney-fee recovery for consumers seeking warranty enforcement.", "sourceUrl": "https://www.ftc.gov/legal-library/browse/statutes/magnuson-moss-warranty-federal-trade-commission-improvements-act", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "triggerTypes": ["user-initiated-return", "warranty-claim", "product-defect"] },
+  "body": {
+    "canonicalName": "Draft Magnuson-Moss return or warranty claim",
+    "description": "Generate a plain-language return/warranty letter with the user's details, product, defect description, and relevant Magnuson-Moss citations. User reviews and sends.",
+    "executionType": "draft-offer",
+    "consentTier": "explicit-per-action",
+    "prerequisites": [
+      { "kind": "within-return-window", "description": "User is within the stated return or warranty window." },
+      { "kind": "product-defect-described", "description": "User has described the defect or issue." }
+    ],
+    "template": {
+      "format": "email",
+      "subject": "Warranty / return claim — {product_name}",
+      "bodyTemplate": "Dear {seller_name},\n\nI am writing to request {return | warranty service | replacement} for:\n\n  Product: {product_name}\n  Order / SKU: {order_id}\n  Purchased: {purchase_date}\n  Defect / issue: {defect_description}\n\nUnder the Magnuson-Moss Warranty Act (15 U.S.C. §§ 2301-2312), I am entitled to {specific_right}. Please confirm receipt of this claim within 10 business days and notify me of the proposed remedy.\n\nIf this claim is not addressed through your informal dispute-resolution process, I reserve my right to pursue remedies including private civil action with attorney-fee recovery (E1).\n\nSincerely,\n{user_name}\n{user_contact}\n"
+    },
+    "successSignals": [
+      { "kind": "seller-response-received", "within": "10 business days" }
+    ],
+    "failureFallback": {
+      "nextIntervention": "intervention/file-ftc-complaint"
+    },
+    "regulatoryBasis": ["regulation/us-federal-magnuson-moss"]
+  }
+}

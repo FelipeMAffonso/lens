@@ -1,0 +1,31 @@
+{
+  "slug": "dark-pattern/obstruction",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Obstruction",
+  "summary": "Making a user goal harder than it needs to be through deliberate interface friction.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Obstruction is the top-level category for patterns like Roach Motel, Nagging, and Hard to Cancel in Brignull's taxonomy.", "sourceUrl": "https://www.deceptive.design/types/obstruction", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["any"] },
+  "body": {
+    "canonicalName": "Obstruction",
+    "brignullId": "obstruction",
+    "description": "Umbrella term for deliberate interface friction introduced to slow or derail a user goal the business does not want completed (cancellation, account deletion, data export, unsubscribe). Related patterns: roach-motel, nagging, hard-to-cancel (E1).",
+    "severity": "manipulative",
+    "illegalInJurisdictions": ["regulation/us-ca-sb-313-click-to-cancel"],
+    "detectionHeuristics": [
+      { "kind": "structural", "trigger": "action-requires-many-clicks-where-reverse-is-fewer", "description": "If the complementary action (subscribe vs. unsubscribe; opt-in vs. opt-out) takes significantly fewer clicks than the one the user requested, flag." }
+    ],
+    "llmVerifyPrompt": "Given a user's stated goal and the path the UI presents, count the minimum-click path. Compare to the path for the reverse action. If the user's desired action is significantly harder, flag obstruction.",
+    "remediation": "Surface the click-count asymmetry. If the obstruction is in a jurisdiction with click-to-cancel law, link to that regulation pack and offer a complaint template.",
+    "regulatoryLinks": ["regulation/us-ca-sb-313-click-to-cancel"],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

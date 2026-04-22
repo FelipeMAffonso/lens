@@ -1,0 +1,32 @@
+{
+  "slug": "dark-pattern/trick-wording",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Trick Wording",
+  "summary": "Confusing or inverted language on choice controls, double negatives, opt-out phrased as opt-in.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Trick wording is listed in Brignull's canonical deceptive-patterns taxonomy.", "sourceUrl": "https://www.deceptive.design/types/trick-wording", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["checkout", "signup", "settings", "consent-form"] },
+  "body": {
+    "canonicalName": "Trick wording",
+    "brignullId": "trick-wording",
+    "description": "Checkbox labels phrased so their effect is the opposite of their apparent meaning ('Uncheck this box if you do NOT want to receive marketing emails'), double negatives, or industry jargon used to obscure the user's actual choice (E1).",
+    "severity": "deceptive",
+    "illegalInJurisdictions": [],
+    "detectionHeuristics": [
+      { "kind": "text-match", "patterns": ["do not NOT", "un[\\-]?check this.*not", "opt out.*NOT", "unless you.*do not"], "caseSensitive": false },
+      { "kind": "linguistic", "trigger": "double-negative-in-consent-label", "description": "Consent controls containing two negations (not/don't/never/deselect/opt-out)." }
+    ],
+    "llmVerifyPrompt": "For each consent control (checkbox, radio, button), rewrite its label in plain positive language and compare to the original. If the plain rewrite differs meaningfully from the apparent meaning, flag as trick wording.",
+    "remediation": "Restate each control's effect in plain positive language next to the original, so the user makes the informed choice.",
+    "regulatoryLinks": [],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "slug": "regulation/eu-digital-services-act",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "EU Digital Services Act — Dark Patterns Prohibition",
+  "summary": "EU regulation prohibiting deceptive design and dark patterns on online platforms.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "EU Digital Services Act Article 25 explicitly prohibits online platforms from designing, organizing, or operating their online interfaces in ways that deceive or manipulate users or materially distort the ability of users to make free and informed decisions.", "sourceUrl": "https://eur-lex.europa.eu/eli/reg/2022/2065/oj", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "DSA fully applied to all online platforms from February 17, 2024.", "sourceUrl": "https://digital-strategy.ec.europa.eu/en/policies/digital-services-act-package", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "eu",
+    "productCategories": [],
+    "businessScope": { "appliesTo": ["online-platforms", "online-marketplaces"], "userResidency": "eu" }
+  },
+  "body": {
+    "officialName": "Digital Services Act (Regulation (EU) 2022/2065) — Article 25",
+    "citation": "Regulation (EU) 2022/2065",
+    "status": "in-force",
+    "effectiveDate": "2024-02-17",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "Article 25 prohibits online platform operators from designing or operating interfaces that deceive or manipulate users or distort their decision-making. Complements EU Unfair Commercial Practices Directive (UCPD) and GDPR consent rules. Fines up to 6% of global annual turnover.",
+    "userRightsPlainLanguage": "If you live in the EU, every major online platform must design its interface in a way that does not deceive or manipulate you. This covers every dark pattern — fake scarcity, roach motels, trick wording, preselection. You have the right to complain to the European Commission or your national Digital Services Coordinator, and platforms can be fined up to 6% of their global revenue for violations.",
+    "enforcementSignals": [
+      { "action": "national-digital-services-coordinator", "description": "Each EU member state has a national Digital Services Coordinator that accepts complaints." },
+      { "action": "european-commission", "url": "https://digital-strategy.ec.europa.eu/en/policies/digital-services-act-package", "description": "The Commission directly supervises Very Large Online Platforms (VLOPs)." }
+    ],
+    "evidenceRefs": ["E1", "E2"]
+  }
+}

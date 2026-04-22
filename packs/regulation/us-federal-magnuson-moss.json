@@ -1,0 +1,40 @@
+{
+  "slug": "regulation/us-federal-magnuson-moss",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "Magnuson-Moss Warranty Act",
+  "summary": "Federal law governing consumer product warranties, including disclosure, remedies, and implied warranties.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "The Magnuson-Moss Warranty Act (15 U.S.C. §§ 2301-2312) is the federal law governing consumer product warranties, enacted 1975.", "sourceUrl": "https://www.ftc.gov/legal-library/browse/statutes/magnuson-moss-warranty-federal-trade-commission-improvements-act", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "The FTC's Rule on Tie-in Sales (16 CFR Part 700.10) prohibits manufacturers from conditioning warranty coverage on the use of specific branded parts or service unless the manufacturer provides those parts or service free.", "sourceUrl": "https://www.ecfr.gov/current/title-16/chapter-I/subchapter-G/part-700", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "us-federal",
+    "productCategories": [],
+    "businessScope": { "appliesTo": ["consumer-products-over-15usd", "warranty-disclosure"] }
+  },
+  "body": {
+    "officialName": "Magnuson-Moss Warranty Act",
+    "citation": "15 U.S.C. §§ 2301-2312; 16 CFR Parts 700-703",
+    "status": "in-force",
+    "effectiveDate": "1975-07-04",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "Requires warranties on consumer products over $15 to: (1) disclose warranty terms in simple language before sale, (2) clearly label as 'Full' or 'Limited' warranty, (3) not require use of branded parts/service as a warranty condition (the 'tie-in' prohibition, E2), (4) provide informal dispute resolution options. Preserves state-law implied warranties (merchantability, fitness for particular purpose).",
+    "userRightsPlainLanguage": "For consumer products over $15 in the US, you have rights: (1) You can read the warranty terms BEFORE buying. (2) Manufacturers cannot void your warranty just because you used a third-party part or non-authorized service (unless they proved that part caused the problem). (3) You have implied warranties of merchantability and fitness under state law in addition to the written warranty. (4) If the warranty is not honored, you can sue for damages under federal or state law.",
+    "enforcementSignals": [
+      { "action": "small-claims-court", "description": "Warranty disputes under $10,000 typically qualify for small-claims court." },
+      { "action": "state-ag-complaint", "description": "State AGs enforce consumer warranty rights." },
+      { "action": "private-right-of-action", "description": "Magnuson-Moss permits private civil actions with attorney-fee recovery for consumers." }
+    ],
+    "evidenceRefs": ["E1", "E2"]
+  }
+}
