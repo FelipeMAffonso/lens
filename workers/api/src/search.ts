@@ -2,6 +2,7 @@ import type { Candidate, UserIntent } from "@lens/shared";
 import type { Env } from "./index.js";
 import { OPUS_4_7, client } from "./anthropic.js";
 import { lookupCatalog } from "./fixtureCatalog.js";
+import { findCategoryPack } from "./packs/registry.js";
 
 /**
  * Candidate search.
@@ -14,6 +15,26 @@ import { lookupCatalog } from "./fixtureCatalog.js";
  */
 export async function searchCandidates(intent: UserIntent, env: Env): Promise<Candidate[]> {
   if (env.LENS_SEARCH_MODE === "fixture") {
+    // Prefer pack-declared representativeSkus when available; this is the
+    // G13 SKU index: every category pack can ship its own SKU fixtures.
+    const pack = findCategoryPack(intent.category);
+    const skus = pack?.body.representativeSkus;
+    if (skus && skus.length > 0) {
+      console.log("[search] using %d representativeSkus from pack %s", skus.length, pack.slug);
+      return skus.map((s) => ({
+        name: s.name,
+        brand: s.brand,
+        price: s.priceUsd ?? null,
+        currency: s.currency ?? "USD",
+        ...(s.url ? { url: s.url } : {}),
+        ...(s.imageUrl ? { thumbnailUrl: s.imageUrl } : {}),
+        specs: s.specs,
+        attributeScores: {},
+        utilityScore: 0,
+        utilityBreakdown: [],
+      }));
+    }
+    // Fallback to legacy fixtureCatalog for categories without pack SKUs yet
     return lookupCatalog(intent.category);
   }
 

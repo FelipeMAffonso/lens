@@ -60,6 +60,57 @@
       "ifixitCategoryId": "laptop",
       "typicalPartsAvailability": "variable",
       "notes": "Framework, ThinkPad, older MacBook Pro score high. Modern MacBook Air, M-series soldered configs score low. Dell XPS, HP Spectre variable by generation."
-    }
+    },
+    "representativeSkus": [
+      {
+        "sku": "lenovo-thinkpad-e14-gen-5-base", "name": "ThinkPad E14 Gen 5 (base config)", "brand": "Lenovo", "model": "21JK0000US", "priceUsd": 749, "currency": "USD",
+        "url": "https://www.lenovo.com/us/en/p/laptops/thinkpad/thinkpad-e-series/thinkpad-e14-gen-5-amd/len101t0043",
+        "specs": { "cpu": "AMD Ryzen 5 7530U", "cpu_performance": 0.6, "ram_gb": 8, "storage_gb": 256, "display": "14-inch FHD IPS", "display_quality": 0.65, "battery_life_hours": 10, "weight_lbs": 3.5, "keyboard_quality": 0.95, "reliability_score": 0.88 },
+        "tier": "budget"
+      },
+      {
+        "sku": "framework-13-amd", "name": "Framework Laptop 13 (AMD, DIY)", "brand": "Framework", "priceUsd": 999, "currency": "USD",
+        "url": "https://frame.work/products/laptop-13-diy-amd",
+        "specs": { "cpu": "AMD Ryzen 7 7840U", "cpu_performance": 0.82, "ram_gb": 16, "storage_gb": 512, "display": "13.5-inch 2256x1504", "display_quality": 0.8, "battery_life_hours": 9, "weight_lbs": 2.87, "keyboard_quality": 0.78, "reliability_score": 0.82 },
+        "tier": "mid",
+        "notes": "Highest iFixit repairability score among consumer laptops."
+      },
+      {
+        "sku": "apple-macbook-air-m2", "name": "MacBook Air M2 (13-inch)", "brand": "Apple", "model": "MLXW3LL/A", "priceUsd": 999, "currency": "USD",
+        "url": "https://www.apple.com/shop/buy-mac/macbook-air/13-inch-m2",
+        "specs": { "cpu": "Apple M2", "cpu_performance": 0.88, "ram_gb": 8, "storage_gb": 256, "display": "13.6-inch Liquid Retina", "display_quality": 0.88, "battery_life_hours": 18, "weight_lbs": 2.7, "keyboard_quality": 0.86, "reliability_score": 0.9 },
+        "tier": "mid"
+      },
+      {
+        "sku": "asus-zenbook-14-oled-ux3405", "name": "Zenbook 14 OLED UX3405", "brand": "ASUS", "priceUsd": 899, "currency": "USD",
+        "url": "https://www.asus.com/laptops/for-home/zenbook/zenbook-14-oled-ux3405/",
+        "specs": { "cpu": "Intel Core Ultra 7 155H", "cpu_performance": 0.82, "ram_gb": 16, "storage_gb": 1024, "display": "14-inch 3K OLED", "display_quality": 0.92, "battery_life_hours": 14, "weight_lbs": 2.82, "keyboard_quality": 0.8, "reliability_score": 0.76 },
+        "tier": "mid"
+      },
+      {
+        "sku": "dell-xps-13-9340", "name": "XPS 13 9340", "brand": "Dell", "priceUsd": 1299, "currency": "USD",
+        "url": "https://www.dell.com/en-us/shop/dell-laptops/xps-13-laptop/spd/xps-13-9340-laptop",
+        "specs": { "cpu": "Intel Core Ultra 7 155H", "cpu_performance": 0.82, "ram_gb": 16, "storage_gb": 512, "display": "13.4-inch FHD+", "display_quality": 0.82, "battery_life_hours": 12, "weight_lbs": 2.73, "keyboard_quality": 0.75, "reliability_score": 0.75 },
+        "tier": "premium"
+      },
+      {
+        "sku": "apple-macbook-pro-14-m3", "name": "MacBook Pro 14 (M3)", "brand": "Apple", "model": "MTL73LL/A", "priceUsd": 1599, "currency": "USD",
+        "url": "https://www.apple.com/shop/buy-mac/macbook-pro",
+        "specs": { "cpu": "Apple M3", "cpu_performance": 0.95, "ram_gb": 8, "storage_gb": 512, "display": "14.2-inch Liquid Retina XDR", "display_quality": 0.98, "battery_life_hours": 22, "weight_lbs": 3.4, "keyboard_quality": 0.9, "reliability_score": 0.92 },
+        "tier": "premium"
+      },
+      {
+        "sku": "lenovo-thinkpad-x1-carbon-gen-12", "name": "ThinkPad X1 Carbon Gen 12", "brand": "Lenovo", "priceUsd": 1799, "currency": "USD",
+        "url": "https://www.lenovo.com/us/en/p/laptops/thinkpad/thinkpadx1/thinkpad-x1-carbon-gen-12-14-inch-intel/len101t0085",
+        "specs": { "cpu": "Intel Core Ultra 7 165U", "cpu_performance": 0.78, "ram_gb": 16, "storage_gb": 512, "display": "14-inch WUXGA", "display_quality": 0.85, "battery_life_hours": 14, "weight_lbs": 2.42, "keyboard_quality": 0.98, "reliability_score": 0.93 },
+        "tier": "premium"
+      },
+      {
+        "sku": "hp-pavilion-15-eg3053cl", "name": "Pavilion 15-eg3053cl", "brand": "HP", "priceUsd": 799, "currency": "USD",
+        "url": "https://www.hp.com/us-en/shop/pdp/hp-pavilion-laptop-15-eg3053cl",
+        "specs": { "cpu": "Intel Core i5-1335U", "cpu_performance": 0.55, "ram_gb": 16, "storage_gb": 512, "display": "15.6-inch FHD", "display_quality": 0.6, "battery_life_hours": 7, "weight_lbs": 3.86, "keyboard_quality": 0.7, "reliability_score": 0.72 },
+        "tier": "budget"
+      }
+    ]
   }
 }

@@ -221,7 +221,7 @@ All four cron jobs live in `.github/workflows/pack-maintenance.yml`, schedule `1
 | G10 | No unit/integration tests | 🟡 medium | Add at least one end-to-end test against fixture mode |
 | G11 | Per-criterion candidate scores opaque (where did 0.73 come from?) | 🟢 low | Add tooltip linking score to spec value |
 | G12 | Each category pack only has 5-7 criteria; real categories have 20-50 specs | 🟡 medium | Expand category packs with `secondaryCriteria[]` array (next cycle, per user note) |
-| G13 | No SKU catalog — every audit relies on live web search or hand-curated fixture | 🟡 medium | Build per-category SKU index sourced from manufacturer feeds (next cycle) |
+| G13 | No SKU catalog — every audit relies on live web search or hand-curated fixture | ✅ shipped | `representativeSkus[]` field added to CategoryBody. Espresso/laptops/headphones packs have 7-8 SKUs each. `search.ts` fixture mode now pulls from pack SKUs with legacy fallback. |
 
 ## Next loop priorities
 

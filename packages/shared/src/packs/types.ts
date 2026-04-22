@@ -68,6 +68,21 @@ export interface HiddenCost {
   frequency: string;
 }
 
+/** A representative SKU within a category. Pack-driven SKU index (G13). */
+export interface RepresentativeSku {
+  sku: string;
+  name: string;
+  brand: string;
+  model?: string;
+  priceUsd?: number | null;
+  currency?: string;
+  url?: string;
+  imageUrl?: string;
+  specs: Record<string, string | number | boolean>;
+  tier?: "budget" | "mid" | "premium" | "fictional-demo";
+  notes?: string;
+}
+
 export interface CategoryBody {
   criteria: CategoryCriterion[];
   specNormalization: Record<string, SpecNormalizationRule>;
@@ -81,6 +96,8 @@ export interface CategoryBody {
     typicalPartsAvailability: string;
     notes?: string;
   };
+  /** Optional SKU index (G13). When present, search.ts fixture mode uses these instead of hardcoded fixtureCatalog.ts. */
+  representativeSkus?: RepresentativeSku[];
 }
 
 export type CategoryPack = PackEnvelope<"category", CategoryApplicability, CategoryBody>;

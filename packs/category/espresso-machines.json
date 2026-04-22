@@ -57,6 +57,57 @@
       "ifixitCategoryId": "espresso-machine",
       "typicalPartsAvailability": "moderate",
       "notes": "Breville, Gaggia, Rancilio have strong parts markets. Low-end De'Longhi models are often replace-don't-repair."
-    }
+    },
+    "representativeSkus": [
+      {
+        "sku": "delonghi-stilosa-ec260bk", "name": "Stilosa EC260BK", "brand": "De'Longhi", "model": "EC260BK", "priceUsd": 119, "currency": "USD",
+        "url": "https://www.delonghi.com/en-us/stilosa-ec260bk",
+        "specs": { "pressure": 15, "build": "plastic housing, stainless boiler", "build_score": 0.35, "steam": "manual steam wand", "steam_score": 0.4, "weight_lbs": 8.1, "water_tank_oz": 35, "warranty_years": 1 },
+        "tier": "budget"
+      },
+      {
+        "sku": "delonghi-dedica-arte-ec885", "name": "Dedica Arte EC885", "brand": "De'Longhi", "model": "EC885", "priceUsd": 249, "currency": "USD",
+        "url": "https://www.delonghi.com/en-us/dedica-arte-ec885",
+        "specs": { "pressure": 15, "build": "brushed stainless steel", "build_score": 0.58, "steam": "manual steam wand with enhanced cappuccino attachment", "steam_score": 0.55, "weight_lbs": 9.3, "water_tank_oz": 35, "warranty_years": 2 },
+        "tier": "budget"
+      },
+      {
+        "sku": "breville-bambino-plus-bes500bss", "name": "Bambino Plus BES500BSS", "brand": "Breville", "model": "BES500BSS", "priceUsd": 499, "currency": "USD",
+        "url": "https://www.breville.com/us/en/products/espresso/bes500.html",
+        "specs": { "pressure": 19, "build": "full stainless steel, brushed", "build_score": 0.82, "steam": "automatic steam wand with microfoam", "steam_score": 0.85, "weight_lbs": 11.5, "water_tank_oz": 64, "warranty_years": 2 },
+        "tier": "mid"
+      },
+      {
+        "sku": "gaggia-classic-evo-pro", "name": "Classic Evo Pro", "brand": "Gaggia", "priceUsd": 449, "currency": "USD",
+        "url": "https://www.gaggia.com/classic-evo-pro",
+        "specs": { "pressure": 15, "build": "full stainless steel", "build_score": 0.78, "steam": "professional-style commercial steam wand", "steam_score": 0.82, "weight_lbs": 17.5, "water_tank_oz": 72, "warranty_years": 2 },
+        "tier": "mid"
+      },
+      {
+        "sku": "rancilio-silvia", "name": "Silvia", "brand": "Rancilio", "priceUsd": 895, "currency": "USD",
+        "url": "https://rancilio.com/silvia/",
+        "specs": { "pressure": 15, "build": "commercial-grade stainless", "build_score": 0.88, "steam": "professional articulated steam wand", "steam_score": 0.88, "weight_lbs": 30, "water_tank_oz": 68, "warranty_years": 2 },
+        "tier": "premium"
+      },
+      {
+        "sku": "breville-barista-express-bes870xl", "name": "Barista Express BES870XL", "brand": "Breville", "model": "BES870XL", "priceUsd": 699, "currency": "USD",
+        "url": "https://www.breville.com/us/en/products/espresso/bes870.html",
+        "specs": { "pressure": 15, "build": "stainless steel with integrated grinder", "build_score": 0.85, "steam": "professional steam wand", "steam_score": 0.82, "weight_lbs": 23, "water_tank_oz": 67, "warranty_years": 1 },
+        "tier": "premium", "notes": "Includes built-in burr grinder — common buyer first-step."
+      },
+      {
+        "sku": "la-marzocco-linea-mini", "name": "Linea Mini", "brand": "La Marzocco", "priceUsd": 6300, "currency": "USD",
+        "url": "https://home.lamarzoccousa.com/linea-mini/",
+        "specs": { "pressure": 9, "build": "dual-boiler commercial-grade", "build_score": 0.98, "steam": "full commercial steam wand", "steam_score": 0.98, "weight_lbs": 60, "water_tank_oz": 84, "warranty_years": 2 },
+        "tier": "premium"
+      },
+      {
+        "sku": "presswell-artisan-p20", "name": "Artisan P20", "brand": "Presswell", "priceUsd": 389, "currency": "USD",
+        "url": "https://www.presswell.example/artisan-p20",
+        "specs": { "pressure": 20, "build": "full stainless steel + brass boiler", "build_score": 0.92, "steam": "professional commercial-style steam wand", "steam_score": 0.9, "weight_lbs": 12.4, "water_tank_oz": 70, "warranty_years": 3 },
+        "tier": "fictional-demo",
+        "notes": "Synthetic brand used in the spec-resistance paper stimuli and the Lens headline demo scenario. NOT a real product — flagged here so the demo's narrative is honest about fictional comparator."
+      }
+    ]
   }
 }

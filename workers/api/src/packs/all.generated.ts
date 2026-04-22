@@ -2704,7 +2704,167 @@ export const ALL_PACKS: Pack[] = [
         "ifixitCategoryId": "espresso-machine",
         "typicalPartsAvailability": "moderate",
         "notes": "Breville, Gaggia, Rancilio have strong parts markets. Low-end De'Longhi models are often replace-don't-repair."
-      }
+      },
+      "representativeSkus": [
+        {
+          "sku": "delonghi-stilosa-ec260bk",
+          "name": "Stilosa EC260BK",
+          "brand": "De'Longhi",
+          "model": "EC260BK",
+          "priceUsd": 119,
+          "currency": "USD",
+          "url": "https://www.delonghi.com/en-us/stilosa-ec260bk",
+          "specs": {
+            "pressure": 15,
+            "build": "plastic housing, stainless boiler",
+            "build_score": 0.35,
+            "steam": "manual steam wand",
+            "steam_score": 0.4,
+            "weight_lbs": 8.1,
+            "water_tank_oz": 35,
+            "warranty_years": 1
+          },
+          "tier": "budget"
+        },
+        {
+          "sku": "delonghi-dedica-arte-ec885",
+          "name": "Dedica Arte EC885",
+          "brand": "De'Longhi",
+          "model": "EC885",
+          "priceUsd": 249,
+          "currency": "USD",
+          "url": "https://www.delonghi.com/en-us/dedica-arte-ec885",
+          "specs": {
+            "pressure": 15,
+            "build": "brushed stainless steel",
+            "build_score": 0.58,
+            "steam": "manual steam wand with enhanced cappuccino attachment",
+            "steam_score": 0.55,
+            "weight_lbs": 9.3,
+            "water_tank_oz": 35,
+            "warranty_years": 2
+          },
+          "tier": "budget"
+        },
+        {
+          "sku": "breville-bambino-plus-bes500bss",
+          "name": "Bambino Plus BES500BSS",
+          "brand": "Breville",
+          "model": "BES500BSS",
+          "priceUsd": 499,
+          "currency": "USD",
+          "url": "https://www.breville.com/us/en/products/espresso/bes500.html",
+          "specs": {
+            "pressure": 19,
+            "build": "full stainless steel, brushed",
+            "build_score": 0.82,
+            "steam": "automatic steam wand with microfoam",
+            "steam_score": 0.85,
+            "weight_lbs": 11.5,
+            "water_tank_oz": 64,
+            "warranty_years": 2
+          },
+          "tier": "mid"
+        },
+        {
+          "sku": "gaggia-classic-evo-pro",
+          "name": "Classic Evo Pro",
+          "brand": "Gaggia",
+          "priceUsd": 449,
+          "currency": "USD",
+          "url": "https://www.gaggia.com/classic-evo-pro",
+          "specs": {
+            "pressure": 15,
+            "build": "full stainless steel",
+            "build_score": 0.78,
+            "steam": "professional-style commercial steam wand",
+            "steam_score": 0.82,
+            "weight_lbs": 17.5,
+            "water_tank_oz": 72,
+            "warranty_years": 2
+          },
+          "tier": "mid"
+        },
+        {
+          "sku": "rancilio-silvia",
+          "name": "Silvia",
+          "brand": "Rancilio",
+          "priceUsd": 895,
+          "currency": "USD",
+          "url": "https://rancilio.com/silvia/",
+          "specs": {
+            "pressure": 15,
+            "build": "commercial-grade stainless",
+            "build_score": 0.88,
+            "steam": "professional articulated steam wand",
+            "steam_score": 0.88,
+            "weight_lbs": 30,
+            "water_tank_oz": 68,
+            "warranty_years": 2
+          },
+          "tier": "premium"
+        },
+        {
+          "sku": "breville-barista-express-bes870xl",
+          "name": "Barista Express BES870XL",
+          "brand": "Breville",
+          "model": "BES870XL",
+          "priceUsd": 699,
+          "currency": "USD",
+          "url": "https://www.breville.com/us/en/products/espresso/bes870.html",
+          "specs": {
+            "pressure": 15,
+            "build": "stainless steel with integrated grinder",
+            "build_score": 0.85,
+            "steam": "professional steam wand",
+            "steam_score": 0.82,
+            "weight_lbs": 23,
+            "water_tank_oz": 67,
+            "warranty_years": 1
+          },
+          "tier": "premium",
+          "notes": "Includes built-in burr grinder — common buyer first-step."
+        },
+        {
+          "sku": "la-marzocco-linea-mini",
+          "name": "Linea Mini",
+          "brand": "La Marzocco",
+          "priceUsd": 6300,
+          "currency": "USD",
+          "url": "https://home.lamarzoccousa.com/linea-mini/",
+          "specs": {
+            "pressure": 9,
+            "build": "dual-boiler commercial-grade",
+            "build_score": 0.98,
+            "steam": "full commercial steam wand",
+            "steam_score": 0.98,
+            "weight_lbs": 60,
+            "water_tank_oz": 84,
+            "warranty_years": 2
+          },
+          "tier": "premium"
+        },
+        {
+          "sku": "presswell-artisan-p20",
+          "name": "Artisan P20",
+          "brand": "Presswell",
+          "priceUsd": 389,
+          "currency": "USD",
+          "url": "https://www.presswell.example/artisan-p20",
+          "specs": {
+            "pressure": 20,
+            "build": "full stainless steel + brass boiler",
+            "build_score": 0.92,
+            "steam": "professional commercial-style steam wand",
+            "steam_score": 0.9,
+            "weight_lbs": 12.4,
+            "water_tank_oz": 70,
+            "warranty_years": 3
+          },
+          "tier": "fictional-demo",
+          "notes": "Synthetic brand used in the spec-resistance paper stimuli and the Lens headline demo scenario. NOT a real product — flagged here so the demo's narrative is honest about fictional comparator."
+        }
+      ]
     }
   },
   {
@@ -4380,7 +4540,181 @@ export const ALL_PACKS: Pack[] = [
         "ifixitCategoryId": "laptop",
         "typicalPartsAvailability": "variable",
         "notes": "Framework, ThinkPad, older MacBook Pro score high. Modern MacBook Air, M-series soldered configs score low. Dell XPS, HP Spectre variable by generation."
-      }
+      },
+      "representativeSkus": [
+        {
+          "sku": "lenovo-thinkpad-e14-gen-5-base",
+          "name": "ThinkPad E14 Gen 5 (base config)",
+          "brand": "Lenovo",
+          "model": "21JK0000US",
+          "priceUsd": 749,
+          "currency": "USD",
+          "url": "https://www.lenovo.com/us/en/p/laptops/thinkpad/thinkpad-e-series/thinkpad-e14-gen-5-amd/len101t0043",
+          "specs": {
+            "cpu": "AMD Ryzen 5 7530U",
+            "cpu_performance": 0.6,
+            "ram_gb": 8,
+            "storage_gb": 256,
+            "display": "14-inch FHD IPS",
+            "display_quality": 0.65,
+            "battery_life_hours": 10,
+            "weight_lbs": 3.5,
+            "keyboard_quality": 0.95,
+            "reliability_score": 0.88
+          },
+          "tier": "budget"
+        },
+        {
+          "sku": "framework-13-amd",
+          "name": "Framework Laptop 13 (AMD, DIY)",
+          "brand": "Framework",
+          "priceUsd": 999,
+          "currency": "USD",
+          "url": "https://frame.work/products/laptop-13-diy-amd",
+          "specs": {
+            "cpu": "AMD Ryzen 7 7840U",
+            "cpu_performance": 0.82,
+            "ram_gb": 16,
+            "storage_gb": 512,
+            "display": "13.5-inch 2256x1504",
+            "display_quality": 0.8,
+            "battery_life_hours": 9,
+            "weight_lbs": 2.87,
+            "keyboard_quality": 0.78,
+            "reliability_score": 0.82
+          },
+          "tier": "mid",
+          "notes": "Highest iFixit repairability score among consumer laptops."
+        },
+        {
+          "sku": "apple-macbook-air-m2",
+          "name": "MacBook Air M2 (13-inch)",
+          "brand": "Apple",
+          "model": "MLXW3LL/A",
+          "priceUsd": 999,
+          "currency": "USD",
+          "url": "https://www.apple.com/shop/buy-mac/macbook-air/13-inch-m2",
+          "specs": {
+            "cpu": "Apple M2",
+            "cpu_performance": 0.88,
+            "ram_gb": 8,
+            "storage_gb": 256,
+            "display": "13.6-inch Liquid Retina",
+            "display_quality": 0.88,
+            "battery_life_hours": 18,
+            "weight_lbs": 2.7,
+            "keyboard_quality": 0.86,
+            "reliability_score": 0.9
+          },
+          "tier": "mid"
+        },
+        {
+          "sku": "asus-zenbook-14-oled-ux3405",
+          "name": "Zenbook 14 OLED UX3405",
+          "brand": "ASUS",
+          "priceUsd": 899,
+          "currency": "USD",
+          "url": "https://www.asus.com/laptops/for-home/zenbook/zenbook-14-oled-ux3405/",
+          "specs": {
+            "cpu": "Intel Core Ultra 7 155H",
+            "cpu_performance": 0.82,
+            "ram_gb": 16,
+            "storage_gb": 1024,
+            "display": "14-inch 3K OLED",
+            "display_quality": 0.92,
+            "battery_life_hours": 14,
+            "weight_lbs": 2.82,
+            "keyboard_quality": 0.8,
+            "reliability_score": 0.76
+          },
+          "tier": "mid"
+        },
+        {
+          "sku": "dell-xps-13-9340",
+          "name": "XPS 13 9340",
+          "brand": "Dell",
+          "priceUsd": 1299,
+          "currency": "USD",
+          "url": "https://www.dell.com/en-us/shop/dell-laptops/xps-13-laptop/spd/xps-13-9340-laptop",
+          "specs": {
+            "cpu": "Intel Core Ultra 7 155H",
+            "cpu_performance": 0.82,
+            "ram_gb": 16,
+            "storage_gb": 512,
+            "display": "13.4-inch FHD+",
+            "display_quality": 0.82,
+            "battery_life_hours": 12,
+            "weight_lbs": 2.73,
+            "keyboard_quality": 0.75,
+            "reliability_score": 0.75
+          },
+          "tier": "premium"
+        },
+        {
+          "sku": "apple-macbook-pro-14-m3",
+          "name": "MacBook Pro 14 (M3)",
+          "brand": "Apple",
+          "model": "MTL73LL/A",
+          "priceUsd": 1599,
+          "currency": "USD",
+          "url": "https://www.apple.com/shop/buy-mac/macbook-pro",
+          "specs": {
+            "cpu": "Apple M3",
+            "cpu_performance": 0.95,
+            "ram_gb": 8,
+            "storage_gb": 512,
+            "display": "14.2-inch Liquid Retina XDR",
+            "display_quality": 0.98,
+            "battery_life_hours": 22,
+            "weight_lbs": 3.4,
+            "keyboard_quality": 0.9,
+            "reliability_score": 0.92
+          },
+          "tier": "premium"
+        },
+        {
+          "sku": "lenovo-thinkpad-x1-carbon-gen-12",
+          "name": "ThinkPad X1 Carbon Gen 12",
+          "brand": "Lenovo",
+          "priceUsd": 1799,
+          "currency": "USD",
+          "url": "https://www.lenovo.com/us/en/p/laptops/thinkpad/thinkpadx1/thinkpad-x1-carbon-gen-12-14-inch-intel/len101t0085",
+          "specs": {
+            "cpu": "Intel Core Ultra 7 165U",
+            "cpu_performance": 0.78,
+            "ram_gb": 16,
+            "storage_gb": 512,
+            "display": "14-inch WUXGA",
+            "display_quality": 0.85,
+            "battery_life_hours": 14,
+            "weight_lbs": 2.42,
+            "keyboard_quality": 0.98,
+            "reliability_score": 0.93
+          },
+          "tier": "premium"
+        },
+        {
+          "sku": "hp-pavilion-15-eg3053cl",
+          "name": "Pavilion 15-eg3053cl",
+          "brand": "HP",
+          "priceUsd": 799,
+          "currency": "USD",
+          "url": "https://www.hp.com/us-en/shop/pdp/hp-pavilion-laptop-15-eg3053cl",
+          "specs": {
+            "cpu": "Intel Core i5-1335U",
+            "cpu_performance": 0.55,
+            "ram_gb": 16,
+            "storage_gb": 512,
+            "display": "15.6-inch FHD",
+            "display_quality": 0.6,
+            "battery_life_hours": 7,
+            "weight_lbs": 3.86,
+            "keyboard_quality": 0.7,
+            "reliability_score": 0.72
+          },
+          "tier": "budget"
+        }
+      ]
     }
   },
   {
