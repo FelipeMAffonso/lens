@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lens — Privacy Notice</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <style>
+      .legal { max-width: 760px; margin: 0 auto; padding: 32px 24px 64px; }
+      .legal h1 { font-size: 32px; margin: 0 0 8px; }
+      .legal h2 { font-size: 20px; margin: 28px 0 8px; color: var(--accent); }
+      .legal h3 { font-size: 16px; margin: 20px 0 6px; }
+      .legal p, .legal li { color: var(--fg-dim); font-size: 14px; line-height: 1.6; }
+      .legal table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+      .legal th, .legal td { padding: 8px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+      .legal th { color: var(--fg); font-weight: 600; }
+      .legal a { color: var(--hl-hi); }
+      .updated { color: var(--fg-muted); font-size: 12px; margin-bottom: 24px; }
+    </style>
+  </head>
+  <body>
+    <nav class="top-nav">
+      <div class="brand"><span class="logo">◉</span><span class="brand-name">Lens</span></div>
+      <a class="nav-link" href="/">← Back to dashboard</a>
+    </nav>
+
+    <main class="legal">
+      <h1>Privacy notice</h1>
+      <p class="updated">Last updated: 2026-04-22 · Effective on use.</p>
+
+      <p>Lens is the consumer's independent shopping agent. This page describes exactly what data Lens
+      processes, where it goes, and how to delete it. It is written to be readable, not to obscure.</p>
+
+      <h2>1. The honest version</h2>
+      <p>When you use Lens, the text or image you submit is transmitted to two third parties:
+      <strong>Cloudflare</strong> (the hosting provider running the API Worker) and <strong>Anthropic</strong>
+      (the maker of the Claude Opus 4.7 model that powers the audit). For the cross-model comparison panel,
+      text is also sent to one or more of: <strong>OpenAI</strong>, <strong>Google AI</strong>,
+      <strong>OpenRouter</strong>. Each of these vendors has its own data retention policy.</p>
+      <p>Lens itself stores nothing about you on its server. Your preference profiles and audit history live
+      in your browser (<code>localStorage</code>). Clearing browser data wipes everything.</p>
+
+      <h2>2. What's processed and where it goes</h2>
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Where it goes</th><th>Why</th><th>Retention</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Query text or pasted AI answer</td><td>Cloudflare → Anthropic (Opus 4.7)</td><td>Extract intent + verify claims</td><td>Cloudflare logs may retain request metadata up to 7 days; Anthropic per their data-use policy</td></tr>
+          <tr><td>Product URL</td><td>Cloudflare Worker fetches the URL</td><td>Parse the product page</td><td>Same as above; original site sees Cloudflare's IP</td></tr>
+          <tr><td>Photo / screenshot upload</td><td>Cloudflare → Anthropic vision API</td><td>Identify product from image</td><td>Same as above; image is base64'd in transit</td></tr>
+          <tr><td>Cross-model fan-out text</td><td>OpenAI, Google AI, OpenRouter (whichever keys are configured)</td><td>Get other-model picks for disagreement panel</td><td>Each vendor's policy; we do not send your IP</td></tr>
+          <tr><td>Preference profile (criteria + weights per category)</td><td>Your browser <code>localStorage</code></td><td>Save criteria across sessions</td><td>Until you clear browser data or click "Clear all" in the dashboard</td></tr>
+          <tr><td>Audit history (last 50)</td><td>Your browser <code>localStorage</code></td><td>Compute welfare-delta over time</td><td>Until you clear browser data or click "Clear all" in the dashboard</td></tr>
+        </tbody>
+      </table>
+
+      <h2>3. What Lens does NOT do</h2>
+      <ul>
+        <li>No tracking pixels, no analytics SDKs (Google Analytics, Segment, Mixpanel, etc.).</li>
+        <li>No cookies beyond browser-essential storage.</li>
+        <li>No ad networks, no affiliate redirects that affect ranking.</li>
+        <li>No selling or sharing your personal information.</li>
+        <li>No telemetry on which products you audit, beyond what Cloudflare's basic Worker logs capture.</li>
+        <li>No accounts, no email collection, no payment information collected (Lens is free).</li>
+      </ul>
+
+      <h2>4. Your rights</h2>
+      <p>Because Lens stores nothing on its own servers, most data-subject requests resolve to "clear your
+      browser data." Specifically:</p>
+      <ul>
+        <li><strong>Right to know:</strong> See the table above. Your localStorage is inspectable in any
+        browser's DevTools (Application → Storage → Local Storage → <code>lens-b1h.pages.dev</code>).</li>
+        <li><strong>Right to delete:</strong> Use the "Clear all" button in the dashboard's preferences card,
+        or clear browser data for this origin. To request deletion of any logs Cloudflare or Anthropic may
+        retain, see their respective privacy notices.</li>
+        <li><strong>Right to portability:</strong> Use the "Export profile JSON" button.</li>
+      </ul>
+
+      <h2>5. Disclosed sub-processors</h2>
+      <ul>
+        <li><strong>Cloudflare</strong> (Workers, Pages) — <a href="https://www.cloudflare.com/privacypolicy/" target="_blank">policy</a></li>
+        <li><strong>Anthropic</strong> (Claude Opus 4.7 API) — <a href="https://www.anthropic.com/privacy" target="_blank">policy</a></li>
+        <li><strong>OpenAI</strong> (cross-model panel) — <a href="https://openai.com/privacy/" target="_blank">policy</a></li>
+        <li><strong>Google AI</strong> (cross-model panel) — <a href="https://policies.google.com/privacy" target="_blank">policy</a></li>
+        <li><strong>OpenRouter</strong> (cross-model panel) — <a href="https://openrouter.ai/privacy" target="_blank">policy</a></li>
+      </ul>
+
+      <h2>6. Source code</h2>
+      <p>Lens is open source under MIT. Verify everything on this page yourself: <a href="https://github.com/FelipeMAffonso/lens" target="_blank">github.com/FelipeMAffonso/lens</a>.</p>
+
+      <h2>7. Changes to this notice</h2>
+      <p>If the data flow changes, the dated header above moves and a note will be added to the README
+      changelog. There is no email list to notify because Lens does not collect emails.</p>
+
+      <h2>8. Contact</h2>
+      <p>File an issue on GitHub or reach the author through the academic affiliation listed in the README.</p>
+    </main>
+  </body>
+</html>

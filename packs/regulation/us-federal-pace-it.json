@@ -1,0 +1,38 @@
+{
+  "slug": "regulation/us-federal-pace-it",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "Restore Online Shoppers' Confidence Act (ROSCA)",
+  "summary": "Federal law prohibiting deceptive online subscription enrollments and 'negative option' billing without clear consent.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "ROSCA (15 U.S.C. §§ 8401-8405) prohibits any post-transaction third-party seller from charging consumers without obtaining express informed consent and a billing-information transfer, and requires negative-option marketers to clearly disclose terms before obtaining payment information.", "sourceUrl": "https://www.ftc.gov/legal-library/browse/statutes/restore-online-shoppers-confidence-act", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "FTC enforcement under ROSCA includes Vonage 2022 settlement ($100M), Match.com 2019 lawsuit, MoviePass 2022 settlement; settlements typically require clear disclosure + simple cancellation.", "sourceUrl": "https://www.ftc.gov/news-events/news/press-releases/2022/11/ftc-action-leads-vonage-pay-100-million-consumers-trapped-junk-fees-illegal-practices-blocking", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "us-federal",
+    "productCategories": [],
+    "businessScope": { "appliesTo": ["online-subscriptions", "negative-option-billing", "free-to-paid-conversions"] }
+  },
+  "body": {
+    "officialName": "Restore Online Shoppers' Confidence Act",
+    "citation": "15 U.S.C. §§ 8401-8405",
+    "status": "in-force",
+    "effectiveDate": "2010-12-29",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "Three core protections: (1) prohibits post-transaction third-party data sharing for billing without express consent; (2) requires clear disclosure of negative-option terms before obtaining billing info; (3) requires simple cancellation mechanism. Unlike the vacated Click-to-Cancel Rule, ROSCA is statutory law not at risk of judicial reversal (E1).",
+    "userRightsPlainLanguage": "If you signed up for an online free trial that auto-converted to paid without clear consent at the time of conversion, that's a ROSCA violation and the FTC can prosecute. ROSCA is the federal statutory backbone for online subscription consumer protection — it survived even after the Click-to-Cancel Rule was vacated.",
+    "enforcementSignals": [
+      { "action": "file-ftc-complaint", "url": "https://reportfraud.ftc.gov/", "description": "FTC enforces ROSCA directly." }
+    ],
+    "evidenceRefs": ["E1", "E2"]
+  }
+}

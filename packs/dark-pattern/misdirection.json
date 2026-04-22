@@ -1,0 +1,31 @@
+{
+  "slug": "dark-pattern/misdirection",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Misdirection",
+  "summary": "Visual or attentional design that draws the user toward one option while another, more important option is downplayed or obscured.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Misdirection appears in Brignull's classic dark-patterns taxonomy and the FTC 2022 'Bringing Dark Patterns to Light' report under deceptive design.", "sourceUrl": "https://www.ftc.gov/reports/bringing-dark-patterns-light", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["any"] },
+  "body": {
+    "canonicalName": "Misdirection",
+    "brignullId": "misdirection",
+    "description": "A high-contrast, brightly colored CTA pulls the eye toward 'Subscribe' or 'Buy Now', while the equivalent decline is rendered in low-contrast gray text styled as a link rather than a button. The user's gaze and click follow the design hierarchy, not the legal-equivalent choice.",
+    "severity": "manipulative",
+    "illegalInJurisdictions": [],
+    "detectionHeuristics": [
+      { "kind": "css-analysis", "trigger": "primary-cta-saturation-vs-secondary-text-contrast", "description": "Compare visual weight (color saturation, size, font weight) of the primary CTA vs the equivalent decline. Flag when ratio exceeds a threshold." }
+    ],
+    "llmVerifyPrompt": "Given a modal or choice surface, identify the primary action and the equivalent decline. Are they given equal visual weight, or does design hierarchy steer toward one?",
+    "remediation": "Surface the secondary option with equal prominence in a Lens overlay. Recommend the user read the choice text rather than follow the visual hierarchy.",
+    "regulatoryLinks": ["regulation/eu-digital-services-act"],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "slug": "fee/restocking-fee",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Restocking fee",
+  "summary": "Fees deducted from refunds on returned products — typical 15-25% of purchase price.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC Mail, Internet, or Telephone Order Merchandise Rule (16 CFR Part 435) requires sellers to clearly disclose return-and-refund policy including any restocking fee BEFORE the consumer commits to purchase.", "sourceUrl": "https://www.ftc.gov/business-guidance/resources/business-compliance-guide-mail-internet-or-telephone-order-merchandise-rule", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "categoryContext": ["electronics", "appliances", "furniture"], "pageTypes": ["product", "checkout", "return-policy"] },
+  "body": {
+    "canonicalName": "Restocking fee",
+    "description": "Sellers withhold 15-25% of the original purchase price on returns of opened products, claiming inspection/repackaging costs. Best Buy waives for elite members but applies to others; many electronics retailers charge it on opened-box returns.",
+    "typicalRange": { "min": 10, "max": 50, "unit": "percent_of_purchase", "frequency": "per-return" },
+    "identificationSignals": [
+      { "kind": "text-match", "patterns": ["restocking fee", "restock fee", "open-box.*charge", "opened-box.*deduction"], "caseSensitive": false }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "us-federal", "regulationSlug": null, "requirement": "Must be clearly disclosed before purchase per FTC Mail Order Rule (E1)." },
+      { "jurisdiction": "us-state/ca", "regulationSlug": null, "requirement": "California Civil Code §1723 requires return-policy disclosure within 5 business days of purchase or refund-by-default applies." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "sometimes",
+      "typicalSuccessRate": 0.4,
+      "script": "I'm returning this within the return window. The product is unused/in original packaging. I'd like to request the restocking fee be waived since the product is in resalable condition."
+    },
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "slug": "category/used-cars",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Used cars",
+  "summary": "Used vehicle purchases — high-stakes, lemon-law-protected category.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC Used Car Rule (16 CFR Part 455) requires used-car dealers to display a Buyers Guide on every used vehicle disclosing whether it is sold 'As-Is' or 'With Warranty', the warranty terms, and the major mechanical and electrical systems on the car.", "sourceUrl": "https://www.ftc.gov/business-guidance/resources/dealers-guide-used-car-rule", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "State lemon laws cover used cars in some jurisdictions but not all. The federal Magnuson-Moss Warranty Act provides additional remedies if the dealer made any written warranty.", "sourceUrl": "https://www.consumer.ftc.gov/articles/0067-buying-used-car", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "NHTSA recall lookup at nhtsa.gov/recalls allows VIN-based recall search; ~25% of used cars on the market have at least one open recall as of 2024.", "sourceUrl": "https://www.nhtsa.gov/recalls", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["used car", "used cars", "pre-owned vehicle", "second-hand car", "certified pre-owned"],
+    "productTags": ["car", "vehicle", "automotive"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "mileage", "unit": "miles", "direction": "lower_is_better", "typicalRange": [10000, 200000] },
+      { "name": "year_of_manufacture", "unit": "year", "direction": "higher_is_better", "typicalRange": [2010, 2026] },
+      { "name": "title_status", "unit": "categorical", "direction": "target", "target": "clean", "typicalRange": ["clean", "salvage", "rebuilt", "lemon-law-buyback", "flood"], "notes": "Anything other than 'clean' is a major red flag." },
+      { "name": "open_recalls", "unit": "count", "direction": "lower_is_better", "typicalRange": [0, 5], "notes": "VIN-checkable at nhtsa.gov/recalls (E3)." },
+      { "name": "as_is_or_warranty", "unit": "categorical", "direction": "target", "target": "with_warranty", "typicalRange": ["as_is", "implied_warranty_only", "with_warranty", "certified_pre_owned"], "notes": "Buyers Guide disclosure required (E1)." },
+      { "name": "previous_owners", "unit": "count", "direction": "lower_is_better", "typicalRange": [1, 5] },
+      { "name": "accident_history", "unit": "categorical", "direction": "target", "target": "none", "typicalRange": ["none", "minor", "moderate", "structural"] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [3000, 80000] }
+    ],
+    "specNormalization": {
+      "mileage": { "regex": "(\\d+(?:,\\d+)?)\\s*(?:miles|mi\\b)", "unit": "miles" },
+      "year_of_manufacture": { "regex": "(20\\d{2})", "unit": "year" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "certified pre-owned (CPO)", "reality": "CPO standards vary widely by manufacturer. Toyota, Lexus, Honda CPO programs are rigorous (150-200 point inspections, 7-year/100k extended warranty). Generic dealer 'certified' (not manufacturer-backed) is just a cosmetic detail; verify the program.", "verdict": "misleading", "checkPrompt": "Is the certification manufacturer-backed (e.g. Toyota CPO) or dealer-only?" },
+      { "pattern": "no accidents", "reality": "Means 'no reported accidents' on Carfax/AutoCheck. Many minor accidents go unreported. Pre-purchase inspection by independent mechanic is required regardless.", "verdict": "misleading", "checkPrompt": "Has the user obtained a pre-purchase inspection from a mechanic NOT affiliated with the seller?" },
+      { "pattern": "one owner", "reality": "Sometimes true but doesn't equal good condition; rental cars often have one owner (Hertz/Enterprise) but heavy use. Always check service records.", "verdict": "misleading", "checkPrompt": "Is the one owner a private party or fleet/rental company?" },
+      { "pattern": "low mileage", "reality": "Sub-50k miles on a 10-year-old car suggests rare driving — could be sat-and-deteriorated (rubber seals, fluids, battery). Not always a positive.", "verdict": "misleading", "checkPrompt": "How was the car driven (commute vs occasional)? Sit-time can be worse than miles." }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Title doesn't match seller name; dealer transferring 'title later'", "action": "flag — title-jumping is illegal in most states; walk away" },
+      { "signal": "Price >25% below comparable market value with vague history", "action": "flag — likely flood, salvage, or stolen-recovered" }
+    ],
+    "compatibilityQuestions": [
+      "What's your annual mileage? Some cars have known high-mileage failure points (CVT transmissions, chain timing).",
+      "Tow / haul / off-road needs?",
+      "EV vs ICE vs hybrid — depends on charging access at home + commute."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Pre-purchase inspection by independent mechanic", "annualCostUsd": [100, 250], "frequency": "one-time" },
+      { "name": "Sales tax + title + registration (~10-12% of price)", "annualCostUsd": [300, 8000], "frequency": "one-time" },
+      { "name": "Documentation / dealer fees", "annualCostUsd": [100, 800], "frequency": "one-time" },
+      { "name": "Extended warranty (often poor value)", "annualCostUsd": [1000, 4000], "frequency": "one-time" },
+      { "name": "First-year repairs on used car (budget 5-10% of purchase price)", "annualCostUsd": [500, 4000], "frequency": "annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "high", "notes": "Most cars 8-15 years old have strong parts markets. EV battery replacement is the major exception ($3k-$15k)." }
+  }
+}

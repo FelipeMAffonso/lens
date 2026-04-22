@@ -1,0 +1,52 @@
+{
+  "slug": "category/meal-kits",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Meal kit subscriptions",
+  "summary": "Subscription meal-kit services (HelloFresh, Blue Apron, Factor) — heavy auto-renewal + per-serving cost vs grocery markup.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC has settled multiple cases against meal-kit companies for deceptive auto-renewal disclosures and undisclosed price increases after intro discounts. Major case: HelloFresh consent decrees in EU (2023).", "sourceUrl": "https://www.ftc.gov/legal-library/browse/cases-proceedings", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "USDA Economic Research Service consumer-spending data shows average meal-kit cost-per-serving is $9-$13 vs $4-$8 for equivalent grocery cooking — markup driven by portioning, packaging, shipping.", "sourceUrl": "https://www.ers.usda.gov/topics/food-markets-prices/food-prices-expenditures-costs/", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["meal kit", "meal kits", "subscription meal", "hellofresh", "blue apron", "factor meals"],
+    "productTags": ["meal-kit", "food", "subscription"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "cost_per_serving", "unit": "USD", "direction": "lower_is_better", "typicalRange": [7, 16], "notes": "Compare to ~$5 grocery equivalent (E2)." },
+      { "name": "weekly_meals", "unit": "count", "direction": "target", "typicalRange": [2, 5] },
+      { "name": "intro_discount_per_box", "unit": "USD", "direction": "higher_is_better", "typicalRange": [10, 90], "notes": "Often 50-75% off first box; renewal price 2-3x." },
+      { "name": "skip_pause_flexibility", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "dietary_options", "unit": "categorical", "direction": "target", "typicalRange": ["standard", "vegetarian", "vegan", "low-carb", "gluten-free", "diabetic"] },
+      { "name": "packaging_recyclability", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] }
+    ],
+    "specNormalization": {
+      "cost_per_serving": { "regex": "\\$(\\d+(?:\\.\\d+)?)\\s*(?:per|/)\\s*serving", "unit": "USD" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "save up to $100 with first box", "reality": "Headline savings are intro-discount only. Subsequent boxes price at $9-$13/serving — typically 2-3x grocery cost (E2). Long-term, meal kits are a premium not a saving.", "verdict": "false", "checkPrompt": "Has the user computed the post-intro-discount weekly cost and compared to grocery equivalent?" },
+      { "pattern": "cancel anytime", "reality": "Auto-renewal traps + 'pause' menus designed for confusion. FTC has prosecuted (E1). In CA/NY/IL/VT, click-to-cancel laws apply (regulation/us-ca-sb-313)." },
+      { "pattern": "fresh ingredients delivered", "reality": "Cold-chain shipping is real but ingredient quality varies. Proteins are typically fine; produce often arrives bruised due to compact packaging." }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Cooking skill level — meal kits typically take 30-45 minutes regardless of advertised time.",
+      "Schedule — willing to commit to N meals every week, or do you skip frequently? Skip-friendliness varies widely.",
+      "Recycling capacity for the substantial packaging waste."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Shipping fees per box ($8-$15)", "annualCostUsd": [400, 800], "frequency": "weekly" },
+      { "name": "Add-on premium proteins / sides", "annualCostUsd": [200, 1200], "frequency": "weekly" },
+      { "name": "Pantry staples not included (oil, salt, etc) — minor but ongoing" }
+    ],
+    "regulatoryLinks": ["regulation/us-ca-sb-313-click-to-cancel", "regulation/us-federal-ftc-click-to-cancel-vacated"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Subscription service." }
+  }
+}
