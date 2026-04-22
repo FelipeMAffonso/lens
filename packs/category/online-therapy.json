@@ -1,0 +1,87 @@
+{
+  "slug": "category/online-therapy",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Online therapy and counseling",
+  "summary": "Subscription-based online therapy platforms (BetterHelp, Talkspace, Cerebral, etc.), $45-$120/week.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC 2023 enforcement action against BetterHelp: $7.8M settlement for sharing user health data with Facebook, Snapchat, Pinterest, and Criteo for advertising despite promising confidentiality.", "sourceUrl": "https://www.ftc.gov/news-events/news/press-releases/2023/03/ftc-ban-betterhelp-sharing-health-data-advertising-order-pay-78-million-consumers", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "HHS OCR 2024 guidance on HIPAA applicability to online therapy: platforms acting as Business Associates must have Business Associate Agreements; many consumer-marketed platforms disclaim BA status by framing service as non-medical 'coaching'.", "sourceUrl": "https://www.hhs.gov/hipaa/for-professionals/business-associates/index.html", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "APA (American Psychological Association) guidance distinguishing licensed psychotherapy from life-coaching: state licensure required for therapy diagnosis and treatment, not required for coaching.", "sourceUrl": "https://www.apa.org/monitor/2020/06/cover-telehealth", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["online therapy", "teletherapy", "online counseling", "betterhelp", "talkspace", "virtual therapy"],
+    "productTags": ["mental-health", "healthcare", "telehealth"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "provider_licensure_state_verified", "unit": "boolean", "direction": "binary", "target": true, "notes": "Licensed therapist in the user's state (E3). Coaching-only platforms are not therapy." },
+      { "name": "hipaa_compliant", "unit": "boolean", "direction": "binary", "target": true, "notes": "Signed HIPAA Business Associate Agreement required for therapy (E2). Many 'coaching' platforms disclaim BA status." },
+      { "name": "insurance_accepted", "unit": "boolean", "direction": "binary", "target": true, "notes": "Some platforms are out-of-network only; check before enrolling." },
+      { "name": "session_type", "unit": "categorical", "direction": "target", "typicalRange": ["messaging-only", "audio-calls", "video-sessions", "mixed"] },
+      { "name": "data_sharing_to_advertisers", "unit": "boolean", "direction": "binary", "target": false, "notes": "BetterHelp $7.8M FTC settlement cited sharing health data with Meta/Snap/Pinterest (E1)." },
+      { "name": "cancellation_friction", "unit": "score_0_1", "direction": "lower_is_better", "typicalRange": [0.1, 0.9], "notes": "FTC click-to-cancel + CA SB-313 apply; check for dark-pattern/forced-continuity." },
+      { "name": "weekly_price_usd", "unit": "USD", "direction": "lower_is_better", "typicalRange": [45, 120] }
+    ],
+    "specNormalization": {
+      "weekly_price_usd": { "regex": "\\$(\\d+(?:\\.\\d+)?)\\s*(?:per|/)\\s*week", "unit": "USD" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "HIPAA-compliant", "reality": "Many platforms are 'HIPAA-adjacent' — they use encryption but do not sign Business Associate Agreements with users' downstream providers (E2). True HIPAA compliance requires a BA chain, not just encrypted transport.", "verdict": "misleading", "checkPrompt": "Does the platform sign a HIPAA Business Associate Agreement on request, or does it disclaim BA status?" },
+      { "pattern": "connect with a therapist in minutes", "reality": "Speed of match does not equal quality. Many platforms match to 'coaches' (not licensed therapists) for speed; licensed therapists have 1-2 week wait lists (E3).", "verdict": "misleading", "checkPrompt": "Is the matched provider a licensed therapist in the user's state, or a coach?" },
+      { "pattern": "affordable therapy — $65/week", "reality": "Weekly price typically requires 4-week minimum prepay ($260+ up-front). Month-to-month pricing is usually 30-50% higher. Insurance-covered traditional therapy may be cheaper out-of-pocket.", "verdict": "misleading", "checkPrompt": "Is the cited weekly price the prepay price, and how does it compare to insurance copay at a traditional practice?" },
+      { "pattern": "your data is private", "reality": "BetterHelp was fined $7.8M in 2023 for sharing user health data with Meta, Snap, Pinterest, and Criteo (E1). Cerebral settled separately for similar violations. 'Private' requires specific audit — check the privacy policy for third-party ad-tech integrations.", "verdict": "false", "checkPrompt": "Does the privacy policy disclose any data sharing with advertising platforms (Meta Pixel, Google Analytics, TikTok Pixel)?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Do you need diagnosis and medication, or general talk support? Diagnosis requires licensed therapist or psychiatrist, not coach.",
+      "Insurance coverage? In-network traditional therapy can be $15-$40/visit copay.",
+      "Modality preference: messaging-only, live video, or mix?"
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Prepay-only discount; paying monthly adds 30-50%", "annualCostUsd": [700, 1800], "frequency": "ongoing" },
+      { "name": "Switching therapists often requires account restart", "annualCostUsd": [0, 260], "frequency": "conditional" },
+      { "name": "Crisis/emergency services are NOT covered", "annualCostUsd": [0, 5000], "frequency": "conditional" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-truth-in-lending", "regulation/us-ca-sb-313-click-to-cancel"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "n/a" },
+    "representativeSkus": [
+      {
+        "sku": "betterhelp-weekly", "name": "BetterHelp Weekly Subscription", "brand": "BetterHelp", "priceUsd": 85, "currency": "USD",
+        "url": "https://www.betterhelp.com/",
+        "specs": { "provider_licensure_state_verified": true, "hipaa_compliant": false, "insurance_accepted": false, "session_type": "mixed", "data_sharing_to_advertisers": true, "cancellation_friction": 0.4, "weekly_price_usd": 85 },
+        "tier": "mid", "notes": "FTC $7.8M settlement for data sharing (E1); disclaims HIPAA BA. Out-of-network only."
+      },
+      {
+        "sku": "talkspace-standard", "name": "Talkspace Standard Messaging + Live", "brand": "Talkspace", "priceUsd": 69, "currency": "USD",
+        "url": "https://www.talkspace.com/",
+        "specs": { "provider_licensure_state_verified": true, "hipaa_compliant": true, "insurance_accepted": true, "session_type": "mixed", "data_sharing_to_advertisers": false, "cancellation_friction": 0.3, "weekly_price_usd": 69 },
+        "tier": "mid", "notes": "In-network with many major insurers; signs HIPAA BA."
+      },
+      {
+        "sku": "brightside-health", "name": "Brightside Health Plus Therapy", "brand": "Brightside", "priceUsd": 75, "currency": "USD",
+        "url": "https://www.brightside.com/",
+        "specs": { "provider_licensure_state_verified": true, "hipaa_compliant": true, "insurance_accepted": true, "session_type": "video-sessions", "data_sharing_to_advertisers": false, "cancellation_friction": 0.2, "weekly_price_usd": 75 },
+        "tier": "mid", "notes": "Psychiatry + therapy; covers medication."
+      },
+      {
+        "sku": "openpath-collective", "name": "Open Path Collective (in-person sliding scale)", "brand": "Open Path", "priceUsd": 30, "currency": "USD",
+        "url": "https://openpathcollective.org/",
+        "specs": { "provider_licensure_state_verified": true, "hipaa_compliant": true, "insurance_accepted": false, "session_type": "video-sessions", "data_sharing_to_advertisers": false, "cancellation_friction": 0.1, "weekly_price_usd": 30 },
+        "tier": "budget", "notes": "Nonprofit directory — $30-$60/session sliding scale. One-time $65 membership."
+      },
+      {
+        "sku": "traditional-in-network", "name": "Traditional in-network therapy (insurance copay)", "brand": "Any licensed therapist", "priceUsd": 30, "currency": "USD",
+        "url": "https://www.psychologytoday.com/us/therapists",
+        "specs": { "provider_licensure_state_verified": true, "hipaa_compliant": true, "insurance_accepted": true, "session_type": "video-sessions", "data_sharing_to_advertisers": false, "cancellation_friction": 0.05, "weekly_price_usd": 30 },
+        "tier": "budget", "notes": "Baseline comparison — most insured users pay $15-$40/visit; often cheaper than subscription apps."
+      }
+    ]
+  }
+}

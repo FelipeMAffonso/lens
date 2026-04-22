@@ -1,0 +1,39 @@
+{
+  "slug": "fee/overdraft-fee",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Bank overdraft fee",
+  "summary": "A fee (typically $30-$38) charged when a checking account transaction exceeds the available balance and the bank pays the transaction anyway.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "CFPB 2024 Overdraft Lending Rule caps overdraft fees at $5 or the bank's actual cost for large banks ($10B+ in assets); challenged in court, effective date October 2025.", "sourceUrl": "https://www.consumerfinance.gov/about-us/newsroom/cfpb-finalizes-rule-to-close-overdraft-loophole-that-costs-americans-billions-in-junk-fees/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "CFPB data: Americans paid $5.5B in overdraft and NSF fees in 2023, down from $12.6B in 2019 as banks dropped fees voluntarily (Capital One, Citi, Ally all to zero).", "sourceUrl": "https://www.consumerfinance.gov/data-research/research-reports/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "Regulation E (12 CFR §1005.17) requires banks to obtain opt-in consent before charging overdraft fees on ATM and one-time debit transactions.", "sourceUrl": "https://www.consumerfinance.gov/rules-policy/regulations/1005/17/", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "categoryContext": ["credit-cards", "banking", "checking-accounts"], "pageTypes": ["account-opening", "account-settings", "statement", "terms-of-service"] },
+  "body": {
+    "canonicalName": "Bank overdraft fee",
+    "description": "When a checking-account transaction would overdraw the balance, the bank may: (a) decline it free (standard), (b) pay it and charge $30-$38 (courtesy pay / overdraft), or (c) transfer from savings/line of credit (may have separate fee). The highest-fee path is usually the default unless the customer changes settings.",
+    "typicalRange": { "min": 0, "max": 38, "unit": "USD", "frequency": "per-incident" },
+    "identificationSignals": [
+      { "kind": "statement-line", "patterns": ["overdraft fee", "OD fee", "NSF fee", "courtesy pay fee", "insufficient funds fee", "overdraft protection transfer fee"], "caseSensitive": false },
+      { "kind": "account-settings", "selector": "overdraft-service[opt-status]", "description": "Reg E opt-in status determines whether fees can be charged on ATM/debit transactions (E3)." },
+      { "kind": "fee-count", "selector": "statement-fee-lines", "description": "Multiple overdraft fees within 24h = extended overdraft pattern; flag for escalation." }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "US-federal", "regulationSlug": null, "requirement": "CFPB 2024 Overdraft Lending Rule caps fees at $5 or actual cost for banks $10B+ in assets (E1), pending litigation." },
+      { "jurisdiction": "US-federal-reg-E", "regulationSlug": null, "requirement": "Reg E (12 CFR §1005.17) requires opt-in consent for overdraft on ATM/one-time debit (E3). Without opt-in, the bank must decline the transaction free." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "yes-first-offense",
+      "typicalSuccessRate": 0.75,
+      "script": "Call your bank and ask: 'I noticed a $35 overdraft fee on my account. This is the first time (or once in 12 months). Can you please waive it as a courtesy?' Most major banks waive 1-2 fees per year on request — Chase, Wells Fargo, Bank of America all have documented goodwill-credit policies. If denied, ask for a supervisor and mention you are considering closing the account. Success rate is ~75% on first request. Also opt OUT of overdraft service under Reg E so future debit/ATM transactions simply decline instead of overdrawing."
+    },
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/file-cfpb-complaint"]
+  }
+}

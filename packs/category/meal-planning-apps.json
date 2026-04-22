@@ -1,0 +1,54 @@
+{
+  "slug": "category/meal-planning-apps",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Meal-planning apps",
+  "summary": "Subscription meal-planning apps (Mealime, PlateJoy, Yummly Pro, Paprika one-time, etc.), $0-$60/year.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "USDA Dietary Guidelines for Americans 2020-2025 provide the federal nutrition recommendations against which app claims should be measured (macros, fiber, sodium).", "sourceUrl": "https://www.dietaryguidelines.gov/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "Academy of Nutrition and Dietetics 2023 position on mobile nutrition apps: only 14% of reviewed apps cite credentialed source for nutrition claims; ~40% contain one or more inaccurate macro calculations.", "sourceUrl": "https://www.eatright.org/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "FDA Food Labeling rules (21 CFR §101) define what nutrition claims like 'low-fat', 'high-fiber' can legally mean on packaged products; app-displayed data should match these thresholds.", "sourceUrl": "https://www.fda.gov/food/food-labeling-nutrition/food-labeling-guide", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["meal planning app", "recipe app", "meal plan", "diet app", "meal prep app"],
+    "productTags": ["food", "app", "health", "subscription"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "dietitian_reviewed", "unit": "boolean", "direction": "binary", "target": true, "notes": "RD-credentialed nutrition review is rare in free apps (E2)." },
+      { "name": "nutrition_data_source", "unit": "categorical", "direction": "target", "typicalRange": ["user-generated", "USDA-foundation", "Nutritionix-API", "Edamam-API", "proprietary"] },
+      { "name": "dietary_restrictions_supported", "unit": "count", "direction": "higher_is_better", "typicalRange": [3, 30], "notes": "Breadth of supported restrictions (gluten-free, vegan, keto, diabetic, allergen)." },
+      { "name": "grocery_list_export", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "offline_mode", "unit": "boolean", "direction": "binary", "target": true, "notes": "Many 'always-online' apps lock users out when subscription lapses." },
+      { "name": "monetization_model", "unit": "categorical", "direction": "target", "typicalRange": ["free-with-ads", "freemium", "subscription", "one-time-purchase"] },
+      { "name": "cancellation_friction", "unit": "score_0_1", "direction": "lower_is_better", "typicalRange": [0.05, 0.7] },
+      { "name": "price_annual", "unit": "USD", "direction": "lower_is_better", "typicalRange": [0, 60] }
+    ],
+    "specNormalization": {
+      "price_annual": { "regex": "\\$(\\d+(?:\\.\\d+)?)\\s*(?:per|/)\\s*year", "unit": "USD" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "dietitian-approved recipes", "reality": "Often means one RD reviewed a sampling at launch, not all recipes (E2). Verify by checking whether per-recipe nutrition is RD-validated or crowd-sourced.", "verdict": "misleading", "checkPrompt": "Does each recipe display an RD credential, or is the claim applied broadly to the catalog?" },
+      { "pattern": "AI-powered personalization", "reality": "Most 'AI personalization' is rule-based filtering on cuisine/restriction tags. True personalization requires biometric input (glucose monitor, body composition), which most apps do not process.", "verdict": "misleading", "checkPrompt": "Does the AI incorporate biometric or outcome data, or is it rule-based cuisine/ingredient filtering?" },
+      { "pattern": "accurate macros for every recipe", "reality": "User-generated-recipe apps often show macros computed from ingredient estimates with 20-30% error (E2). FDA labeling thresholds are not enforced on non-packaged food (E3).", "verdict": "misleading", "checkPrompt": "Is the macro data sourced from USDA Foundation/Nutritionix/Edamam, or user-generated?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Dietary restrictions? Narrow restrictions (FODMAP, keto, renal diet) need specialized apps, not general ones.",
+      "Family size? Meal-scaling accuracy varies.",
+      "Budget: do you want ad-free? Subscription apps remove ads; free apps are ad-heavy."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Auto-renewal traps; many charge $50-$60/yr after free trial", "annualCostUsd": [50, 60], "frequency": "annual" },
+      { "name": "Grocery delivery partner markup if integrated", "annualCostUsd": [120, 600], "frequency": "ongoing" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-ftc-click-to-cancel-vacated", "regulation/us-ca-sb-313-click-to-cancel"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "n/a" }
+  }
+}

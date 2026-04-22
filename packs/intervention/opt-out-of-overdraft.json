@@ -1,0 +1,53 @@
+{
+  "slug": "intervention/opt-out-of-overdraft",
+  "type": "intervention",
+  "version": "1.0.0",
+  "name": "Opt out of overdraft service (Reg E)",
+  "summary": "One-click action generating the request to revoke opt-in consent for overdraft service on ATM and one-time debit card transactions under Regulation E, eliminating future overdraft fees on those transaction types.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Regulation E (12 CFR §1005.17) requires banks to obtain affirmative opt-in consent before charging overdraft fees on ATM withdrawals and one-time debit card transactions. Consumers may revoke this opt-in at any time and banks must comply as soon as reasonably practicable.", "sourceUrl": "https://www.consumerfinance.gov/rules-policy/regulations/1005/17/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "CFPB 2023 guidance: revocation of overdraft opt-in is effective immediately upon receipt by the bank; banks may not impose unreasonable delays.", "sourceUrl": "https://www.consumerfinance.gov/about-us/newsroom/cfpb-issues-advisory-opinion-and-enforcement-guidance-against-banks-charging-surprise-overdraft-fees/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "CFPB Model Form A-9 — standard Reg E opt-in/opt-out notice template banks use; reversing consent follows the same channel.", "sourceUrl": "https://www.consumerfinance.gov/rules-policy/regulations/1005/A/", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "triggerTypes": ["overdraft-fee-charged", "overdraft-service-opted-in", "fee-overdraft-detected", "bank-fee-surfaced"] },
+  "body": {
+    "canonicalName": "Opt out of overdraft service",
+    "description": "When Lens detects the user has been charged an overdraft fee or identifies that the user's account has opt-in overdraft service enabled, it offers a one-click action to draft the revocation message, direct the user to the bank's in-app opt-out toggle (if known), and provide the CFPB complaint path if the bank resists.",
+    "executionType": "draft-offer",
+    "consentTier": "explicit-one-time",
+    "prerequisites": [
+      { "kind": "trigger-detection", "description": "Overdraft fee line item identified on statement, OR user has explicitly opted in to overdraft per Reg E." },
+      { "kind": "user-confirms", "description": "User confirms they want to opt out of overdraft on ATM/one-time debit transactions (understanding that transactions will decline instead)." }
+    ],
+    "template": {
+      "draftSubject": "Revocation of overdraft opt-in under Regulation E (12 CFR §1005.17)",
+      "draftBodyTemplate": "To {bankName}:\n\nI am hereby revoking my prior opt-in consent for overdraft service on ATM withdrawals and one-time debit card transactions on my account ending in {lastFour}.\n\nUnder 12 CFR §1005.17, this revocation is effective as soon as reasonably practicable upon your receipt of this notice. Please decline any future ATM or one-time debit transactions that would overdraw the available balance, rather than paying them and charging an overdraft fee.\n\nI do not consent to re-enrollment absent a fresh affirmative opt-in on my part.\n\nAccount holder: {userName}\nDate: {today}\n\nSincerely,\n{userName}",
+      "recommendedChannels": [
+        "Bank mobile app: Settings → Account Services → Overdraft Service → Opt Out",
+        "Online banking: Profile → Overdraft Preferences",
+        "Phone: call the number on the back of the debit card",
+        "Written: send the above letter by secure message in online banking (creates audit trail)"
+      ],
+      "bankKnownPaths": {
+        "chase": "Chase Mobile → Profile & Settings → Account → Debit Card Coverage → Opt Out",
+        "bank-of-america": "BofA App → Menu → Help & Support → Set Account Services → Change Overdraft Setting",
+        "wells-fargo": "Wells Fargo Mobile → Menu → Account Services → Manage Overdraft Services",
+        "capital-one": "Already opted out bank-wide as of 2022 (no fees charged); verify in app if account pre-dates.",
+        "citi": "Already eliminated overdraft fees in 2022.",
+        "ally": "Already eliminated overdraft fees in 2021."
+      }
+    },
+    "successSignals": [
+      { "kind": "confirmation-received", "description": "Bank confirms opt-out by email, secure message, or account-settings display.", "within": "7-days" },
+      { "kind": "no-further-fees", "description": "No overdraft fees appear on statement in subsequent billing cycles.", "within": "30-days" }
+    ],
+    "failureFallback": { "nextIntervention": "intervention/file-cfpb-complaint" },
+    "regulatoryBasis": ["regulation/us-federal-truth-in-lending"]
+  }
+}

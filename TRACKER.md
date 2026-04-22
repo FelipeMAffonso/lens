@@ -8,9 +8,9 @@ Single source of truth for **everything** that exists, what's missing, what's br
 - **API:** https://lens-api.webmarinelli.workers.dev — `/health`, `/audit`, `/audit/stream`, `/passive-scan`, `/packs`, `/packs/stats`, `/packs/:slug`
 - **Cross-model agent:** https://lens-cross-model.webmarinelli.workers.dev — `/fanout` parallel multi-provider with Opus 4.7 synthesis
 - **Repo:** https://github.com/FelipeMAffonso/lens — 50+ commits, MIT, CI green
-- **Knowledge packs:** **111 active** (55 category + 22 dark-pattern + 15 regulation + 12 fee + 7 intervention) — 0 errors, 0 warnings, every pack has ≥1 primary source
-- **SKU index:** 20 category packs carry pack-driven representative SKUs (espresso-machines, laptops, headphones, coffee-makers, robot-vacuums, monitors, smartphones, refrigerators, golf-clubs, mattresses, wireless-earbuds, tvs, blenders, printers, eyeglasses, home-security-systems, pet-insurance, carry-on-luggage, gas-grills, dishwashers, office-chairs, standing-desks)
-- **Last deploy:** API ver e3f01f8e (2026-04-22)
+- **Knowledge packs:** **116 active** (57 category + 23 dark-pattern + 15 regulation + 13 fee + 8 intervention) — 0 errors, 0 warnings, every pack has ≥1 primary source
+- **SKU index:** 21 category packs carry pack-driven representative SKUs (espresso-machines, laptops, headphones, coffee-makers, robot-vacuums, monitors, smartphones, refrigerators, golf-clubs, mattresses, wireless-earbuds, tvs, blenders, printers, eyeglasses, home-security-systems, pet-insurance, carry-on-luggage, gas-grills, dishwashers, office-chairs, standing-desks, online-therapy)
+- **Last deploy:** API ver 9ac9dc59 (2026-04-22)
 
 ## Pack inventory (all 85)
 

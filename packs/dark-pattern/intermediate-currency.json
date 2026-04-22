@@ -1,0 +1,35 @@
+{
+  "slug": "dark-pattern/intermediate-currency",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Intermediate currency",
+  "summary": "An in-app virtual currency (gems, coins, tokens, credits) abstracts real-money spending to make individual purchases feel smaller and cumulative spending harder to track.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC 2022 'Bringing Dark Patterns to Light' report identifies intermediate currency conversion as a 'price obfuscation' pattern under Section 5 FTC Act when exchange rates are not clearly displayed.", "sourceUrl": "https://www.ftc.gov/reports/bringing-dark-patterns-light", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "UK Advertising Standards Authority (ASA) 2023 ruling against EA over FIFA Points packs, requiring real-money equivalence disclosure in all in-game currency promotions.", "sourceUrl": "https://www.asa.org.uk/rulings/electronic-arts-ltd-a23-1190017.html", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "Norwegian Consumer Council 2022 report 'INSERT COIN' documenting systematic intermediate-currency dark patterns across mobile games, with typical price obfuscation of 15-35% due to mismatched pack sizes.", "sourceUrl": "https://fil.forbrukerradet.no/wp-content/uploads/2022/05/2022-05-31-insert-coin-publish.pdf", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["in-app-purchase", "game-store", "virtual-goods", "loot-box", "subscription-tier"] },
+  "body": {
+    "canonicalName": "Intermediate currency",
+    "brignullId": "price-obfuscation",
+    "description": "Purchases are denominated in a virtual currency (gems, coins, V-Bucks, etc.) sold in pack sizes that do not align with item prices. A user wanting a 950-gem item must buy a 1000-gem pack (overshoot) or a 500-gem + 500-gem combo (inefficient). The exchange rate and cumulative real-money spending are made hard to inspect, exploiting the psychological decoupling of play-money from real-money.",
+    "severity": "manipulative",
+    "illegalInJurisdictions": ["UK (when real-money equivalence is not disclosed, per ASA)", "EU-Norway (per Consumer Council guidance)"],
+    "detectionHeuristics": [
+      { "kind": "text-pattern", "patterns": ["gems", "coins", "V-Bucks", "Robux", "FIFA Points", "Apex Coins", "CoD Points", "credits", "tokens"], "caseSensitive": false, "description": "Named virtual currencies common to mobile and AAA games." },
+      { "kind": "pricing-asymmetry", "trigger": "pack-size-vs-item-price-mismatch", "description": "Check whether pack sizes exactly match item prices. Systematic mismatch forces overspend." },
+      { "kind": "disclosure-absence", "selector": "price-display[no-usd-equivalent]", "description": "Item prices shown only in virtual currency without USD equivalent (E1)." }
+    ],
+    "llmVerifyPrompt": "Examine the in-app store. Check: (1) is real-money equivalence displayed per item, (2) do pack sizes align with item prices or force overbuy, (3) is cumulative real-money spending visible to the user, (4) are there timed-offer or scarcity overlays on pack purchases. Flag: clean-disclosure, obfuscated-pricing, or predatory-intermediate-currency.",
+    "remediation": "Overlay Lens warning with computed USD-equivalent for the item the user is considering, plus the 'trapped remainder' cost if pack size doesn't match. Cite UK ASA ruling (E2). For users with kids, recommend enabling parental purchase limits.",
+    "regulatoryLinks": ["regulation/eu-digital-services-act"],
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/file-ftc-complaint"]
+  }
+}

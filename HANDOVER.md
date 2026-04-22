@@ -13,7 +13,7 @@ If you (or a fresh Claude session) are picking this up cold, read this file firs
 | Web dashboard | https://lens-b1h.pages.dev | ✅ 3 modes (query, url, text) + photo upload + profile export |
 | API worker | https://lens-api.webmarinelli.workers.dev | ✅ `/health`, `/audit`, `/audit/stream` SSE, `/passive-scan`, `/packs`, `/packs/stats`, `/packs/:slug` |
 | Cross-model | https://lens-cross-model.webmarinelli.workers.dev | ✅ `/fanout` OpenAI+Google+OpenRouter → Opus 4.7 synthesis |
-| GitHub repo | https://github.com/FelipeMAffonso/lens | ✅ MIT, CI green, main=aae7aab |
+| GitHub repo | https://github.com/FelipeMAffonso/lens | ✅ MIT, CI green, main=e1491ba |
 | Chrome extension | `apps/extension/` | ✅ MV3, esbuild IIFE, passive dark-pattern scan |
 | Privacy page | https://lens-b1h.pages.dev/privacy.html | ✅ Full sub-processor table |
 
@@ -40,11 +40,11 @@ lens/
 ├── packages/
 │   └── shared/           Zod schemas + pack types (source of truth)
 ├── packs/
-│   ├── category/         (50) knowledge packs per product category
-│   ├── dark-pattern/     (19) Brignull-canonical deceptive design patterns
-│   ├── regulation/       (12) in-force laws with status/vacated/citation
-│   ├── fee/              (10) typical hidden fees + disclosure legality
-│   └── intervention/     (5) remediation templates with consent tiers
+│   ├── category/         (57) knowledge packs per product category
+│   ├── dark-pattern/     (23) deceptive patterns — full Brignull canonical + drip-pricing + intermediate-currency
+│   ├── regulation/       (15) in-force/vacated/delayed laws with status + citation
+│   ├── fee/              (13) typical hidden fees + disclosure legality per jurisdiction
+│   └── intervention/     (8) remediation templates with consent tiers
 ├── scripts/
 │   ├── validate-pack-schema.mjs   blocking — runs before bundle
 │   ├── bundle-packs.mjs           generates workers/api/src/packs/all.generated.ts
@@ -75,28 +75,35 @@ node scripts/validate-pack-schema.mjs
 cd apps/extension && npm run build  # outputs to dist/
 ```
 
-## Known state at handover point (2026-04-22)
+## Known state at handover point (2026-04-22, main=e1491ba)
 
 **Working:**
-- 96 packs bundled, validated 0-errors
+- **116 packs** bundled, validated **0 errors, 0 warnings**
+- **21 category packs carry SKU indexes** (espresso-machines, laptops, headphones, coffee-makers, robot-vacuums, monitors, smartphones, refrigerators, golf-clubs, mattresses, wireless-earbuds, tvs, blenders, printers, eyeglasses, home-security-systems, pet-insurance, carry-on-luggage, gas-grills, dishwashers, office-chairs, standing-desks, online-therapy) — fixture-mode audit covers the full mid-market product space
 - Fixture-mode audit uses pack-declared SKUs (deterministic ~6-18s demo)
 - Real-mode audit uses Opus 4.7 web search (`LENS_SEARCH_MODE=real`)
 - Weekly pack-maintenance cron (Monday 06:13 UTC) runs 4 jobs: schema-validate, llm-judge, regulation-watcher, enricher
 - Chrome extension passively scans checkouts for Brignull patterns with inline badges
 - Privacy sub-processor table complete
+- **UX overhaul shipped** (commit 6ff1ce2): light theme, coral accent, 4px radii, focus rings, card shadows, CTA band — design language modeled on the Cognitive Traps Repository
 
-**Known gaps (from TRACKER.md G1-G13):**
+**Recently fixed:**
+- `illegalInJurisdictions` validator false-positive (was treating jurisdiction names as pack slugs) — removed at commit cc2b932
+- Stale "73 packs" copy in index.html → 106 (will need to bump to 111 next deploy)
+
+**Still-open gaps (from TRACKER.md G1-G13):**
 - G1: No auth on web app (acceptable for hackathon demo)
-- Validator treats `illegalInJurisdictions` strings as pack cross-refs → 3 spurious warnings on `dark-pattern/drip-pricing` (non-blocking, fix queued)
 - 52 workflows: ~18 live, ~6 partial, ~28 not-implemented (roadmap)
+- W17 review-authenticity workflow declared in fake-social-proof pack but no endpoint yet
 - `wine` category pack flagged by judge agent as one-source
 - Demo video not yet recorded (Task #7 pending)
+- "106 Knowledge Packs" copy in index.html is stale vs current 111; update on next web deploy
 
 **Active `/loop` cron:** ID `70f3dd2b`, fires every 5 min, prompt = "continue building Lens..."
 
-## Next pending task (Task #18)
+## Next pending task (Task #21)
 
-> Add 5+ new packs + fix illegalInJurisdictions validator warning + extend SKU index to 5 more categories (mattresses, wireless-earbuds, tvs, blenders, printers).
+> Implement W17 review-authenticity workflow using fake-social-proof pack. Add 5+ new packs. Apply P1 UX polish from cognitive-traps audit.
 
 ## Bootstrap for a new session
 
