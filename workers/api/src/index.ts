@@ -66,6 +66,13 @@ import {
   handleRead as handlePerformanceRead,
   handleHistory as handlePerformanceHistory,
 } from "./performance/handler.js";
+import {
+  handleList as handleHouseholdList,
+  handleCreate as handleHouseholdCreate,
+  handlePatch as handleHouseholdPatch,
+  handleDelete as handleHouseholdDelete,
+  handleEffective as handlePreferencesEffective,
+} from "./household/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -435,6 +442,13 @@ app.post("/purchase/:id/performance", (c) => handlePerformanceRecord(c as never)
 app.get("/purchase/:id/performance", (c) => handlePerformanceRead(c as never));
 app.get("/performance/history", (c) => handlePerformanceHistory(c as never));
 
+// CJ-W47 — household profiles + effective preference resolver.
+app.get("/household/members", (c) => handleHouseholdList(c as never));
+app.post("/household/members", (c) => handleHouseholdCreate(c as never));
+app.patch("/household/members/:id", (c) => handleHouseholdPatch(c as never));
+app.delete("/household/members/:id", (c) => handleHouseholdDelete(c as never));
+app.get("/preferences/effective", (c) => handlePreferencesEffective(c as never));
+
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these
 // surfaces expose the persisted state back to the web UI.
@@ -531,9 +545,24 @@ app.put("/preferences", async (c) => {
     criteria?: unknown;
     valuesOverlay?: unknown;
     sourceWeighting?: { vendor: number; independent: number };
+    profileId?: string | null; // CJ-W47
   } | null;
   if (!body || typeof body.category !== "string" || body.criteria === undefined) {
     return c.json({ error: "invalid_input", expected: "category + criteria" }, 400);
+  }
+  // CJ-W47 — validate profile ownership when profileId is provided.
+  if (body.profileId) {
+    if (!userId) {
+      return c.json({ error: "profile_requires_signed_in_user" }, 400);
+    }
+    const { getMember } = await import("./db/repos/household.js");
+    const member = await getMember(d1 as never, body.profileId);
+    if (!member || member.user_id !== userId) {
+      return c.json({ error: "not_found", scope: "profile" }, 404);
+    }
+    if (member.archived_at !== null) {
+      return c.json({ error: "profile_archived", profileId: body.profileId }, 409);
+    }
   }
   const row = await upsertPreference(d1 as never, {
     userId: userId ?? null,
@@ -542,6 +571,7 @@ app.put("/preferences", async (c) => {
     criteria: body.criteria,
     ...(body.valuesOverlay !== undefined ? { valuesOverlay: body.valuesOverlay } : {}),
     ...(body.sourceWeighting !== undefined ? { sourceWeighting: body.sourceWeighting } : {}),
+    ...(body.profileId !== undefined ? { profileId: body.profileId } : {}),
   });
   return c.json({ ok: true, preference: row });
 });

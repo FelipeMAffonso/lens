@@ -35,10 +35,28 @@ export const PreferenceRowSchema = z.object({
   criteria_json: z.string(),
   values_overlay_json: z.string().nullable(),
   source_weighting_json: z.string().nullable(),
+  profile_id: z.string().nullable().optional(), // CJ-W47 — nullable for household-default
   updated_at: z.string(),
   created_at: z.string(),
 });
 export type PreferenceRow = z.infer<typeof PreferenceRowSchema>;
+
+// ─── household_members ────────────────────────────────────────────────────
+export const HouseholdRoleEnum = z
+  .enum(["owner", "adult", "teen", "child", "guest"])
+  .nullable();
+export const HouseholdMemberRowSchema = z.object({
+  id: z.string().min(1),
+  user_id: z.string().min(1),
+  name: z.string().min(1),
+  role: z.union([HouseholdRoleEnum, z.null()]),
+  relationship: z.string().nullable(),
+  birth_year: z.number().int().nullable(),
+  created_at: z.string(),
+  archived_at: z.string().nullable(),
+});
+export type HouseholdMemberRow = z.infer<typeof HouseholdMemberRowSchema>;
+export type HouseholdRole = z.infer<typeof HouseholdRoleEnum>;
 
 // ─── watchers ─────────────────────────────────────────────────────────────
 export const WatcherKindEnum = z.enum([
