@@ -85,7 +85,7 @@
 | S4-W23 | Compatibility check | ✅ | `BLOCKS/S4-W23-compatibility-check.md` | `32f7b1f` |
 | S4-W24 | True-total-cost reveal | ✅ | `BLOCKS/S4-W24-true-total-cost.md` | `4d7a693` |
 | S4-W25 | Data-disclosure audit | ⬜ | 🔬 | |
-| S4-W26 | Breach history | ⬜ | 🔬 | |
+| S4-W26 | Breach history | ✅ | `BLOCKS/S4-W26-breach-history.md` | `e6cef91` |
 | S4-W27 | Scam / fraud detection | ⬜ | 🔬 | |
 | S4-W28 | Checkout-readiness summary | ⬜ | 🔬 | |
 
@@ -234,6 +234,7 @@
 - 2026-04-22: S3-W16 ✅ — /provenance/verify. Three-stage fuzzy-match claim verifier (exact → normalized → partial-sentence token overlap ≥ 50% / 400-char window) + dual-layer affiliate detector (URL rules for 7 programs: amazon-tag/shareasale/awin/rakuten/skimlinks/impact-radius/utm-tracking + HTML rules for rel=sponsored + FTC disclosure phrases + body-embedded redirects). Composite provenance score in [0,1]. Parallel fan-out fetch with 5-way concurrency + 400KB body cap. 37 new tests (662/662 green, +37). Live smoke: Amazon bot-block handled gracefully; amazon-tag URL-level indicator still surfaces. Commit `6d65b7e`.
 - 2026-04-22: S4-W23 ✅ — /compat/check 10-rule compatibility library LIVE. Covers 2015 MBP proprietary SSD, generic M.2 SATA-vs-NVMe, 4K@60 external display caps, laptop charger wattage, phone-charger connector, AirPods Bluetooth version, HDMI 2.0-vs-2.1 cable, printer-ink cartridge model, camera-lens mount, phone case model. Profile table auto-enriches specs from product name. Unknown pairs return no-rule-matched (never silent false-pass). 31 new tests (693/693 green, +31). Live smoke: 2015 MBP + M.2 NVMe → incompatible, rule mbp-proprietary-blade fires. Commit `32f7b1f`.
 - 2026-04-22: S2-W13 ✅ — vendor-vs-independent source weighting LIVE. Normalize (preserves ratio on out-of-range, defaults 50/50, handles -0), pure reranker with 0.3 BOOST_RANGE + weight redistribution when one signal missing, GET/PUT endpoints with category → _global → default fallback chain. Persists via F2 preferences.source_weighting_json. 23 new tests (716/716 green, +23). Live roundtrip: PUT {0.7, 0.3} + GET with captured anon → source:"global", weighting:{0.7, 0.3}. Commit `9e56c45`.
+- 2026-04-22: S4-W26 ✅ — /breach-history public endpoint. 15-breach curated fixture dataset (Target 2013, Home Depot 2014, Yahoo 2013, Anthem 2015, Uber 2016, Equifax 2017, Marriott 2018, Facebook 2019, Capital One 2019, T-Mobile 2021+2023, LastPass 2022, Okta 2022, Dropbox 2012, Adobe 2013). Deterministic score 0-100 with severity weights + recency multiplier (0 beyond 10y) + SSN/card/password bonuses. 5 bands. HIBP scaffold gated on HIBP_API_KEY. KV 24h cache. 32 new tests (748/748 green, +32). Live smoke: target.com → score 0 (breach 12.35y old, honestly decayed); equifax.com → score 10 band "low" (8.63y old + SSN exposure). Commit `e6cef91`.
 
 ---
 
