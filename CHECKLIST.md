@@ -24,11 +24,11 @@
 | F9 | PWA web + mobile layout | ✅ | `BLOCKS/F9-pwa.md` | `7939873` |
 | F10 | Mobile share-sheet ingestion | 🟡 | `BLOCKS/F9-pwa.md` | `7939873` (manifest share_target shipped; /share route pending) |
 | F11 | Voice input | ✅ | `BLOCKS/F11-voice.md` | `3324390` |
-| F12 | Email inbox ingestion (Gmail OAuth) | ⬜ | 🔬 | |
+| F12 | Email inbox ingestion (Gmail OAuth) | 🟡 | `BLOCKS/F12-gmail-oauth.md` | `ab19963` (OAuth flow + token CRUD live; poller+parser land in S0-W5 with user-provided creds) |
 | F13 | Plaid bank connection (stretch) | ⬜ | 🔬 | |
 | F14 | MCP server | ✅ | `BLOCKS/F14-mcp-server.md` | `f5669ee` |
 | F15 | Public Lens Score API | ✅ | `BLOCKS/F15-score-api.md` | `f5669ee` |
-| F16 | Public disagreement ticker | ⬜ | 🔬 | |
+| F16 | Public disagreement ticker | ✅ | `BLOCKS/F16-ticker.md` | `ab19963` |
 | F17 | Observability (logs + traces) | ✅ | `BLOCKS/F17-observability.md` | `8ab4ab3` |
 | F18 | Authenticated rate limiting | ⬜ | 🔬 | |
 | F19 | Secrets + env parity | ⬜ | 🔬 | |
