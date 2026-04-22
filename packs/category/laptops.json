@@ -12,8 +12,9 @@
   "retirementReason": null,
   "evidence": [
     { "ref": "E1", "claim": "Manufacturer-stated battery life typically assumes 150-nit brightness and light tasks; real-world coding or browsing use is 60-75% of stated figure.", "sourceUrl": "https://www.notebookcheck.net/Mobile-Computing.31.0.html", "retrieved": "2026-04-21", "primary": false },
-    { "ref": "E2", "claim": "'MIL-STD-810' compliance does not certify drop survival; it means the manufacturer self-tested against selected procedures, not that independent certification occurred.", "sourceUrl": "https://www.trentonsystems.com/blog/mil-std-810-what-does-it-really-mean", "retrieved": "2026-04-21", "primary": false },
-    { "ref": "E3", "claim": "Soldered RAM (non-upgradeable) is common in modern ultraportables; manufacturers frequently obscure this in marketing pages.", "sourceUrl": "https://www.ifixit.com/Right-to-Repair/Laptops", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E2", "claim": "MIL-STD-810H is a Department of Defense Test Method Standard. The standard explicitly states it 'does not impose design or test specifications. Rather, it describes the environmental tailoring process that results in realistic materiel designs and test methods based on materiel system performance requirements.'", "sourceUrl": "https://quicksearch.dla.mil/qsDocDetails.aspx?ident_number=35978", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E3", "claim": "iFixit teardowns of modern ultraportables (MacBook Air M2, XPS 13 9320, ThinkPad X1 Carbon Gen 11) all show soldered LPDDR memory. iFixit Repairability scores reflect this.", "sourceUrl": "https://www.ifixit.com/News/40996/macbook-air-m2-teardown", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E4", "claim": "Federal Trade Commission Right-to-Repair rulemaking and the 2021 'Nixing the Fix' report document manufacturer practices that obscure repairability and limit aftermarket parts.", "sourceUrl": "https://www.ftc.gov/system/files/documents/reports/nixing-fix-ftc-report-congress-repair-restrictions/nixing_the_fix_report_final_5521_630pm-508_002.pdf", "retrieved": "2026-04-21", "primary": true }
   ],
   "applicability": {
     "categoryAliases": ["laptop", "notebook", "laptops", "portable computer", "ultrabook"],

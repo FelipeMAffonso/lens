@@ -48,7 +48,7 @@
       { "name": "Balance transfer fees (3-5% typical)", "annualCostUsd": [0, 500], "frequency": "conditional" },
       { "name": "Late payment fees (up to $40 per CFPB cap)", "annualCostUsd": [0, 480], "frequency": "conditional" }
     ],
-    "regulatoryLinks": ["regulation/us-federal-cfpb-truth-in-lending"],
+    "regulatoryLinks": ["regulation/us-federal-truth-in-lending"],
     "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Financial product." }
   }
 }

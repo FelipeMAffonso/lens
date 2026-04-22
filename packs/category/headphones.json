@@ -12,8 +12,8 @@
   "retirementReason": null,
   "evidence": [
     { "ref": "E1", "claim": "Battery-life claims for wireless headphones are commonly stated with ANC off at 50% volume; ANC on reduces stated battery by 20-30%.", "sourceUrl": "https://www.rtings.com/headphones/tests/battery/battery-life", "retrieved": "2026-04-21", "primary": false },
-    { "ref": "E2", "claim": "Active Noise Cancellation effectiveness varies most in low-frequency (engine/fan noise 50-200Hz); marketing claims of 'up to 30dB reduction' typically apply only in this band.", "sourceUrl": "https://www.rtings.com/headphones/tests/noise-isolation/active-noise-cancellation", "retrieved": "2026-04-21", "primary": false },
-    { "ref": "E3", "claim": "'Industry-leading ANC' is a marketing claim, not a certifiable metric; third-party comparisons (RTINGS, Audio Science Review) consistently show Bose QuietComfort and Sony WH-1000XM series trading leads within a 2-3 dB envelope.", "sourceUrl": "https://www.rtings.com/headphones/reviews/best/active-noise-cancelling", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E2", "claim": "Active Noise Cancellation effectiveness is measured in dB attenuation across frequency bands. Bose, Sony, Apple, and Sennheiser submit ANC measurements following ANSI/ASA S3.19-1974 (R2018) Method for Measurement of Real-Ear Attenuation of Hearing Protectors.", "sourceUrl": "https://webstore.ansi.org/standards/asa/ansiasas3191974r2018", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E3", "claim": "FTC Endorsement Guides 16 CFR Part 255 require disclosure of material connections in product reviews including audio equipment.", "sourceUrl": "https://www.ftc.gov/business-guidance/resources/ftcs-endorsement-guides-what-people-are-asking", "retrieved": "2026-04-21", "primary": true }
   ],
   "applicability": {
     "categoryAliases": ["headphones", "over-ear headphones", "anc headphones", "noise cancelling headphones", "wireless headphones"],

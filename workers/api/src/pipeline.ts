@@ -10,6 +10,13 @@ export interface PipelineOptions {
   onEvent?: (event: string, data: unknown) => void;
 }
 
+function createEmptyOptimal(_intent: { category: string }): {
+  name: string; brand: string; price: number | null; currency: string; specs: Record<string, never>;
+  attributeScores: Record<string, never>; utilityScore: number; utilityBreakdown: never[];
+} {
+  return { name: "(no candidates available)", brand: "", price: null, currency: "USD", specs: {}, attributeScores: {}, utilityScore: 0, utilityBreakdown: [] };
+}
+
 class StageError extends Error {
   constructor(public stage: string, message: string, public cause?: unknown) {
     super(`[${stage}] ${message}`);
@@ -89,6 +96,22 @@ export async function runAuditPipeline(
 
   const tTotal = Date.now();
 
+  // Surface stage-level warnings to the caller. Silent failures are a critic-flagged
+  // problem: callers can no longer tell a successful zero-claim audit from a parse failure.
+  const warnings: Array<{ stage: string; message: string }> = [];
+  if (extract.aiRecommendation.claims.length === 0 && input.kind === "text") {
+    warnings.push({ stage: "extract", message: "No claims extracted from AI text — paste may be too short or non-recommendation." });
+  }
+  if (candidates.length === 0) {
+    warnings.push({ stage: "search", message: "No candidates found. Switch LENS_SEARCH_MODE to 'real' or check fixture coverage for this category." });
+  }
+  if (crossModel.length === 0) {
+    warnings.push({ stage: "crossModel", message: "No cross-model picks. Provider keys may be missing or rate-limited. Check Worker secrets." });
+  }
+  if (!ranked[0]) {
+    warnings.push({ stage: "rank", message: "Ranking produced no top pick — verify candidates have parseable spec values." });
+  }
+
   return {
     id: crypto.randomUUID(),
     host:
@@ -100,7 +123,8 @@ export async function runAuditPipeline(
     intent: extract.intent,
     aiRecommendation: extract.aiRecommendation,
     candidates: ranked,
-    specOptimal: ranked[0]!,
+    specOptimal: ranked[0] ?? createEmptyOptimal(extract.intent),
+    warnings,
     aiPickCandidate,
     claims,
     crossModel,

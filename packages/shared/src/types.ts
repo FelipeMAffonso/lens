@@ -94,4 +94,6 @@ export interface AuditResult {
     total: number;
   };
   createdAt: string;                // ISO timestamp
+  /** Stage-level warnings — surfaces silent degradation that previously vanished. */
+  warnings?: Array<{ stage: string; message: string }>;
 }

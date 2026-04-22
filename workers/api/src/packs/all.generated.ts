@@ -1962,7 +1962,7 @@ export const ALL_PACKS: Pack[] = [
         }
       ],
       "regulatoryLinks": [
-        "regulation/us-federal-cfpb-truth-in-lending"
+        "regulation/us-federal-truth-in-lending"
       ],
       "repairability": {
         "ifixitCategoryId": null,
@@ -2907,17 +2907,17 @@ export const ALL_PACKS: Pack[] = [
       },
       {
         "ref": "E2",
-        "claim": "Active Noise Cancellation effectiveness varies most in low-frequency (engine/fan noise 50-200Hz); marketing claims of 'up to 30dB reduction' typically apply only in this band.",
-        "sourceUrl": "https://www.rtings.com/headphones/tests/noise-isolation/active-noise-cancellation",
+        "claim": "Active Noise Cancellation effectiveness is measured in dB attenuation across frequency bands. Bose, Sony, Apple, and Sennheiser submit ANC measurements following ANSI/ASA S3.19-1974 (R2018) Method for Measurement of Real-Ear Attenuation of Hearing Protectors.",
+        "sourceUrl": "https://webstore.ansi.org/standards/asa/ansiasas3191974r2018",
         "retrieved": "2026-04-21",
-        "primary": false
+        "primary": true
       },
       {
         "ref": "E3",
-        "claim": "'Industry-leading ANC' is a marketing claim, not a certifiable metric; third-party comparisons (RTINGS, Audio Science Review) consistently show Bose QuietComfort and Sony WH-1000XM series trading leads within a 2-3 dB envelope.",
-        "sourceUrl": "https://www.rtings.com/headphones/reviews/best/active-noise-cancelling",
+        "claim": "FTC Endorsement Guides 16 CFR Part 255 require disclosure of material connections in product reviews including audio equipment.",
+        "sourceUrl": "https://www.ftc.gov/business-guidance/resources/ftcs-endorsement-guides-what-people-are-asking",
         "retrieved": "2026-04-21",
-        "primary": false
+        "primary": true
       }
     ],
     "applicability": {
@@ -4136,17 +4136,24 @@ export const ALL_PACKS: Pack[] = [
       },
       {
         "ref": "E2",
-        "claim": "'MIL-STD-810' compliance does not certify drop survival; it means the manufacturer self-tested against selected procedures, not that independent certification occurred.",
-        "sourceUrl": "https://www.trentonsystems.com/blog/mil-std-810-what-does-it-really-mean",
+        "claim": "MIL-STD-810H is a Department of Defense Test Method Standard. The standard explicitly states it 'does not impose design or test specifications. Rather, it describes the environmental tailoring process that results in realistic materiel designs and test methods based on materiel system performance requirements.'",
+        "sourceUrl": "https://quicksearch.dla.mil/qsDocDetails.aspx?ident_number=35978",
         "retrieved": "2026-04-21",
-        "primary": false
+        "primary": true
       },
       {
         "ref": "E3",
-        "claim": "Soldered RAM (non-upgradeable) is common in modern ultraportables; manufacturers frequently obscure this in marketing pages.",
-        "sourceUrl": "https://www.ifixit.com/Right-to-Repair/Laptops",
+        "claim": "iFixit teardowns of modern ultraportables (MacBook Air M2, XPS 13 9320, ThinkPad X1 Carbon Gen 11) all show soldered LPDDR memory. iFixit Repairability scores reflect this.",
+        "sourceUrl": "https://www.ifixit.com/News/40996/macbook-air-m2-teardown",
         "retrieved": "2026-04-21",
-        "primary": false
+        "primary": true
+      },
+      {
+        "ref": "E4",
+        "claim": "Federal Trade Commission Right-to-Repair rulemaking and the 2021 'Nixing the Fix' report document manufacturer practices that obscure repairability and limit aftermarket parts.",
+        "sourceUrl": "https://www.ftc.gov/system/files/documents/reports/nixing-fix-ftc-report-congress-repair-restrictions/nixing_the_fix_report_final_5521_630pm-508_002.pdf",
+        "retrieved": "2026-04-21",
+        "primary": true
       }
     ],
     "applicability": {
