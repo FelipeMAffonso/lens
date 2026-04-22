@@ -16,7 +16,7 @@
 | F1 | Auth: magic-link + anon | ✅ | `BLOCKS/F1-auth-magic-link.md` | `c27013f` |
 | F2 | Persistence: D1 + KV + R2 | ⬜ | `BLOCKS/F2-persistence.md` | |
 | F3 | Workflow engine (DAG + bus + DO) | ✅ | `BLOCKS/F3-workflow-engine.md` | `2a96393` |
-| F4 | Cron + scheduler primitives | ⬜ | 🔬 | |
+| F4 | Cron + scheduler primitives | ✅ | `BLOCKS/F4-cron.md` | `8ab4ab3` |
 | F5 | Event bus + webhook surface | ⬜ | 🔬 | |
 | F6 | Extension inline sidebar infra | ✅ | `BLOCKS/F6-extension-sidebar.md` | `653e7ce` |
 | F7 | Extension overlay + badge system | ⬜ | 🔬 | |
@@ -29,7 +29,7 @@
 | F14 | MCP server | ⬜ | 🔬 | |
 | F15 | Public Lens Score API | ⬜ | 🔬 | |
 | F16 | Public disagreement ticker | ⬜ | 🔬 | |
-| F17 | Observability (logs + traces) | ⬜ | 🔬 | |
+| F17 | Observability (logs + traces) | ✅ | `BLOCKS/F17-observability.md` | `8ab4ab3` |
 | F18 | Authenticated rate limiting | ⬜ | 🔬 | |
 | F19 | Secrets + env parity | ⬜ | 🔬 | |
 | F20 | Testing infrastructure | ✅ | `BLOCKS/F20-testing-infra.md` | `d6569a5` |
