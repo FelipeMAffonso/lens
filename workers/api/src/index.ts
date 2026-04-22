@@ -53,6 +53,7 @@ import {
   handleGet as handleSourceWeightingGet,
   handlePut as handleSourceWeightingPut,
 } from "./source-weighting/handler.js";
+import { handleBreachHistory } from "./breach/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -71,6 +72,8 @@ export interface Env {
   // S4-W21 — price history
   KEEPA_API_KEY?: string;
   LENS_PRICE_MODE?: "keepa" | "fixture" | "auto" | "none";
+  // S4-W26 — breach history (HIBP paid domain endpoint)
+  HIBP_API_KEY?: string;
   /**
    * "real" (default) = live Opus 4.7 web search; "fixture" = short-circuit to a hardcoded
    * catalog for the category. Fixture mode exists to unblock demo latency and for CI-style
@@ -392,6 +395,9 @@ app.get("/compat/info", (c) => handleCompatInfo(c as never));
 // S2-W13 — vendor-vs-independent source weighting.
 app.get("/source-weighting", (c) => handleSourceWeightingGet(c as never));
 app.put("/source-weighting", (c) => handleSourceWeightingPut(c as never));
+
+// S4-W26 — seller breach history. Public (no auth) by design.
+app.get("/breach-history", (c) => handleBreachHistory(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these

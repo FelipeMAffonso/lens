@@ -63,3 +63,9 @@ KEEPA_API_KEY=
 # "keepa" = require real Keepa; 503 when missing. "fixture" = always fixture.
 # "none"  = empty series + insufficient-data verdict.
 LENS_PRICE_MODE=auto
+
+# ─── S4-W26 — seller breach history (HIBP) ──────────────────────────────────
+# Optional. HIBP's /breacheddomain endpoint requires a paid subscription.
+# When unset, /breach-history falls back to Lens's curated fixture dataset
+# (15+ documented consumer-retail breaches of the last decade).
+HIBP_API_KEY=
