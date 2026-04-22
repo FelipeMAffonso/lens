@@ -62,7 +62,7 @@
 | S2-W10 | Spec-optimal (deepen live) | 🟡 | 🔬 | |
 | S2-W11 | Alternatives at tiers (deepen live) | 🟡 | 🔬 | |
 | S2-W12 | Cross-assistant (migrate to Managed Agent) | 🟡 | 🔬 | |
-| S2-W13 | Vendor vs independent weighting | ⬜ | 🔬 | |
+| S2-W13 | Vendor vs independent weighting | ✅ | `BLOCKS/S2-W13-source-weighting.md` | `9e56c45` |
 
 ### Stage 3 — Evaluation
 
@@ -233,6 +233,7 @@
 - 2026-04-22: S6-W34 ✅ — price-drop refund watcher LIVE. 8-retailer price-match-window table (BBY/Target/Walmart/HD/Lowe's/Costco/Apple active + Amazon explicitly inactive since 2018), pure detector with 10 explicit ineligibility reasons, claim-drafter assembling retailer-formal letter + portal URLs, F2-pattern repo over purchases+interventions, price.poll workflow registered for the existing 17 */2 cron, 3 HTTP endpoints (GET /windows, POST /scan, POST /:id/file). Composes S4-W21 + F2 purchases + F2 interventions without a new table. 32 new tests (625/625 green, +32). Live smoke: /price-refund/windows returns 8-retailer payload. Commit `d5b7a12`.
 - 2026-04-22: S3-W16 ✅ — /provenance/verify. Three-stage fuzzy-match claim verifier (exact → normalized → partial-sentence token overlap ≥ 50% / 400-char window) + dual-layer affiliate detector (URL rules for 7 programs: amazon-tag/shareasale/awin/rakuten/skimlinks/impact-radius/utm-tracking + HTML rules for rel=sponsored + FTC disclosure phrases + body-embedded redirects). Composite provenance score in [0,1]. Parallel fan-out fetch with 5-way concurrency + 400KB body cap. 37 new tests (662/662 green, +37). Live smoke: Amazon bot-block handled gracefully; amazon-tag URL-level indicator still surfaces. Commit `6d65b7e`.
 - 2026-04-22: S4-W23 ✅ — /compat/check 10-rule compatibility library LIVE. Covers 2015 MBP proprietary SSD, generic M.2 SATA-vs-NVMe, 4K@60 external display caps, laptop charger wattage, phone-charger connector, AirPods Bluetooth version, HDMI 2.0-vs-2.1 cable, printer-ink cartridge model, camera-lens mount, phone case model. Profile table auto-enriches specs from product name. Unknown pairs return no-rule-matched (never silent false-pass). 31 new tests (693/693 green, +31). Live smoke: 2015 MBP + M.2 NVMe → incompatible, rule mbp-proprietary-blade fires. Commit `32f7b1f`.
+- 2026-04-22: S2-W13 ✅ — vendor-vs-independent source weighting LIVE. Normalize (preserves ratio on out-of-range, defaults 50/50, handles -0), pure reranker with 0.3 BOOST_RANGE + weight redistribution when one signal missing, GET/PUT endpoints with category → _global → default fallback chain. Persists via F2 preferences.source_weighting_json. 23 new tests (716/716 green, +23). Live roundtrip: PUT {0.7, 0.3} + GET with captured anon → source:"global", weighting:{0.7, 0.3}. Commit `9e56c45`.
 
 ---
 
