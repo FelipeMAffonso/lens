@@ -1,0 +1,44 @@
+{
+  "slug": "regulation/eu-dma",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "EU Digital Markets Act (DMA)",
+  "summary": "EU regulation (Regulation 2022/1925) imposing obligations on designated 'gatekeeper' online platforms to prevent unfair practices and ensure contestable digital markets.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Regulation (EU) 2022/1925 on contestable and fair markets in the digital sector (Digital Markets Act) — full legal text.", "sourceUrl": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32022R1925", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "European Commission DMA portal with designation decisions, official lists of gatekeepers, core platform services, and ongoing enforcement proceedings.", "sourceUrl": "https://digital-markets-act.ec.europa.eu/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "Commission decisions of 5 September 2023 designating Alphabet, Amazon, Apple, ByteDance, Meta, and Microsoft as gatekeepers under Article 3 DMA.", "sourceUrl": "https://ec.europa.eu/commission/presscorner/detail/en/ip_23_4328", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "EU",
+    "productCategories": ["search", "online-intermediation", "social-networking", "video-sharing", "messaging", "os", "web-browser", "virtual-assistant", "advertising", "cloud", "app-store"],
+    "businessScope": {
+      "appliesTo": ["Alphabet/Google", "Amazon", "Apple", "ByteDance/TikTok", "Meta", "Microsoft", "Booking.com"],
+      "userResidency": "EU-EEA",
+      "note": "Obligations apply to 'gatekeepers' — companies designated by the Commission as controlling access between businesses and end users on core platform services."
+    }
+  },
+  "body": {
+    "officialName": "Regulation (EU) 2022/1925 of the European Parliament and of the Council of 14 September 2022 on contestable and fair markets in the digital sector",
+    "citation": "Regulation (EU) 2022/1925; OJ L 265, 12.10.2022, p. 1-66",
+    "status": "in-force",
+    "effectiveDate": "2023-05-02",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "DMA imposes ex-ante obligations on designated gatekeepers: allow third-party app stores (Article 6), permit interoperability with messaging services (Article 7), ban self-preferencing in rankings (Article 6.5), enable data portability (Article 6.9), prohibit combining personal data across services without consent (Article 5.2), and require open and fair access to app-store and search-ad APIs. Maximum fines: 10% of worldwide turnover (20% for repeat), plus structural remedies for systematic infringement.",
+    "userRightsPlainLanguage": "In the EU, the largest tech platforms can't force you to use only their app stores, can't combine your data across their services without asking, can't preference their own products in search rankings, and must let you move your data out or switch apps freely. If you're in the EU and an app/platform blocks you from uninstalling defaults, from choosing a competing search engine, or from exporting your messages, that may be illegal.",
+    "enforcementSignals": [
+      { "action": "Commission opens non-compliance investigation against Alphabet/Apple/Meta, 25 March 2024", "url": "https://ec.europa.eu/commission/presscorner/detail/en/ip_24_1689", "description": "First DMA enforcement sweep targeting steering restrictions, self-preferencing, and consent-or-pay practices." },
+      { "action": "Commission preliminary findings against Apple for App Store anti-steering, 24 June 2024", "url": "https://ec.europa.eu/commission/presscorner/detail/en/ip_24_3433" }
+    ],
+    "evidenceRefs": ["E1", "E2", "E3"]
+  }
+}

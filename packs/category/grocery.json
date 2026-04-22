@@ -1,0 +1,54 @@
+{
+  "slug": "category/grocery",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Online grocery delivery",
+  "summary": "Online grocery ordering and delivery (Instacart, Walmart+, Amazon Fresh, Kroger, regional chains).",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC 2024 complaint against Instacart-style platforms finding in-store vs in-app prices differ by 8-15% without disclosure, plus service fees, delivery fees, and optional tips layered on top.", "sourceUrl": "https://www.ftc.gov/news-events/topics/consumer-protection", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "Consumer Reports 2023 grocery delivery markup study documenting average 20-25% total price premium for delivery vs in-store pickup, after all fees.", "sourceUrl": "https://www.consumerreports.org/money/shopping-online/best-grocery-delivery-services-a5773862562/", "retrieved": "2026-04-22", "primary": false },
+    { "ref": "E3", "claim": "USDA Food Safety and Inspection Service guidance on cold-chain handling of delivered perishables (<41°F for ≤2 hours delivery).", "sourceUrl": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["grocery", "grocery delivery", "instacart", "walmart+", "amazon fresh", "kroger delivery"],
+    "productTags": ["grocery", "food", "delivery"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "price_markup_pct", "unit": "percent", "direction": "lower_is_better", "typicalRange": [0, 30], "notes": "Total price difference from in-store baseline, INCLUDING fees + tip (E1, E2)." },
+      { "name": "delivery_fee", "unit": "USD", "direction": "lower_is_better", "typicalRange": [0, 15] },
+      { "name": "service_fee_pct", "unit": "percent", "direction": "lower_is_better", "typicalRange": [0, 10] },
+      { "name": "cold_chain_compliance", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "Insulated packaging + delivery time ≤2 hrs for perishables (E3)." },
+      { "name": "substitution_accuracy", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.5, 1.0] },
+      { "name": "minimum_order", "unit": "USD", "direction": "lower_is_better", "typicalRange": [0, 50] }
+    ],
+    "specNormalization": {
+      "delivery_fee": { "regex": "\\$(\\d+(?:\\.\\d+)?)", "unit": "USD" },
+      "service_fee_pct": { "regex": "(\\d+(?:\\.\\d+)?)\\s*%", "unit": "percent" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "free delivery on orders over $35", "reality": "Service fees (5-10%), tips (suggested 15-20%), and price markups on individual items (8-15%) apply even when delivery is 'free' (E1). Total premium is often 20-25%.", "verdict": "misleading", "checkPrompt": "Does the 'free' claim include service fees, markups, and expected tips?" },
+      { "pattern": "same prices as in-store", "reality": "Instacart and Amazon Fresh routinely mark up items 8-15% vs in-store prices for the same retailer (E1); only a few chains (Walmart+, direct Kroger app) offer price parity.", "verdict": "false", "checkPrompt": "Is the service owned by the retailer (Walmart/Kroger/Target) or third-party (Instacart)? Third-party marks up." },
+      { "pattern": "membership pays for itself", "reality": "Break-even for a $99/yr membership requires 30+ orders/yr; casual users (<1 order/month) rarely save money after membership fee.", "verdict": "misleading", "checkPrompt": "User's actual order frequency — if <12/year, membership is likely not cost-effective." }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Order frequency per month? Determines whether a membership subscription pays off.",
+      "Delivery vs pickup? Pickup avoids delivery fees and typical markup."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Per-item price markup vs in-store", "annualCostUsd": [200, 900], "frequency": "ongoing" },
+      { "name": "Tipping (suggested 15-20%)", "annualCostUsd": [150, 600], "frequency": "per-order" },
+      { "name": "Heavy/bulky item surcharges", "annualCostUsd": [30, 120], "frequency": "ongoing" },
+      { "name": "Membership fee if applicable", "annualCostUsd": [49, 139], "frequency": "annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss", "regulation/eu-digital-services-act"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "n/a" }
+  }
+}

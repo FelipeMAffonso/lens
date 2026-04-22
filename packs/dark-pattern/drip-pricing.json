@@ -1,0 +1,35 @@
+{
+  "slug": "dark-pattern/drip-pricing",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Drip pricing",
+  "summary": "The advertised price is lower than the all-in price at checkout because mandatory fees (service, resort, cleaning, delivery, processing) are disclosed only progressively as the user advances through the flow.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC 2024 'Junk Fees' Rule (16 CFR Part 464) requires upfront all-in pricing for short-term lodging and live-event tickets; prohibits deceptive drip-pricing patterns.", "sourceUrl": "https://www.ftc.gov/legal-library/browse/rules/unfair-deceptive-fees-rule", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "FTC 2022 'Bringing Dark Patterns to Light' report categorizes drip pricing as a deceptive pricing pattern under Section 5 of the FTC Act.", "sourceUrl": "https://www.ftc.gov/reports/bringing-dark-patterns-light", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "California AB-537 'Honest Pricing Law' (effective July 2024) requires all mandatory fees to appear in the advertised price statewide.", "sourceUrl": "https://leginfo.legislature.ca.gov/faces/billTextClient.xhtml?bill_id=202320240SB478", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["product-detail", "checkout", "booking", "ticket-purchase", "hotel-booking"] },
+  "body": {
+    "canonicalName": "Drip pricing",
+    "brignullId": "hidden-costs",
+    "description": "The headline price shown in search results or ads is lower than the all-in price the user actually pays. Mandatory fees (service fee, resort fee, cleaning fee, order-processing fee, booking fee, convenience fee) are revealed one at a time as the user clicks deeper into the purchase flow, after psychological commitment has formed.",
+    "severity": "illegal-in-jurisdiction",
+    "illegalInJurisdictions": ["US-federal (for lodging + live events)", "California", "EU-member-states"],
+    "detectionHeuristics": [
+      { "kind": "price-tracking", "trigger": "initial-price-vs-checkout-price-delta", "description": "Compare the price shown on the listing/search page with the final total at the checkout confirmation step. Flag if delta exceeds 10%." },
+      { "kind": "text-pattern", "patterns": ["resort fee", "service fee", "processing fee", "convenience fee", "booking fee", "facility fee", "destination fee"], "caseSensitive": false, "description": "Presence of these fee labels at a late checkout step (not on the listing page) is a strong drip-pricing signal." },
+      { "kind": "dom-sequence", "trigger": "fee-disclosure-after-form-completion", "description": "New mandatory fees appearing AFTER the user enters contact/payment information." }
+    ],
+    "llmVerifyPrompt": "Compare the advertised price (listing page, ad, headline) with the total charged at the final confirmation step. Are all mandatory non-optional fees disclosed in the first price, or only progressively? If progressive, this is drip pricing — flag the category of fee and the jurisdiction.",
+    "remediation": "Surface all mandatory fees on the listing page in the Lens overlay. Recommend the user compare the all-in total, not the advertised price. For lodging and event tickets, cite FTC Junk Fees Rule (E1) and advise reporting to the FTC.",
+    "regulatoryLinks": ["regulation/us-federal-ftc-junk-fees", "regulation/eu-digital-services-act"],
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/file-ftc-complaint"]
+  }
+}

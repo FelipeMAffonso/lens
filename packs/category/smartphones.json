@@ -55,6 +55,56 @@
       "ifixitCategoryId": "phone",
       "typicalPartsAvailability": "variable",
       "notes": "Fairphone scores highest. Modern iPhone / Samsung are glued and need specialty tools. Google Pixel has moderate self-repair program."
-    }
+    },
+    "representativeSkus": [
+      {
+        "sku": "apple-iphone-15", "name": "iPhone 15 128GB", "brand": "Apple", "model": "iPhone 15", "priceUsd": 799, "currency": "USD",
+        "url": "https://www.apple.com/shop/buy-iphone/iphone-15",
+        "specs": { "camera_quality": 0.88, "battery_life_hours": 20, "cpu_performance": 0.92, "display_quality": 0.9, "update_support_years": 6, "storage_gb": 128 },
+        "tier": "premium"
+      },
+      {
+        "sku": "apple-iphone-15-pro-max", "name": "iPhone 15 Pro Max 256GB", "brand": "Apple", "model": "iPhone 15 Pro Max", "priceUsd": 1199, "currency": "USD",
+        "url": "https://www.apple.com/shop/buy-iphone/iphone-15-pro",
+        "specs": { "camera_quality": 0.96, "battery_life_hours": 25, "cpu_performance": 0.98, "display_quality": 0.95, "update_support_years": 6, "storage_gb": 256 },
+        "tier": "premium"
+      },
+      {
+        "sku": "samsung-galaxy-s24", "name": "Galaxy S24 256GB", "brand": "Samsung", "model": "SM-S921U", "priceUsd": 859, "currency": "USD",
+        "url": "https://www.samsung.com/us/smartphones/galaxy-s24/",
+        "specs": { "camera_quality": 0.88, "battery_life_hours": 22, "cpu_performance": 0.94, "display_quality": 0.94, "update_support_years": 7, "storage_gb": 256 },
+        "tier": "premium"
+      },
+      {
+        "sku": "google-pixel-8", "name": "Pixel 8 128GB", "brand": "Google", "model": "Pixel 8", "priceUsd": 699, "currency": "USD",
+        "url": "https://store.google.com/us/product/pixel_8",
+        "specs": { "camera_quality": 0.91, "battery_life_hours": 21, "cpu_performance": 0.85, "display_quality": 0.9, "update_support_years": 7, "storage_gb": 128 },
+        "tier": "premium", "notes": "7 years of full OS + security updates per Google (E3)."
+      },
+      {
+        "sku": "google-pixel-7a", "name": "Pixel 7a 128GB", "brand": "Google", "model": "Pixel 7a", "priceUsd": 499, "currency": "USD",
+        "url": "https://store.google.com/us/product/pixel_7a",
+        "specs": { "camera_quality": 0.84, "battery_life_hours": 18, "cpu_performance": 0.78, "display_quality": 0.85, "update_support_years": 5, "storage_gb": 128 },
+        "tier": "mid"
+      },
+      {
+        "sku": "samsung-galaxy-a54", "name": "Galaxy A54 5G 128GB", "brand": "Samsung", "model": "SM-A546U", "priceUsd": 449, "currency": "USD",
+        "url": "https://www.samsung.com/us/smartphones/galaxy-a54-5g/",
+        "specs": { "camera_quality": 0.7, "battery_life_hours": 24, "cpu_performance": 0.65, "display_quality": 0.82, "update_support_years": 4, "storage_gb": 128 },
+        "tier": "mid"
+      },
+      {
+        "sku": "motorola-moto-g-power-2024", "name": "Moto G Power 5G (2024)", "brand": "Motorola", "model": "moto g power 5G 2024", "priceUsd": 299, "currency": "USD",
+        "url": "https://www.motorola.com/us/smartphones-moto-g-power-gen-3/p",
+        "specs": { "camera_quality": 0.58, "battery_life_hours": 26, "cpu_performance": 0.55, "display_quality": 0.72, "update_support_years": 3, "storage_gb": 128 },
+        "tier": "budget"
+      },
+      {
+        "sku": "fairphone-5", "name": "Fairphone 5", "brand": "Fairphone", "model": "Fairphone 5", "priceUsd": 759, "currency": "USD",
+        "url": "https://shop.fairphone.com/en/buy-fairphone-5",
+        "specs": { "camera_quality": 0.72, "battery_life_hours": 18, "cpu_performance": 0.7, "display_quality": 0.83, "update_support_years": 8, "storage_gb": 256 },
+        "tier": "premium", "notes": "Highest iFixit repairability score in current market; 8+ years of updates pledged."
+      }
+    ]
   }
 }

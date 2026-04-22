@@ -1,0 +1,99 @@
+{
+  "slug": "category/golf-clubs",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Golf clubs",
+  "summary": "Drivers, irons, putters, and complete sets; $200-$3000 range.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "USGA and R&A Rules of Golf, Equipment Standards: driver heads must not exceed 460cc, spring-like effect (CT) ≤ 239 microseconds, and loft tolerances are tested and published in the Conforming Club list.", "sourceUrl": "https://www.usga.org/content/usga/home-page/equipment-standards.html", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "MyGolfSpy independent driver/iron distance tests using TrackMan and GCQuad, documenting that marketing 'distance' claims often outrun real-world gapping by 5-15 yards.", "sourceUrl": "https://mygolfspy.com/most-wanted/most-wanted-driver/", "retrieved": "2026-04-22", "primary": false },
+    { "ref": "E3", "claim": "PGA Tour ShotLink data on professional averages: driver swing speed ~113 mph, smash factor ~1.48, carry ~280 yd — used as the ceiling comparison for consumer claims.", "sourceUrl": "https://www.pgatour.com/stats.html", "retrieved": "2026-04-22", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["golf clubs", "driver", "irons", "golf set", "putter", "golf iron"],
+    "productTags": ["golf", "sports-equipment"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "usga_conforming", "unit": "boolean", "direction": "binary", "target": true, "notes": "Non-conforming clubs cannot be used in any USGA/R&A round (E1)." },
+      { "name": "forgiveness_moi", "unit": "g·cm²", "direction": "higher_is_better", "typicalRange": [4500, 10000], "notes": "Moment of inertia; higher MOI = more forgiveness on off-center hits." },
+      { "name": "adjustability", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.0, 1.0], "notes": "Hosel loft/lie adjustability and moveable weights." },
+      { "name": "forged_vs_cast", "unit": "categorical", "direction": "target", "typicalRange": ["cast", "cavity-cast", "forged-cavity", "forged-blade"], "notes": "Forged = better feel + workability; cast = more forgiveness + lower cost." },
+      { "name": "shaft_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "Stock shaft vs aftermarket premium; often upgradeable." },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [200, 3000] }
+    ],
+    "specNormalization": {
+      "head_volume_cc": { "regex": "(\\d+)\\s*cc", "unit": "cc" },
+      "loft_degrees": { "regex": "(\\d+(?:\\.\\d+)?)\\s*°", "unit": "degrees" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "longest driver ever", "reality": "USGA caps driver CT and MOI (E1); post-2010 gains are largely from launch/spin optimization, not raw ball speed. Year-over-year distance gains for identical swings typically ≤2-3 yards (E2).", "verdict": "misleading", "checkPrompt": "Is the distance claim supported by independent TrackMan testing or only manufacturer numbers?" },
+      { "pattern": "tour-validated irons", "reality": "Tour validation often means one or two staff pros briefly gamed the club. It does not mean the model suits amateur swing speeds (E3).", "verdict": "misleading", "checkPrompt": "Does 'tour-validated' match the user's swing speed / handicap?" },
+      { "pattern": "forged feel at cast price", "reality": "Manufacturing process is binary and is stamped on the head — if cast, feel will be firmer regardless of marketing.", "verdict": "false", "checkPrompt": "Check product page — is construction forged or cast?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Callaway/TaylorMade/Titleist driver 40%+ below MSRP from non-authorized seller", "action": "flag as counterfeit — golf is a top counterfeit category on Alibaba/eBay" },
+      { "signal": "Serial number missing or pattern doesn't match manufacturer's format", "action": "flag for verification via manufacturer serial-check tool" }
+    ],
+    "compatibilityQuestions": [
+      "Swing speed (driver)? Determines appropriate shaft flex.",
+      "Handicap? Blade irons require single-digit handicap to benefit."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Club fitting session", "annualCostUsd": [75, 400], "frequency": "one-time" },
+      { "name": "Shaft upgrade from stock to aftermarket", "annualCostUsd": [200, 500], "frequency": "one-time" },
+      { "name": "Regripping every 40-60 rounds", "annualCostUsd": [50, 150], "frequency": "annual" },
+      { "name": "Balls", "annualCostUsd": [100, 400], "frequency": "ongoing" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": null,
+      "typicalPartsAvailability": "moderate",
+      "notes": "Shafts and grips are user-replaceable with basic tools. Heads are not repairable."
+    },
+    "representativeSkus": [
+      {
+        "sku": "callaway-paradym-ai-smoke-max-driver", "name": "Paradym Ai Smoke Max Driver", "brand": "Callaway", "model": "Paradym Ai Smoke Max", "priceUsd": 599, "currency": "USD",
+        "url": "https://www.callawaygolf.com/golf-clubs/drivers/",
+        "specs": { "usga_conforming": true, "forgiveness_moi": 9800, "adjustability": 0.8, "forged_vs_cast": "cast", "shaft_quality": 0.75 },
+        "tier": "premium"
+      },
+      {
+        "sku": "taylormade-qi10-max-driver", "name": "Qi10 Max Driver", "brand": "TaylorMade", "model": "Qi10 Max", "priceUsd": 629, "currency": "USD",
+        "url": "https://www.taylormadegolf.com/drivers.html",
+        "specs": { "usga_conforming": true, "forgiveness_moi": 10000, "adjustability": 0.85, "forged_vs_cast": "cast", "shaft_quality": 0.78 },
+        "tier": "premium"
+      },
+      {
+        "sku": "titleist-t100-irons", "name": "T100 Irons (4-PW)", "brand": "Titleist", "model": "T100 2023", "priceUsd": 1399, "currency": "USD",
+        "url": "https://www.titleist.com/golf-clubs/irons/t100",
+        "specs": { "usga_conforming": true, "forgiveness_moi": 5200, "adjustability": 0.2, "forged_vs_cast": "forged-cavity", "shaft_quality": 0.85 },
+        "tier": "premium", "notes": "Tour-preferred forged cavity-back; suits mid-to-low handicap."
+      },
+      {
+        "sku": "wilson-ultra-plus-set", "name": "Ultra Plus Complete Set", "brand": "Wilson", "model": "Ultra Plus", "priceUsd": 329, "currency": "USD",
+        "url": "https://www.wilson.com/en-us/product/ultra-plus-package-set",
+        "specs": { "usga_conforming": true, "forgiveness_moi": 6000, "adjustability": 0.1, "forged_vs_cast": "cast", "shaft_quality": 0.45 },
+        "tier": "budget"
+      },
+      {
+        "sku": "ping-g430-max-driver", "name": "G430 Max Driver", "brand": "PING", "model": "G430 Max", "priceUsd": 549, "currency": "USD",
+        "url": "https://ping.com/en-us/clubs/drivers/g430-max",
+        "specs": { "usga_conforming": true, "forgiveness_moi": 9400, "adjustability": 0.7, "forged_vs_cast": "cast", "shaft_quality": 0.8 },
+        "tier": "premium"
+      },
+      {
+        "sku": "scotty-cameron-newport-2-putter", "name": "Newport 2 Putter", "brand": "Scotty Cameron", "model": "Newport 2", "priceUsd": 499, "currency": "USD",
+        "url": "https://www.scottycameron.com/",
+        "specs": { "usga_conforming": true, "forgiveness_moi": 4800, "adjustability": 0.1, "forged_vs_cast": "forged-blade", "shaft_quality": 0.8 },
+        "tier": "premium"
+      }
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "slug": "fee/foreign-transaction-fee",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Foreign transaction fee",
+  "summary": "A fee assessed by credit/debit card issuers on purchases processed outside the issuer's home currency or through a foreign merchant/bank, typically 1-3%.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "CFPB's Truth in Lending Act guidance (Regulation Z, 12 CFR 1026.6) requires credit-card issuers to disclose foreign-transaction fees at account-opening and on each statement.", "sourceUrl": "https://www.consumerfinance.gov/rules-policy/regulations/1026/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "NerdWallet 2024 foreign-transaction fee survey: median US credit card charges 3%; no-FTF cards include Capital One Venture, Chase Sapphire Preferred, Discover (0%).", "sourceUrl": "https://www.nerdwallet.com/article/credit-cards/foreign-transaction-fee", "retrieved": "2026-04-22", "primary": false },
+    { "ref": "E3", "claim": "Visa/Mastercard network cross-border assessment fees of 0.8-1.0% are charged to the issuer and typically passed through to cardholders as part of the foreign-transaction fee.", "sourceUrl": "https://usa.visa.com/support/consumer/travel-support/exchange-rate-calculator.html", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "categoryContext": ["credit-cards", "debit-cards", "international-travel", "online-international-shopping"], "pageTypes": ["checkout", "credit-card-disclosure", "statement"] },
+  "body": {
+    "canonicalName": "Foreign transaction fee",
+    "description": "A percentage surcharge (typically 1-3%) added to any transaction processed through a non-US merchant or in a non-USD currency. The fee combines the Visa/Mastercard network cross-border assessment (~1%) with the issuer's markup (0-2%).",
+    "typicalRange": { "min": 0, "max": 3, "unit": "percent", "frequency": "per-transaction" },
+    "identificationSignals": [
+      { "kind": "statement-line-item", "patterns": ["foreign transaction fee", "FTF", "international transaction fee", "currency conversion fee", "cross-border fee"], "caseSensitive": false },
+      { "kind": "merchant-country", "selector": "transaction-country != card-issuer-country", "patterns": ["non-US merchant with US-issued card"] },
+      { "kind": "currency-mismatch", "selector": "transaction-currency != card-currency" }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "US-federal", "regulationSlug": "regulation/us-federal-truth-in-lending", "requirement": "Regulation Z requires disclosure on account-opening Schumer box and on each statement line where the fee is charged (E1)." },
+      { "jurisdiction": "EU", "regulationSlug": null, "requirement": "Interchange Fee Regulation caps cross-border interchange at 0.2% (debit) / 0.3% (credit) and requires itemized disclosure." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "rarely (issuer policy, not relationship-driven)",
+      "typicalSuccessRate": 0.08,
+      "script": "The better path is to switch to a no-foreign-transaction-fee card before travel (Capital One Venture, Chase Sapphire, Discover, Schwab debit). Calling the issuer to waive an existing FTF succeeds <10% of the time."
+    },
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

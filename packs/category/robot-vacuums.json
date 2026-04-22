@@ -58,6 +58,44 @@
       "ifixitCategoryId": "robot-vacuum",
       "typicalPartsAvailability": "variable",
       "notes": "Roborock and iRobot have better parts markets. Cheap brands on Amazon are replace-don't-repair."
-    }
+    },
+    "representativeSkus": [
+      {
+        "sku": "eufy-11s-max", "name": "RoboVac 11S Max", "brand": "Eufy", "model": "11S Max", "priceUsd": 199, "currency": "USD",
+        "url": "https://us.eufy.com/products/t2118",
+        "specs": { "suction_pa": 2000, "navigation_quality": 0.4, "mopping": "none", "auto_empty": false, "battery_minutes": 100, "noise_db": 60 },
+        "tier": "budget"
+      },
+      {
+        "sku": "irobot-roomba-j7", "name": "Roomba j7+", "brand": "iRobot", "model": "j7+", "priceUsd": 599, "currency": "USD",
+        "url": "https://www.irobot.com/en_US/roomba-j7-plus.html",
+        "specs": { "suction_pa": 2500, "navigation_quality": 0.82, "mopping": "none", "auto_empty": true, "battery_minutes": 85, "noise_db": 68 },
+        "tier": "mid"
+      },
+      {
+        "sku": "roborock-q7-max-plus", "name": "Q7 Max+", "brand": "Roborock", "model": "Q7 Max+", "priceUsd": 599, "currency": "USD",
+        "url": "https://us.roborock.com/pages/roborock-q7-max",
+        "specs": { "suction_pa": 4200, "navigation_quality": 0.86, "mopping": "wet_cloth_drag", "auto_empty": true, "battery_minutes": 180, "noise_db": 67 },
+        "tier": "mid"
+      },
+      {
+        "sku": "dreame-l10s-ultra", "name": "L10s Ultra", "brand": "Dreame", "model": "L10s Ultra", "priceUsd": 999, "currency": "USD",
+        "url": "https://www.dreametech.com/products/dreamebot-l10s-ultra",
+        "specs": { "suction_pa": 5300, "navigation_quality": 0.88, "mopping": "rotating_pads", "auto_empty": true, "battery_minutes": 210, "noise_db": 65 },
+        "tier": "premium"
+      },
+      {
+        "sku": "roborock-s8-pro-ultra", "name": "S8 Pro Ultra", "brand": "Roborock", "model": "S8 Pro Ultra", "priceUsd": 1599, "currency": "USD",
+        "url": "https://us.roborock.com/pages/roborock-s8-pro-ultra",
+        "specs": { "suction_pa": 6000, "navigation_quality": 0.93, "mopping": "vibrating", "auto_empty": true, "battery_minutes": 180, "noise_db": 67 },
+        "tier": "premium"
+      },
+      {
+        "sku": "irobot-roomba-combo-j9", "name": "Roomba Combo j9+", "brand": "iRobot", "model": "Combo j9+", "priceUsd": 1399, "currency": "USD",
+        "url": "https://www.irobot.com/en_US/roomba-combo-j9-plus.html",
+        "specs": { "suction_pa": 3000, "navigation_quality": 0.9, "mopping": "wet_cloth_drag", "auto_empty": true, "battery_minutes": 150, "noise_db": 68 },
+        "tier": "premium"
+      }
+    ]
   }
 }

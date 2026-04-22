@@ -51,6 +51,44 @@
       "ifixitCategoryId": "monitor",
       "typicalPartsAvailability": "low",
       "notes": "Panels are not economically replaceable. Power supply and control boards can be serviced."
-    }
+    },
+    "representativeSkus": [
+      {
+        "sku": "dell-s2722qc", "name": "S2722QC 27-inch 4K USB-C", "brand": "Dell", "model": "S2722QC", "priceUsd": 349, "currency": "USD",
+        "url": "https://www.dell.com/en-us/shop/dell-27-4k-usb-c-monitor-s2722qc/apd/210-bbpu/monitors-monitor-accessories",
+        "specs": { "resolution": "4K", "refresh_rate_hz": 60, "response_time_ms_real": 8, "color_accuracy_delta_e": 2.5, "brightness_nits": 350, "size_inches": 27 },
+        "tier": "mid"
+      },
+      {
+        "sku": "lg-27gp950-b", "name": "UltraGear 27GP950-B", "brand": "LG", "model": "27GP950-B", "priceUsd": 799, "currency": "USD",
+        "url": "https://www.lg.com/us/monitors/lg-27gp950-b",
+        "specs": { "resolution": "4K", "refresh_rate_hz": 144, "response_time_ms_real": 4, "color_accuracy_delta_e": 1.8, "brightness_nits": 600, "size_inches": 27 },
+        "tier": "premium"
+      },
+      {
+        "sku": "asus-pg279qm", "name": "ROG Swift PG279QM", "brand": "ASUS", "model": "PG279QM", "priceUsd": 699, "currency": "USD",
+        "url": "https://www.asus.com/displays-desktops/monitors/rog/rog-swift-pg279qm/",
+        "specs": { "resolution": "1440p", "refresh_rate_hz": 240, "response_time_ms_real": 3, "color_accuracy_delta_e": 1.5, "brightness_nits": 400, "size_inches": 27 },
+        "tier": "premium"
+      },
+      {
+        "sku": "samsung-odyssey-g7-lc32g75t", "name": "Odyssey G7 LC32G75T", "brand": "Samsung", "model": "LC32G75T", "priceUsd": 599, "currency": "USD",
+        "url": "https://www.samsung.com/us/computing/monitors/gaming/32-odyssey-g7-gaming-monitor-lc32g75tqsnxza/",
+        "specs": { "resolution": "1440p", "refresh_rate_hz": 240, "response_time_ms_real": 4, "color_accuracy_delta_e": 2.2, "brightness_nits": 600, "size_inches": 32 },
+        "tier": "premium"
+      },
+      {
+        "sku": "lg-c2-42-oled", "name": "C2 42-inch OLED TV (as monitor)", "brand": "LG", "model": "OLED42C2", "priceUsd": 899, "currency": "USD",
+        "url": "https://www.lg.com/us/tvs/lg-oled42c2pua",
+        "specs": { "resolution": "4K", "refresh_rate_hz": 120, "response_time_ms_real": 2, "color_accuracy_delta_e": 1.2, "brightness_nits": 800, "size_inches": 42 },
+        "tier": "premium", "notes": "42-inch OLED TV frequently used as desktop monitor; watch burn-in risk."
+      },
+      {
+        "sku": "aoc-24g2", "name": "24G2 24-inch 144Hz", "brand": "AOC", "model": "24G2", "priceUsd": 179, "currency": "USD",
+        "url": "https://us.aoc.com/en/gaming/products/24g2",
+        "specs": { "resolution": "1080p", "refresh_rate_hz": 144, "response_time_ms_real": 5, "color_accuracy_delta_e": 2.8, "brightness_nits": 250, "size_inches": 24 },
+        "tier": "budget"
+      }
+    ]
   }
 }

@@ -47,6 +47,44 @@
       { "name": "Extended warranty (often poor value)", "annualCostUsd": [100, 400], "frequency": "one-time" }
     ],
     "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
-    "repairability": { "ifixitCategoryId": "refrigerator", "typicalPartsAvailability": "high", "notes": "Sub-Zero, Bosch have strong parts/service. Most major brands serviceable for 10-12 years." }
+    "repairability": { "ifixitCategoryId": "refrigerator", "typicalPartsAvailability": "high", "notes": "Sub-Zero, Bosch have strong parts/service. Most major brands serviceable for 10-12 years." },
+    "representativeSkus": [
+      {
+        "sku": "whirlpool-wrt518szfm", "name": "18 cu ft Top-Freezer WRT518SZFM", "brand": "Whirlpool", "model": "WRT518SZFM", "priceUsd": 849, "currency": "USD",
+        "url": "https://www.whirlpool.com/kitchen/refrigeration/refrigerators/top-freezer-refrigerator/p.wrt518szfm.html",
+        "specs": { "capacity_cu_ft": 18, "annual_energy_kwh": 440, "energy_star_certified": true, "style": "top-freezer", "predicted_reliability": 0.72, "warranty_years": 1 },
+        "tier": "budget"
+      },
+      {
+        "sku": "lg-lfxs26973s", "name": "26 cu ft French Door LFXS26973S", "brand": "LG", "model": "LFXS26973S", "priceUsd": 2399, "currency": "USD",
+        "url": "https://www.lg.com/us/refrigerators/lg-lfxs26973s-french-3-door-refrigerator",
+        "specs": { "capacity_cu_ft": 26, "annual_energy_kwh": 675, "energy_star_certified": true, "style": "french-door", "predicted_reliability": 0.68, "warranty_years": 1 },
+        "tier": "mid"
+      },
+      {
+        "sku": "samsung-rf23bb860012", "name": "Bespoke 23 cu ft Counter-Depth RF23BB860012", "brand": "Samsung", "model": "RF23BB860012", "priceUsd": 2899, "currency": "USD",
+        "url": "https://www.samsung.com/us/home-appliances/refrigerators/french-door/bespoke-4-door-french-door-refrigerator-23-cu-ft-rf23bb860012aa/",
+        "specs": { "capacity_cu_ft": 23, "annual_energy_kwh": 640, "energy_star_certified": true, "style": "french-door", "predicted_reliability": 0.65, "warranty_years": 1 },
+        "tier": "premium"
+      },
+      {
+        "sku": "bosch-b36ct80sns", "name": "800 Series 36-inch Counter-Depth B36CT80SNS", "brand": "Bosch", "model": "B36CT80SNS", "priceUsd": 3499, "currency": "USD",
+        "url": "https://www.bosch-home.com/us/productsgroups/refrigeration/french-door-refrigerators/B36CT80SNS",
+        "specs": { "capacity_cu_ft": 21, "annual_energy_kwh": 600, "energy_star_certified": true, "style": "counter-depth", "predicted_reliability": 0.85, "warranty_years": 1 },
+        "tier": "premium"
+      },
+      {
+        "sku": "ge-gss25gshss", "name": "25 cu ft Side-by-Side GSS25GSHSS", "brand": "GE", "model": "GSS25GSHSS", "priceUsd": 1499, "currency": "USD",
+        "url": "https://www.geappliances.com/appliance/GE-25-3-Cu-Ft-Side-By-Side-Refrigerator-GSS25GSHSS",
+        "specs": { "capacity_cu_ft": 25, "annual_energy_kwh": 700, "energy_star_certified": true, "style": "side-by-side", "predicted_reliability": 0.7, "warranty_years": 1 },
+        "tier": "mid"
+      },
+      {
+        "sku": "sub-zero-bi-36ufd-s-ph", "name": "Classic 36-inch French Door BI-36UFD/S/PH", "brand": "Sub-Zero", "model": "BI-36UFD/S/PH", "priceUsd": 13495, "currency": "USD",
+        "url": "https://www.subzero-wolf.com/sub-zero/full-size-refrigeration/built-in/bi-36ufd",
+        "specs": { "capacity_cu_ft": 20, "annual_energy_kwh": 750, "energy_star_certified": false, "style": "french-door", "predicted_reliability": 0.92, "warranty_years": 2 },
+        "tier": "premium", "notes": "Luxury built-in; 20+ year expected lifespan."
+      }
+    ]
   }
 }

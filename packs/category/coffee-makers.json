@@ -54,6 +54,50 @@
       "ifixitCategoryId": "coffee-maker",
       "typicalPartsAvailability": "low",
       "notes": "Technivorm, Ratio, and Breville have decent parts markets. Most Cuisinart, Hamilton Beach, and Mr. Coffee models are not practically repairable."
-    }
+    },
+    "representativeSkus": [
+      {
+        "sku": "cuisinart-dcc-3200p1", "name": "PerfecTemp 14-Cup DCC-3200P1", "brand": "Cuisinart", "model": "DCC-3200P1", "priceUsd": 99, "currency": "USD",
+        "url": "https://www.cuisinart.com/shopping/appliances/coffee_makers/dcc-3200p1/",
+        "specs": { "brew_temperature_f": 195, "brew_time_minutes": 10, "capacity_cups": 14, "sca_certified": false, "build_quality": 0.5, "ease_of_cleaning": 0.65 },
+        "tier": "budget"
+      },
+      {
+        "sku": "oxo-brew-9-cup", "name": "Brew 9-Cup Coffee Maker", "brand": "OXO", "model": "8710100", "priceUsd": 199, "currency": "USD",
+        "url": "https://www.oxo.com/9-cup-coffee-maker.html",
+        "specs": { "brew_temperature_f": 201, "brew_time_minutes": 6, "capacity_cups": 9, "sca_certified": true, "build_quality": 0.72, "ease_of_cleaning": 0.78 },
+        "tier": "mid"
+      },
+      {
+        "sku": "bonavita-bv1900ts", "name": "Connoisseur 8-Cup One-Touch BV1900TS", "brand": "Bonavita", "model": "BV1900TS", "priceUsd": 180, "currency": "USD",
+        "url": "https://bonavita.us/products/connoisseur-8-cup-one-touch-coffee-maker",
+        "specs": { "brew_temperature_f": 200, "brew_time_minutes": 6, "capacity_cups": 8, "sca_certified": true, "build_quality": 0.7, "ease_of_cleaning": 0.75 },
+        "tier": "mid"
+      },
+      {
+        "sku": "technivorm-moccamaster-kbgv-select", "name": "Moccamaster KBGV Select", "brand": "Technivorm", "model": "KBGV Select", "priceUsd": 359, "currency": "USD",
+        "url": "https://www.technivorm.com/kbgv-select/",
+        "specs": { "brew_temperature_f": 200, "brew_time_minutes": 5, "capacity_cups": 10, "sca_certified": true, "build_quality": 0.92, "ease_of_cleaning": 0.8 },
+        "tier": "premium", "notes": "Hand-built in the Netherlands; 5-year warranty."
+      },
+      {
+        "sku": "ratio-six", "name": "Ratio Six", "brand": "Ratio", "model": "Six", "priceUsd": 425, "currency": "USD",
+        "url": "https://ratiocoffee.com/products/ratio-six",
+        "specs": { "brew_temperature_f": 200, "brew_time_minutes": 6, "capacity_cups": 8, "sca_certified": true, "build_quality": 0.9, "ease_of_cleaning": 0.82 },
+        "tier": "premium"
+      },
+      {
+        "sku": "breville-precision-brewer-bdc450bss", "name": "Precision Brewer Thermal BDC450BSS", "brand": "Breville", "model": "BDC450BSS", "priceUsd": 329, "currency": "USD",
+        "url": "https://www.breville.com/us/en/products/coffee/bdc450.html",
+        "specs": { "brew_temperature_f": 200, "brew_time_minutes": 7, "capacity_cups": 12, "sca_certified": true, "build_quality": 0.87, "ease_of_cleaning": 0.78 },
+        "tier": "premium"
+      },
+      {
+        "sku": "keurig-k-elite", "name": "K-Elite Single Serve", "brand": "Keurig", "model": "K-Elite", "priceUsd": 189, "currency": "USD",
+        "url": "https://www.keurig.com/coffee-makers/single-serve/k-elite/BC-K90.html",
+        "specs": { "brew_temperature_f": 192, "brew_time_minutes": 1, "capacity_cups": 1, "sca_certified": false, "build_quality": 0.55, "ease_of_cleaning": 0.7 },
+        "tier": "mid", "notes": "Pod system — annual pod cost often exceeds machine price (E3)."
+      }
+    ]
   }
 }
