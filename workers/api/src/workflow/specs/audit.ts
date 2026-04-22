@@ -2,15 +2,17 @@
 //
 // DAG:
 //            ┌─ search ─────┐
-//   extract ─┤              ├─ verify ─┐
-//            └─ crossModel ─┘          ├─ assemble
-//                                rank ─┘
+//   extract ─┤              ├─ verify ─┬─ assemble
+//            └─ crossModel ─┘          │
+//                                rank ─┤
+//                              enrich ─┘
 //
 // extract produces { intent, aiRecommendation }.
 // search + crossModel run in parallel, both depend on extract.
 // verify depends on extract + search.
-// rank depends on extract + search (can run in parallel with verify).
-// assemble depends on all five.
+// rank depends on extract + search (parallel with verify).
+// enrich runs the B2 parallel signal fanout on rank+extract output.
+// assemble depends on all six.
 
 import type { AuditInput, AuditResult } from "@lens/shared";
 import type { WorkflowSpec } from "../spec.js";
@@ -19,6 +21,7 @@ import { searchCandidates } from "../../search.js";
 import { runCrossModelCheck } from "../../crossModel.js";
 import { verifyClaims } from "../../verify.js";
 import { rankCandidates } from "../../rank.js";
+import { runEnrichments } from "../../enrich.js";
 import { registerWorkflow } from "../registry.js";
 import type { Env } from "../../index.js";
 
@@ -27,12 +30,17 @@ type SearchOut = Awaited<ReturnType<typeof searchCandidates>>;
 type CrossOut = Awaited<ReturnType<typeof runCrossModelCheck>>;
 type VerifyOut = Awaited<ReturnType<typeof verifyClaims>>;
 type RankOut = Awaited<ReturnType<typeof rankCandidates>>;
+type EnrichOut = Awaited<ReturnType<typeof runEnrichments>>;
+
+// Per-node timestamp tracking so elapsedMs reflects real work. The engine
+// doesn't expose node-level timings, so we stash them on ctx.state.
+const tsKey = (id: string): string => `ts:${id}`;
 
 const spec: WorkflowSpec<AuditInput, AuditResult> = {
   id: "audit",
-  version: "1.0.0",
+  version: "2.0.0",
   description:
-    "Audit an AI shopping recommendation (or a user query) across the 4-stage pipeline: extract, search/cross-model, verify, rank, assemble.",
+    "Audit an AI shopping recommendation across extract, search ‖ cross-model, verify + rank + enrich in parallel, then assemble.",
   entryNodeId: "extract",
   finalNodeId: "assemble",
   nodes: [
@@ -43,8 +51,11 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
       retry: { maxAttempts: 2, backoffMs: 1000 },
       handler: async (input, ctx) => {
         const env = ctx.env as unknown as Env;
+        const t0 = Date.now();
+        await ctx.writeState(tsKey("t0"), t0);
         ctx.log("info", "extract:start", { kind: (input as AuditInput).kind });
         const out = await extractIntentAndRecommendation(input as AuditInput, env);
+        await ctx.writeState(tsKey("extract"), Date.now());
         ctx.log("info", "extract:done", {
           category: out.intent.category,
           criteria: out.intent.criteria.length,
@@ -63,6 +74,7 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
         const env = ctx.env as unknown as Env;
         const { intent } = input as ExtractOut;
         const out = await searchCandidates(intent, env);
+        await ctx.writeState(tsKey("search"), Date.now());
         ctx.log("info", "search:done", { candidates: out.length });
         return out;
       },
@@ -76,6 +88,7 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
         const env = ctx.env as unknown as Env;
         const { intent, aiRecommendation } = input as ExtractOut;
         const out = await runCrossModelCheck(intent, aiRecommendation, env);
+        await ctx.writeState(tsKey("crossModel"), Date.now());
         ctx.log("info", "crossModel:done", { providers: out.length });
         return out;
       },
@@ -94,6 +107,7 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
           extract.intent,
           env,
         );
+        await ctx.writeState(tsKey("verify"), Date.now());
         ctx.log("info", "verify:done", { claims: out.length });
         return out;
       },
@@ -106,14 +120,53 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
       handler: async (input, ctx) => {
         const { extract, search } = input as { extract: ExtractOut; search: SearchOut };
         const out = await rankCandidates(extract.intent, search);
+        await ctx.writeState(tsKey("rank"), Date.now());
         ctx.log("info", "rank:done", { top: out[0]?.name });
+        return out;
+      },
+    },
+    {
+      id: "enrich",
+      label: "Parallel enrichments (scam, breach, price, provenance, sponsorship)",
+      inputsFrom: ["extract", "search", "rank"],
+      timeoutMs: 20_000,
+      handler: async (input, ctx) => {
+        const env = ctx.env as unknown as Env;
+        const { extract, search, rank: ranked } = input as {
+          extract: ExtractOut;
+          search: SearchOut;
+          rank: RankOut;
+        };
+        const aiPickName = extract.aiRecommendation.pickedProduct?.name?.toLowerCase() ?? "";
+        const aiPickCandidate = aiPickName
+          ? ranked.find(
+              (c) =>
+                typeof c.name === "string" &&
+                c.name.trim().length > 0 &&
+                (c.name.toLowerCase().includes(aiPickName) ||
+                  aiPickName.includes(c.name.toLowerCase())),
+            ) ?? null
+          : null;
+        const out = await runEnrichments(
+          extract.intent,
+          extract.aiRecommendation,
+          search,
+          aiPickCandidate,
+          env,
+        );
+        await ctx.writeState(tsKey("enrich"), Date.now());
+        ctx.log("info", "enrich:done", {
+          scam: out.scam?.status,
+          breach: out.breach?.status,
+          priceHistory: out.priceHistory?.status,
+        });
         return out;
       },
     },
     {
       id: "assemble",
       label: "Assemble AuditResult",
-      inputsFrom: ["extract", "search", "crossModel", "verify", "rank"],
+      inputsFrom: ["extract", "search", "crossModel", "verify", "rank", "enrich"],
       handler: async (input, ctx): Promise<AuditResult> => {
         const {
           extract,
@@ -121,21 +174,26 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
           crossModel,
           verify: claims,
           rank: ranked,
+          enrich,
         } = input as {
           extract: ExtractOut;
           search: SearchOut;
           crossModel: CrossOut;
           verify: VerifyOut;
           rank: RankOut;
+          enrich: EnrichOut;
         };
 
-        const aiPickName = extract.aiRecommendation.pickedProduct.name.toLowerCase();
+        // Judge P0: null-safe pickedProduct.name + c.name.
+        const aiPickName = extract.aiRecommendation.pickedProduct?.name?.toLowerCase() ?? "";
         const aiPickCandidate = aiPickName
-          ? (ranked.find(
+          ? ranked.find(
               (c) =>
-                c.name.toLowerCase().includes(aiPickName) ||
-                aiPickName.includes(c.name.toLowerCase()),
-            ) ?? null)
+                typeof c.name === "string" &&
+                c.name.trim().length > 0 &&
+                (c.name.toLowerCase().includes(aiPickName) ||
+                  aiPickName.includes(c.name.toLowerCase())),
+            ) ?? null
           : null;
 
         const warnings: Array<{ stage: string; message: string }> = [];
@@ -143,29 +201,48 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
           warnings.push({
             stage: "extract",
             message:
-              "No claims extracted — paste may be too short or not a recommendation.",
+              "No claims extracted — paste may be too short or not a product recommendation.",
           });
         }
         if (ranked.length === 0) {
           warnings.push({
             stage: "search",
             message:
-              "No candidates found. Check LENS_SEARCH_MODE or fixture coverage.",
+              "Live web search returned no products and no pack SKU match for this category. Try a more specific category term (e.g. 'robot vacuum' instead of 'cleaning device'), or your Opus API key may be rate-limited.",
           });
         }
         if (crossModel.length === 0) {
           warnings.push({
             stage: "crossModel",
             message:
-              "No cross-model picks. Provider keys may be missing or rate-limited.",
+              "No cross-model picks. Provider keys may be missing or rate-limited. Check OPENAI_API_KEY / GOOGLE_API_KEY / OPENROUTER_API_KEY.",
+          });
+        }
+        // Judge P2 #9: detect the default-criterion fallback.
+        const topBreakdown = ranked[0]?.utilityBreakdown ?? [];
+        const userAskedForCriteria = (extract.intent.criteria?.length ?? 0) > 0;
+        const rankedOnDefaultOnly =
+          topBreakdown.length === 1 && topBreakdown[0]?.criterion === "overall_quality";
+        if (userAskedForCriteria && rankedOnDefaultOnly) {
+          warnings.push({
+            stage: "rank",
+            message:
+              "Your stated criteria were dropped during extraction. Ranking fell back to a neutral default — the displayed utility reflects that fallback, not your original priorities.",
           });
         }
 
+        // Compute real per-node timings from stashed timestamps.
+        const t0 = ((await ctx.readState<number>(tsKey("t0"))) ?? Date.now());
+        const tExtract = ((await ctx.readState<number>(tsKey("extract"))) ?? t0);
+        const tSearch = ((await ctx.readState<number>(tsKey("search"))) ?? tExtract);
+        const tCrossModel = ((await ctx.readState<number>(tsKey("crossModel"))) ?? tExtract);
+        const tVerify = ((await ctx.readState<number>(tsKey("verify"))) ?? tSearch);
+        const tRank = ((await ctx.readState<number>(tsKey("rank"))) ?? tSearch);
+        const tNow = Date.now();
+
         const result: AuditResult = {
           id: ctx.runId,
-          host:
-            extract.aiRecommendation.host ??
-            "unknown",
+          host: extract.aiRecommendation.host ?? "unknown",
           intent: extract.intent,
           aiRecommendation: extract.aiRecommendation,
           candidates: ranked,
@@ -186,14 +263,15 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
           crossModel,
           warnings,
           elapsedMs: {
-            extract: 0,
-            search: 0,
-            verify: 0,
-            rank: 0,
-            crossModel: 0,
-            total: 0,
+            extract: tExtract - t0,
+            search: tSearch - tExtract,
+            crossModel: tCrossModel - tExtract,
+            verify: tVerify - tSearch,
+            rank: tRank - tSearch,
+            total: tNow - t0,
           },
           createdAt: new Date().toISOString(),
+          enrichments: enrich,
         };
 
         ctx.emit("audit:completed", { runId: ctx.runId, auditId: result.id });

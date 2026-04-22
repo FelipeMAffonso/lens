@@ -381,11 +381,47 @@ function parseExtractJson(
   } catch {
     throw new Error(`URL/photo extract returned non-JSON: ${json.slice(0, 400)}`);
   }
+  // Coerce Opus-freelanced criteria. Opus sometimes returns:
+  //   ["wireless charger", "fast charging", "portable"]
+  // instead of:
+  //   [{name: "wireless charger", weight: 0.33, direction: "higher_is_better"}, ...]
+  // Spreading a bare string with {...c, weight: X} produces a character-indexed
+  // object — a bug the user caught on the live Anker audit. Normalize here.
+  const normalizeCriterion = (c: unknown): { name: string; weight: number; direction: "higher_is_better" | "lower_is_better" | "target" | "binary"; target?: string | number } | null => {
+    if (typeof c === "string") {
+      const name = c.trim();
+      return name.length > 0
+        ? { name, weight: 1, direction: "higher_is_better" as const }
+        : null;
+    }
+    if (!c || typeof c !== "object") return null;
+    const obj = c as Record<string, unknown>;
+    const name = typeof obj.name === "string" ? obj.name.trim() : "";
+    if (name.length === 0) return null;
+    const rawWeight = obj.weight;
+    const weight =
+      typeof rawWeight === "number" && Number.isFinite(rawWeight)
+        ? rawWeight
+        : typeof rawWeight === "string"
+          ? Number.parseFloat(rawWeight) || 0
+          : 1;
+    const rawDir = typeof obj.direction === "string" ? obj.direction : "higher_is_better";
+    const dir: "higher_is_better" | "lower_is_better" | "target" | "binary" =
+      rawDir === "lower_is_better" || rawDir === "target" || rawDir === "binary"
+        ? rawDir
+        : "higher_is_better";
+    const target = typeof obj.target === "number" || typeof obj.target === "string" ? obj.target : undefined;
+    return target !== undefined ? { name, weight, direction: dir, target } : { name, weight, direction: dir };
+  };
+  const rawCriteria = Array.isArray(parsed.intent?.criteria) ? parsed.intent.criteria : [];
+  const normalized = rawCriteria.map(normalizeCriterion).filter(
+    (c): c is { name: string; weight: number; direction: "higher_is_better" | "lower_is_better" | "target" | "binary"; target?: string | number } => c !== null,
+  );
   const intent: UserIntent = {
     category: parsed.intent?.category ?? "product",
     criteria:
-      parsed.intent?.criteria && parsed.intent.criteria.length > 0
-        ? parsed.intent.criteria
+      normalized.length > 0
+        ? normalized
         : [{ name: "overall_quality", weight: 1, direction: "higher_is_better" }],
     rawCriteriaText: parsed.intent?.rawCriteriaText ?? userPromptFallback ?? "",
     ...(parsed.intent?.budget ? { budget: parsed.intent.budget } : {}),
