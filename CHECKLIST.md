@@ -70,7 +70,7 @@
 |---|---|---|---|---|
 | S3-W14 | AI recommendation audit (expand surfaces) | 🟡 | 🔬 | |
 | S3-W15 | URL evaluation (deepen parser) | ✅ | `BLOCKS/S3-W15-url-evaluation.md` | `3749c44` |
-| S3-W16 | Source provenance | ⬜ | 🔬 | |
+| S3-W16 | Source provenance | ✅ | `BLOCKS/S3-W16-source-provenance.md` | `6d65b7e` |
 | S3-W17 | Review authenticity (add LLM layer) | 🟡 | 🔬 | |
 | S3-W18 | Counterfeit / grey-market | ⬜ | 🔬 | |
 | S3-W19 | Sponsorship scanner | ⬜ | 🔬 | |
@@ -231,6 +231,7 @@
 - 2026-04-22: CJ-W46 ✅ — values-overlay reranker + persistence. 7-key taxonomy (country-of-origin/union-made/carbon-footprint/animal-welfare/b-corp/small-business/repairability), brand allowlists (B-Corp + UAW + USA-made + animal-welfare + small-business + iFixit repairability scores), longest-match brand tokenization, POST /values-overlay/rerank + PUT/GET persistence via F2 preferences. Empty overlay is a true no-op. 38 new tests (545/545 green). Live smoke: Patagonia b-corp weight 0.3 promotes it over a non-B-Corp competitor (0.95 vs 0.7). Commit `79e425e`.
 - 2026-04-22: S0-W5 ✅ — subscription-discovery pipeline. Migration 0006 + classifier (16 sender allowlist + keyword gate + intent resolution + amount/cadence/next-renewal extraction + marketing-blast negative filter + per-service default cadence) + repo (upsert by (user, service), listByUser, listUpcomingRenewals) + 6 HTTP endpoints (scan/list/upcoming/patch/delete/cancel-draft) + subs.discover workflow skeleton registered. memory-d1 shim extended for <=/>=/< / >. 48 new tests (593/593 total green, +48 over CJ-W46). Live smoke: endpoints respond + auth gates fire. Commit `8be7053`.
 - 2026-04-22: S6-W34 ✅ — price-drop refund watcher LIVE. 8-retailer price-match-window table (BBY/Target/Walmart/HD/Lowe's/Costco/Apple active + Amazon explicitly inactive since 2018), pure detector with 10 explicit ineligibility reasons, claim-drafter assembling retailer-formal letter + portal URLs, F2-pattern repo over purchases+interventions, price.poll workflow registered for the existing 17 */2 cron, 3 HTTP endpoints (GET /windows, POST /scan, POST /:id/file). Composes S4-W21 + F2 purchases + F2 interventions without a new table. 32 new tests (625/625 green, +32). Live smoke: /price-refund/windows returns 8-retailer payload. Commit `d5b7a12`.
+- 2026-04-22: S3-W16 ✅ — /provenance/verify. Three-stage fuzzy-match claim verifier (exact → normalized → partial-sentence token overlap ≥ 50% / 400-char window) + dual-layer affiliate detector (URL rules for 7 programs: amazon-tag/shareasale/awin/rakuten/skimlinks/impact-radius/utm-tracking + HTML rules for rel=sponsored + FTC disclosure phrases + body-embedded redirects). Composite provenance score in [0,1]. Parallel fan-out fetch with 5-way concurrency + 400KB body cap. 37 new tests (662/662 green, +37). Live smoke: Amazon bot-block handled gracefully; amazon-tag URL-level indicator still surfaces. Commit `6d65b7e`.
 
 ---
 
