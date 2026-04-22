@@ -23,6 +23,9 @@ export const POLICIES: RateLimitPolicy[] = [
   { route: "repairability", windowSeconds: 3600, anonLimit: 60, userLimit: 600 },
   // S7-W40: pure CPU. Guard against flood (500-purchase batches × N).
   { route: "lockin", windowSeconds: 3600, anonLimit: 60, userLimit: 600 },
+  // V-EXT-INLINE-g judge P0-4: the extension calls /price-history on every
+  // product-page visit. Rate-limit to protect Keepa quota + KV writes.
+  { route: "price-history", windowSeconds: 3600, anonLimit: 120, userLimit: 1200 },
 ];
 
 export function findPolicy(route: string): RateLimitPolicy | undefined {

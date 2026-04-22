@@ -11,6 +11,7 @@ import { adapterForUrl } from "./content/hosts/registry.js";
 import { watchForResponses } from "./content/observer.js";
 import { canStage2, askForConsent, getConsent } from "./content/consent.js";
 import { upgradeBadge, findBadgeByBrignullId, type BadgeConfirmation } from "./content/overlay/badge.js";
+import { bootPriceHistory } from "./content/retail/price-history-badge.js";
 
 type HostAI = "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
 
@@ -145,25 +146,34 @@ function bootAIChatPills(): void {
 }
 
 // Boot sequence
+const boot = (): void => {
+  runPassiveScan();
+  bootAIChatPills();
+  // V-EXT-INLINE-g: retailer product-page price-history badge. No-op when not
+  // on a supported retailer product page. Top-frame only.
+  if (window === window.top) {
+    void bootPriceHistory();
+  }
+};
 if (document.readyState === "complete" || document.readyState === "interactive") {
-  setTimeout(() => {
-    runPassiveScan();
-    bootAIChatPills();
-  }, 500);
+  setTimeout(boot, 500);
 } else {
-  document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(() => {
-      runPassiveScan();
-      bootAIChatPills();
-    }, 500);
-  });
+  document.addEventListener("DOMContentLoaded", () => setTimeout(boot, 500));
 }
 
 // Late-bind for SPA-style apps that render after initial paint
-setTimeout(() => {
-  runPassiveScan();
-  bootAIChatPills();
-}, 2500);
+setTimeout(boot, 2500);
+
+// V-EXT-INLINE-g judge P1-5: SPA reattach. Walmart/Target/Amazon all pushState
+// between product pages. Re-run the retailer price-history boot on nav events.
+window.addEventListener("popstate", () => {
+  if (window === window.top) setTimeout(() => void bootPriceHistory(), 400);
+});
+const _origPushState = history.pushState.bind(history);
+history.pushState = function (...args: Parameters<typeof _origPushState>): void {
+  _origPushState(...args);
+  if (window === window.top) setTimeout(() => void bootPriceHistory(), 400);
+};
 
 // Popup message handler (legacy popup still works)
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {

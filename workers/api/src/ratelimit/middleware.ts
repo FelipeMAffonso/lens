@@ -33,6 +33,7 @@ export function routeFromPath(path: string): string | null {
   if (path.startsWith("/clarify")) return "clarify"; // judge P0-4
   if (path.startsWith("/repairability")) return "repairability"; // S7-W41 judge P1-5
   if (path.startsWith("/lockin")) return "lockin"; // S7-W40
+  if (path.startsWith("/price-history")) return "price-history"; // V-EXT-INLINE-g judge P0-4
   return null;
 }
 
