@@ -58,6 +58,7 @@ import { handleCheckoutSummary } from "./checkout-summary/handler.js";
 import { handleScamAssess } from "./scam/handler.js";
 import { handlePrivacyAudit } from "./privacy-audit/handler.js";
 import { handleCounterfeitCheck } from "./counterfeit/handler.js";
+import { handleSponsorshipScan } from "./sponsorship/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -414,6 +415,9 @@ app.post("/privacy-audit", (c) => handlePrivacyAudit(c as never));
 
 // S3-W18 — counterfeit / grey-market check. Public (no auth).
 app.post("/counterfeit/check", (c) => handleCounterfeitCheck(c as never));
+
+// S3-W19 — sponsorship scanner. Public (no auth).
+app.post("/sponsorship/scan", (c) => handleSponsorshipScan(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these
