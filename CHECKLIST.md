@@ -26,8 +26,8 @@
 | F11 | Voice input | ✅ | `BLOCKS/F11-voice.md` | `3324390` |
 | F12 | Email inbox ingestion (Gmail OAuth) | ⬜ | 🔬 | |
 | F13 | Plaid bank connection (stretch) | ⬜ | 🔬 | |
-| F14 | MCP server | ⬜ | 🔬 | |
-| F15 | Public Lens Score API | ⬜ | 🔬 | |
+| F14 | MCP server | ✅ | `BLOCKS/F14-mcp-server.md` | `f5669ee` |
+| F15 | Public Lens Score API | ✅ | `BLOCKS/F15-score-api.md` | `f5669ee` |
 | F16 | Public disagreement ticker | ⬜ | 🔬 | |
 | F17 | Observability (logs + traces) | ✅ | `BLOCKS/F17-observability.md` | `8ab4ab3` |
 | F18 | Authenticated rate limiting | ⬜ | 🔬 | |
