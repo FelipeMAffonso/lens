@@ -19,11 +19,11 @@
 | F4 | Cron + scheduler primitives | ✅ | `BLOCKS/F4-cron.md` | `8ab4ab3` |
 | F5 | Event bus + webhook surface | ✅ | `BLOCKS/F5-events-webhooks.md` | `7939873` |
 | F6 | Extension inline sidebar infra | ✅ | `BLOCKS/F6-extension-sidebar.md` | `653e7ce` |
-| F7 | Extension overlay + badge system | ⬜ | 🔬 | |
-| F8 | Extension content-script router | ⬜ | 🔬 | |
+| F7 | Extension overlay + badge system | ✅ | `BLOCKS/F7-extension-overlay.md` | `3324390` |
+| F8 | Extension content-script router | 🟡 | `BLOCKS/F8-host-router.md` | `3324390` (consent module + adapter router live; manifest narrow deferred) |
 | F9 | PWA web + mobile layout | ✅ | `BLOCKS/F9-pwa.md` | `7939873` |
 | F10 | Mobile share-sheet ingestion | 🟡 | `BLOCKS/F9-pwa.md` | `7939873` (manifest share_target shipped; /share route pending) |
-| F11 | Voice input | ⬜ | 🔬 | |
+| F11 | Voice input | ✅ | `BLOCKS/F11-voice.md` | `3324390` |
 | F12 | Email inbox ingestion (Gmail OAuth) | ⬜ | 🔬 | |
 | F13 | Plaid bank connection (stretch) | ⬜ | 🔬 | |
 | F14 | MCP server | ⬜ | 🔬 | |
