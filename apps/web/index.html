@@ -37,6 +37,10 @@
           <span class="mode-title">I want to buy something</span>
           <span class="mode-hint">Describe it → Lens ranks real products transparently</span>
         </button>
+        <button class="mode-btn" data-mode="url" role="tab">
+          <span class="mode-title">I'm looking at this product</span>
+          <span class="mode-hint">Paste an Amazon / retailer URL → Lens audits it</span>
+        </button>
         <button class="mode-btn" data-mode="text" role="tab">
           <span class="mode-title">Audit an AI's answer</span>
           <span class="mode-hint">Paste it → Lens catches the confabulations</span>
@@ -56,6 +60,21 @@
             <button class="chip" data-example-query="laptop under $1000 for coding — battery life, keyboard, reliability matter most">💻 Laptop for coding, $1000</button>
             <button class="chip" data-example-query="over-ear ANC headphones under $300, comfort + battery + mic quality matter most">🎧 ANC headphones, $300</button>
             <button class="chip" data-example-query="office chair under $500 — lumbar support, 3D armrests, 10-year warranty matter most">🪑 Office chair, $500</button>
+          </div>
+        </div>
+
+        <div class="mode-section hidden" id="url-section">
+          <label for="url-input">Product URL</label>
+          <input
+            id="url-input"
+            type="url"
+            placeholder="https://www.amazon.com/..."
+          />
+          <label for="url-prompt">What are you looking for? (optional)</label>
+          <input id="url-prompt" type="text" placeholder="e.g. something quiet, with good battery life" />
+          <div class="example-chips" aria-label="Example URLs">
+            <button class="chip" data-example-url="https://www.amazon.com/gp/product/B07NVSXLF4">Amazon espresso example</button>
+            <button class="chip" data-example-url="https://www.lenovo.com/us/en/p/laptops/thinkpad/thinkpad-e-series/thinkpad-e14-gen-5-amd/len101t0043">ThinkPad E14 example</button>
           </div>
         </div>
 

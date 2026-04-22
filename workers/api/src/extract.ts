@@ -45,6 +45,15 @@ export async function extractIntentAndRecommendation(
     return extractQueryOnly(input, env);
   }
 
+  // URL / photo modes: fetch-and-parse or vision-parse the real product,
+  // treat it as the "AI pick" so the downstream pipeline can audit its claims.
+  if (input.kind === "url") {
+    return extractFromUrl(input, env);
+  }
+  if (input.kind === "photo") {
+    return extractFromPhoto(input, env);
+  }
+
   const userContent =
     input.kind === "text"
       ? [
@@ -149,6 +158,134 @@ export async function extractIntentAndRecommendation(
 function stripFences(s: string): string {
   const m = s.match(/```(?:json)?\s*([\s\S]*?)```/);
   return (m && m[1] ? m[1] : s).trim();
+}
+
+/**
+ * URL mode — fetch the product page, let Opus 4.7 parse it, treat the
+ * on-page product as a candidate. The user's preference profile (or the
+ * inferred-from-prompt intent) scores it against alternatives.
+ */
+const URL_SYSTEM = `You parse a product page. Given the HTML+text of a page, extract the product and any marketing claims.
+Return ONLY JSON (no prose, no markdown fences) with this shape:
+{
+  "intent": {"category": "<category name>", "criteria": [...], "rawCriteriaText": "<user words or empty>"},
+  "aiRecommendation": {
+    "host": "unknown",
+    "pickedProduct": {"name": "<product name>", "brand": "<brand>", "price": <number>, "currency": "USD"},
+    "claims": [{"attribute": "<spec name>", "statedValue": "<exact value on page>"}],
+    "reasoningTrace": "<marketing copy, normalized>"
+  }
+}
+If the user did not supply criteria, infer sensible defaults from the product category.`;
+
+async function extractFromUrl(
+  input: Extract<AuditInput, { kind: "url" }>,
+  env: Env,
+): Promise<{ intent: UserIntent; aiRecommendation: AIRecommendation }> {
+  let fetched = "";
+  try {
+    const res = await fetch(input.url, {
+      redirect: "follow",
+      headers: { "user-agent": "Mozilla/5.0 Lens/1.0" },
+    });
+    if (res.ok) {
+      const raw = await res.text();
+      // Cheap HTML-to-text stripper
+      fetched = raw
+        .replace(/<script[\s\S]*?<\/script>/gi, "")
+        .replace(/<style[\s\S]*?<\/style>/gi, "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .slice(0, 20_000);
+    }
+  } catch (e) {
+    console.error("[extract:url] fetch failed:", (e as Error).message);
+  }
+
+  const userContent = [
+    {
+      type: "text" as const,
+      text: `URL: ${input.url}\n\n${input.userPrompt ? `USER CRITERIA: ${input.userPrompt}\n\n` : ""}${input.category ? `CATEGORY HINT: ${input.category}\n\n` : ""}PAGE CONTENT (truncated):\n${fetched || "(fetch returned empty; extract product from the URL itself if possible)"}`,
+    },
+  ];
+
+  const { text } = await opusExtendedThinking(env, {
+    system: URL_SYSTEM,
+    user: userContent,
+    maxOutputTokens: 6000,
+    effort: "high",
+  });
+  return parseExtractJson(text, input.userPrompt);
+}
+
+/**
+ * Photo mode — phone camera photo of a product. Opus 4.7 vision reads the
+ * product label, box, shelf tag, etc.
+ */
+const PHOTO_SYSTEM = `You identify a product from a phone camera photo. The photo may show the product itself, its packaging, a shelf tag, or a retail display.
+Return ONLY JSON (no prose, no markdown fences) matching the URL-mode schema (intent + aiRecommendation).
+Prefer conservative extraction — mark spec claims as unverifiable if you cannot read them.`;
+
+async function extractFromPhoto(
+  input: Extract<AuditInput, { kind: "photo" }>,
+  env: Env,
+): Promise<{ intent: UserIntent; aiRecommendation: AIRecommendation }> {
+  const userContent = [
+    {
+      type: "image" as const,
+      source: { type: "base64" as const, media_type: "image/png" as const, data: input.imageBase64 },
+    },
+    {
+      type: "text" as const,
+      text: `Identify the product in this photo.${input.userPrompt ? ` User context: ${input.userPrompt}.` : ""}${input.category ? ` Category hint: ${input.category}.` : ""}`,
+    },
+  ];
+
+  const { text } = await opusExtendedThinking(env, {
+    system: PHOTO_SYSTEM,
+    user: userContent,
+    maxOutputTokens: 4000,
+    effort: "high",
+  });
+  return parseExtractJson(text, input.userPrompt);
+}
+
+function parseExtractJson(
+  text: string,
+  userPromptFallback?: string,
+): { intent: UserIntent; aiRecommendation: AIRecommendation } {
+  const json = stripFences(text);
+  let parsed: { intent?: Partial<UserIntent>; aiRecommendation?: Partial<AIRecommendation> };
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    throw new Error(`URL/photo extract returned non-JSON: ${json.slice(0, 400)}`);
+  }
+  const intent: UserIntent = {
+    category: parsed.intent?.category ?? "product",
+    criteria:
+      parsed.intent?.criteria && parsed.intent.criteria.length > 0
+        ? parsed.intent.criteria
+        : [{ name: "overall_quality", weight: 1, direction: "higher_is_better" }],
+    rawCriteriaText: parsed.intent?.rawCriteriaText ?? userPromptFallback ?? "",
+    ...(parsed.intent?.budget ? { budget: parsed.intent.budget } : {}),
+  };
+  const total = intent.criteria.reduce((s, c) => s + (c.weight ?? 0), 0) || 1;
+  intent.criteria = intent.criteria.map((c) => ({ ...c, weight: (c.weight ?? 0) / total }));
+
+  const ar = parsed.aiRecommendation ?? {};
+  const aiRecommendation: AIRecommendation = {
+    host: "unknown",
+    pickedProduct: {
+      name: ar.pickedProduct?.name ?? "Unknown product",
+      ...(ar.pickedProduct?.brand ? { brand: ar.pickedProduct.brand } : {}),
+      ...(ar.pickedProduct?.price !== undefined ? { price: ar.pickedProduct.price } : {}),
+      ...(ar.pickedProduct?.currency ? { currency: ar.pickedProduct.currency } : {}),
+    },
+    claims: Array.isArray(ar.claims) ? ar.claims : [],
+    reasoningTrace: ar.reasoningTrace ?? "",
+  };
+  return { intent, aiRecommendation };
 }
 
 /**

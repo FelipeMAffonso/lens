@@ -2,7 +2,54 @@ import type { AuditResult, HostAI, Candidate, Claim } from "@lens/shared";
 
 const API_BASE = import.meta.env.VITE_LENS_API_URL ?? "https://lens-api.webmarinelli.workers.dev";
 
-type Mode = "query" | "text";
+type Mode = "query" | "text" | "url";
+
+// ---------- preference profile (Workflow 50: localStorage portability) ----------
+interface ProfileState {
+  savedAt: string;
+  criteria: Array<{ name: string; weight: number; direction: string }>;
+  category: string;
+}
+const PROFILE_KEY = "lens.profiles.v1";
+
+function loadProfiles(): Record<string, ProfileState> {
+  try {
+    return JSON.parse(localStorage.getItem(PROFILE_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+function saveProfile(category: string, state: ProfileState): void {
+  const all = loadProfiles();
+  all[category] = state;
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(all));
+}
+
+// ---------- welfare-delta history (Workflow 32) ----------
+interface HistoryEntry {
+  at: string;
+  category: string;
+  lensPickName: string;
+  lensPickPrice: number | null;
+  aiPickName: string | null;
+  aiPickPrice: number | null;
+  utilityDelta: number;
+  priceDelta: number | null;
+}
+const HISTORY_KEY = "lens.history.v1";
+
+function loadHistory(): HistoryEntry[] {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+function pushHistory(e: HistoryEntry): void {
+  const h = loadHistory();
+  h.push(e);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(h.slice(-50)));
+}
 let currentMode: Mode = "query";
 let currentResult: AuditResult | null = null;
 
@@ -38,9 +85,18 @@ function setMode(m: Mode): void {
     b.classList.toggle("active", b.dataset.mode === m);
   });
   ($("query-section") as HTMLElement).classList.toggle("hidden", m !== "query");
+  ($("url-section") as HTMLElement).classList.toggle("hidden", m !== "url");
   ($("text-section") as HTMLElement).classList.toggle("hidden", m !== "text");
   ($("audit-btn") as HTMLButtonElement).textContent =
-    m === "query" ? "Find the spec-optimal pick" : "Audit this AI answer";
+    m === "query" ? "Find the spec-optimal pick" :
+    m === "url" ? "Audit this product URL" :
+    "Audit this AI answer";
+}
+
+function prefillExampleUrl(url: string): void {
+  setMode("url");
+  ($("url-input") as HTMLInputElement).value = url;
+  ($("url-input") as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function prefillExampleQuery(query: string): void {
@@ -75,6 +131,18 @@ async function runAudit(): Promise<void> {
       return;
     }
     body = { kind: "query", userPrompt };
+  } else if (currentMode === "url") {
+    const url = ($("url-input") as HTMLInputElement).value.trim();
+    const userPrompt = ($("url-prompt") as HTMLInputElement).value.trim() || undefined;
+    if (!url) {
+      logEl.append(logLine("Paste a product URL first."));
+      return;
+    }
+    if (!/^https?:\/\//i.test(url)) {
+      logEl.append(logLine("URL must start with http:// or https://"));
+      return;
+    }
+    body = { kind: "url", url, userPrompt };
   } else {
     const source = ($("source") as HTMLSelectElement).value as HostAI;
     const userPrompt = ($("user-prompt") as HTMLInputElement).value || undefined;
@@ -100,6 +168,34 @@ async function runAudit(): Promise<void> {
   }
   const result = (await res.json()) as AuditResult;
   currentResult = result;
+
+  // Save preference profile for this category (W50)
+  saveProfile(result.intent.category, {
+    savedAt: new Date().toISOString(),
+    criteria: result.intent.criteria.map((c) => ({ name: c.name, weight: c.weight, direction: c.direction })),
+    category: result.intent.category,
+  });
+
+  // Track welfare-delta in history (W32)
+  const lensPickPrice = result.specOptimal.price ?? null;
+  const aiPickName = result.aiRecommendation.pickedProduct.name.startsWith("(no AI")
+    ? null
+    : result.aiRecommendation.pickedProduct.name;
+  const aiPickPrice = result.aiPickCandidate?.price ?? null;
+  const priceDelta = lensPickPrice !== null && aiPickPrice !== null ? aiPickPrice - lensPickPrice : null;
+  const aiPickUtility = result.aiPickCandidate?.utilityScore ?? 0;
+  const utilityDelta = (result.specOptimal.utilityScore ?? 0) - aiPickUtility;
+  pushHistory({
+    at: new Date().toISOString(),
+    category: result.intent.category,
+    lensPickName: result.specOptimal.name,
+    lensPickPrice,
+    aiPickName,
+    aiPickPrice,
+    utilityDelta,
+    priceDelta,
+  });
+
   renderResult(result);
 }
 
@@ -165,9 +261,95 @@ function renderResult(r: AuditResult): void {
   body.append(heroPickCard(r));
   body.append(criteriaCard(r));
   if (!isJob1 && r.claims.length > 0) body.append(claimsCard(r));
+  body.append(alternativesCard(r));
   body.append(rankedCard(r));
   body.append(crossModelCard(r));
+  body.append(welfareDeltaCard());
   body.append(elapsedFooter(r));
+}
+
+// W11 — Alternative surfacing at price tiers
+function alternativesCard(r: AuditResult): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "card";
+  const topPrice = r.specOptimal.price ?? 0;
+  const tiers = [
+    { label: "Similar price, different trade-off", max: topPrice * 1.1, min: topPrice * 0.9, excludeTop: true },
+    { label: "~75% of top price", max: topPrice * 0.85, min: topPrice * 0.6, excludeTop: true },
+    { label: "Budget option (~50% price)", max: topPrice * 0.6, min: 0, excludeTop: true },
+  ];
+  const topIdx = 0;
+  const picks = tiers.map((t) => {
+    const cands = r.candidates.filter((c, i) => {
+      if (t.excludeTop && i === topIdx) return false;
+      const p = c.price ?? 0;
+      return p <= t.max && p >= t.min;
+    });
+    return { label: t.label, pick: cands[0] ?? null };
+  });
+  const anyPicks = picks.some((p) => p.pick !== null);
+  if (!anyPicks) {
+    card.innerHTML = `<div class="card-header"><h2>Alternatives at other price points</h2></div><p class="muted" style="margin:0;">Not enough candidates across price tiers.</p>`;
+    return card;
+  }
+  card.innerHTML = `
+    <div class="card-header">
+      <h2>Alternatives at other price points</h2>
+      <p class="card-subtitle">Same criteria, different trade-offs</p>
+    </div>
+    <div style="display:grid;gap:10px;">
+      ${picks
+        .filter((p) => p.pick !== null)
+        .map(
+          (p) => `<div style="display:grid;grid-template-columns:200px 1fr 70px;gap:12px;align-items:center;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;">
+          <div style="color:var(--fg-muted);font-size:12px;">${esc(p.label)}</div>
+          <div><span class="brand" style="color:var(--fg-dim);">${esc(p.pick!.brand ?? "")}</span> <strong>${esc(p.pick!.name)}</strong></div>
+          <div style="text-align:right;font-family:ui-monospace,monospace;color:var(--fg-dim);">$${p.pick!.price ?? "?"}</div>
+        </div>`,
+        )
+        .join("")}
+    </div>
+  `;
+  return card;
+}
+
+// W32 — Welfare-delta analytic
+function welfareDeltaCard(): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "card";
+  const history = loadHistory();
+  if (history.length < 3) {
+    card.innerHTML = `
+      <div class="card-header"><h2>Welfare-delta (your history)</h2></div>
+      <p class="muted" style="margin:0;">After ~10 audits, Lens will show you the utility + dollar delta between the AI's picks and Lens's picks across your history. Currently at ${history.length} audit${history.length === 1 ? "" : "s"}.</p>
+    `;
+    return card;
+  }
+  const withAi = history.filter((h) => h.aiPickName !== null);
+  const avgUtilityDelta = withAi.reduce((s, h) => s + h.utilityDelta, 0) / Math.max(withAi.length, 1);
+  const priceSamples = withAi.filter((h) => h.priceDelta !== null);
+  const avgPriceDelta =
+    priceSamples.length > 0 ? priceSamples.reduce((s, h) => s + (h.priceDelta ?? 0), 0) / priceSamples.length : 0;
+  card.innerHTML = `
+    <div class="card-header">
+      <h2>Welfare-delta (your history)</h2>
+      <p class="card-subtitle">Across your last ${history.length} audits</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div style="padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;">
+        <div style="color:var(--fg-muted);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Avg utility advantage</div>
+        <div style="font-size:24px;font-weight:700;color:var(--accent);margin-top:4px;">+${avgUtilityDelta.toFixed(3)}</div>
+        <div style="color:var(--fg-dim);font-size:12px;margin-top:4px;">vs AI's pick</div>
+      </div>
+      <div style="padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;">
+        <div style="color:var(--fg-muted);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Avg price difference</div>
+        <div style="font-size:24px;font-weight:700;color:${avgPriceDelta >= 0 ? "var(--accent)" : "var(--warn)"};margin-top:4px;">${avgPriceDelta >= 0 ? "+" : "-"}$${Math.abs(Math.round(avgPriceDelta))}</div>
+        <div style="color:var(--fg-dim);font-size:12px;margin-top:4px;">AI pick vs Lens pick</div>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:12px;font-size:12px;">This runs entirely in your browser (localStorage). Nothing is sent to Lens's server. Clear with devtools application → storage → lens.history.v1.</p>
+  `;
+  return card;
 }
 
 function headerCard(r: AuditResult, isJob1: boolean): HTMLElement {
@@ -217,38 +399,46 @@ function verdictBanner(r: AuditResult): HTMLElement {
   return div;
 }
 
+function priorityLabel(weight: number): string {
+  if (weight >= 0.33) return "matters a lot";
+  if (weight >= 0.18) return "matters";
+  if (weight >= 0.07) return "nice to have";
+  return "minor factor";
+}
+
+function fitLabel(score: number): string {
+  if (score >= 0.85) return "excellent fit";
+  if (score >= 0.6) return "good fit";
+  if (score >= 0.35) return "okay fit";
+  if (score >= 0.15) return "weak fit";
+  return "poor fit";
+}
+
 function heroPickCard(r: AuditResult): HTMLElement {
   const o = r.specOptimal;
-  const matchPct = Math.round((o.utilityScore ?? 0) * 100);
   const card = document.createElement("section");
   card.className = "card";
   card.innerHTML = `
-    <div class="card-header"><h2>Spec-optimal pick</h2></div>
+    <div class="card-header"><h2>Lens's top pick</h2></div>
     <div class="hero-pick">
       <div>
         <div class="pick-product"><span class="brand">${esc(o.brand ?? "")}</span> <span class="name">${esc(o.name)}</span></div>
-        <div class="pick-price">Price: <span class="amount">$${o.price ?? "?"}</span></div>
-      </div>
-      <div class="match-bar">
-        <div class="match-bar-fill"><div style="width:${matchPct}%"></div></div>
-        <div class="match-bar-label">${matchPct}% match to your criteria</div>
+        <div class="pick-price">Price: <span class="amount">$${o.price ?? "?"}</span> · <span class="muted">Best fit for your stated priorities</span></div>
       </div>
     </div>
-    <details>
-      <summary>How was this scored?</summary>
+    <details open>
+      <summary>Why this came out on top</summary>
       <div class="criteria-detail">
         ${o.utilityBreakdown
           .map((b) => {
-            const wp = Math.round(b.weight * 100);
-            const sp = Math.round(b.score * 100);
             return `<div class="criterion-row">
-              <div class="label">${esc(b.criterion)}</div>
-              <div style="display:flex;gap:8px;align-items:center;">
-                <span style="color:var(--fg-muted);font-size:12px;min-width:100px;">You weight ${wp}%</span>
-                <span style="flex:1;height:4px;background:var(--bg);border-radius:999px;overflow:hidden;"><span style="display:block;height:100%;background:var(--hl);width:${sp}%"></span></span>
-                <span style="color:var(--fg-dim);font-size:12px;min-width:70px;">scores ${sp}/100</span>
+              <div class="label"><strong>${esc(b.criterion)}</strong></div>
+              <div style="display:flex;gap:10px;align-items:center;color:var(--fg-dim);font-size:13px;">
+                <span style="min-width:120px;">${priorityLabel(b.weight)}</span>
+                <span style="flex:1;height:4px;background:var(--bg);border-radius:999px;overflow:hidden;"><span style="display:block;height:100%;background:var(--hl);width:${Math.round(b.score * 100)}%"></span></span>
+                <span style="min-width:110px;">${fitLabel(b.score)}</span>
               </div>
-              <div class="value">+${(b.contribution * 100).toFixed(0)}</div>
+              <div class="value" style="text-align:right;color:var(--accent);">${b.contribution >= 0.1 ? "★★★" : b.contribution >= 0.05 ? "★★" : b.contribution > 0 ? "★" : "·"}</div>
             </div>`;
           })
           .join("")}
@@ -276,15 +466,16 @@ function criteriaCard(r: AuditResult): HTMLElement {
     const row = document.createElement("div");
     row.className = "criterion-row";
     row.innerHTML = `
-      <div class="label">${esc(c.name)}</div>
+      <div class="label"><strong>${esc(c.name)}</strong></div>
       <input type="range" min="0" max="100" value="${pct}" data-criterion="${esc(c.name)}" />
-      <div class="value" data-criterion-val="${esc(c.name)}">${pct}%</div>
+      <div class="value" data-criterion-val="${esc(c.name)}" style="text-align:right;color:var(--fg-dim);font-family:inherit;font-size:12px;min-width:120px;">${priorityLabel(c.weight)}</div>
     `;
     wrap.append(row);
   }
   wrap.querySelectorAll<HTMLInputElement>("input[type='range']").forEach((input) => {
     input.addEventListener("input", () => {
-      wrap.querySelector<HTMLSpanElement>(`[data-criterion-val="${input.dataset.criterion}"]`)!.textContent = `${input.value}%`;
+      const v = Number(input.value) / 100;
+      wrap.querySelector<HTMLSpanElement>(`[data-criterion-val="${input.dataset.criterion}"]`)!.textContent = priorityLabel(v);
       reRank();
     });
   });
@@ -336,25 +527,28 @@ function rankedCard(r: AuditResult): HTMLElement {
   `;
   const list = card.querySelector<HTMLElement>("#ranked-list")!;
   for (let i = 0; i < Math.min(r.candidates.length, 10); i++) {
-    list.append(rankRow(r.candidates[i]!, i));
+    list.append(rankRow(r.candidates[i]!, i, r.candidates[0]?.utilityScore ?? 1));
   }
   return card;
 }
 
-function rankRow(c: Candidate, i: number): HTMLElement {
+function rankRow(c: Candidate, i: number, topScore: number): HTMLElement {
   const row = document.createElement("div");
   row.className = `rank-row rank-${i + 1}`;
-  const pct = Math.round((c.utilityScore ?? 0) * 100);
+  // Normalize the displayed bar so the #1 pick is always 100% — makes the rank ordering visually clear
+  const normalized = topScore > 0 ? Math.round(((c.utilityScore ?? 0) / topScore) * 100) : 0;
+  const rankLabel = i === 0 ? "best" : i === 1 ? "runner-up" : i === 2 ? "third" : `#${i + 1}`;
   row.innerHTML = `
-    <div class="rank-num">#${i + 1}</div>
+    <div class="rank-num">${i === 0 ? "👑" : "#" + (i + 1)}</div>
     <div class="rank-product">
       <span class="brand">${esc(c.brand ?? "")}</span>
       <span class="name">${esc(c.name)}</span>
+      ${i === 0 ? '<span style="display:inline-block;margin-left:8px;color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">best fit</span>' : ""}
     </div>
     <div class="rank-price">$${c.price ?? "?"}</div>
     <div class="rank-match">
-      <div class="rank-match-bar"><div style="width:${pct}%"></div></div>
-      <div class="rank-match-label">${pct}%</div>
+      <div class="rank-match-bar"><div style="width:${normalized}%"></div></div>
+      <div class="rank-match-label">${esc(rankLabel)}</div>
     </div>
   `;
   return row;
@@ -429,7 +623,7 @@ function reRank(): void {
   const list = document.getElementById("ranked-list")!;
   list.innerHTML = "";
   for (let i = 0; i < Math.min(rescored.length, 10); i++) {
-    list.append(rankRow(rescored[i]!, i));
+    list.append(rankRow(rescored[i]!, i, rescored[0]?.utilityScore ?? 1));
   }
 }
 
@@ -447,6 +641,9 @@ document.querySelectorAll<HTMLButtonElement>(".chip[data-example-query]").forEac
 });
 document.querySelectorAll<HTMLButtonElement>(".chip[data-example-audit]").forEach((btn) => {
   btn.addEventListener("click", () => prefillExampleAudit(btn.dataset.exampleAudit!));
+});
+document.querySelectorAll<HTMLButtonElement>(".chip[data-example-url]").forEach((btn) => {
+  btn.addEventListener("click", () => prefillExampleUrl(btn.dataset.exampleUrl!));
 });
 $("audit-btn").addEventListener("click", () => {
   void runAudit();

@@ -91,7 +91,12 @@ export async function runAuditPipeline(
 
   return {
     id: crypto.randomUUID(),
-    host: input.kind === "query" ? (input.source ?? "unknown") : input.source,
+    host:
+      input.kind === "text" || input.kind === "image"
+        ? input.source
+        : input.kind === "query"
+          ? (input.source ?? "unknown")
+          : ("unknown" as const),
     intent: extract.intent,
     aiRecommendation: extract.aiRecommendation,
     candidates: ranked,
