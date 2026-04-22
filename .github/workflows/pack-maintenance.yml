@@ -1,0 +1,58 @@
+name: pack-maintenance
+
+on:
+  # Weekly run, off-peak Monday 06:13 UTC (off-minute deliberate, not :00 or :30)
+  schedule:
+    - cron: "13 6 * * 1"
+  # Manual trigger
+  workflow_dispatch:
+
+jobs:
+  schema-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/validate-pack-schema.mjs
+
+  llm-judge:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/validate-packs.mjs
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Commit validation report
+        run: |
+          if [ -f data/pack-validation-report.json ]; then
+            git config user.name "lens-bot"
+            git config user.email "lens-bot@users.noreply.github.com"
+            git add data/pack-validation-report.json
+            git diff --cached --quiet || git commit -m "ci: weekly pack validation report" && git push
+          fi
+
+  regulation-watcher:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/check-regulation-status.mjs
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Open issue if status changed
+        run: |
+          if [ -f data/regulation-status-report.json ]; then
+            git config user.name "lens-bot"
+            git config user.email "lens-bot@users.noreply.github.com"
+            git add data/regulation-status-report.json
+            git diff --cached --quiet || git commit -m "ci: weekly regulation status report" && git push
+          fi

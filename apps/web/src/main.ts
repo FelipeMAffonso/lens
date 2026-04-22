@@ -265,6 +265,7 @@ function renderResult(r: AuditResult): void {
   body.append(rankedCard(r));
   body.append(crossModelCard(r));
   body.append(welfareDeltaCard());
+  body.append(profileCard());
   body.append(elapsedFooter(r));
 }
 
@@ -310,6 +311,73 @@ function alternativesCard(r: AuditResult): HTMLElement {
         .join("")}
     </div>
   `;
+  return card;
+}
+
+// W50 — Preference profile export/import card
+function profileCard(): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "card";
+  const profiles = loadProfiles();
+  const profileSlugs = Object.keys(profiles);
+  card.innerHTML = `
+    <div class="card-header">
+      <h2>Your saved preferences</h2>
+      <p class="card-subtitle">${profileSlugs.length} categor${profileSlugs.length === 1 ? "y" : "ies"} learned · stored on your device only</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <button class="chip" id="profile-export">Export profile JSON</button>
+      <button class="chip" id="profile-import">Import profile JSON</button>
+      <button class="chip" id="profile-clear" style="color:var(--warn);">Clear all</button>
+      <input type="file" id="profile-file" accept="application/json,.json" style="display:none;" />
+    </div>
+    ${
+      profileSlugs.length > 0
+        ? `<div style="margin-top:12px;display:grid;gap:6px;">${profileSlugs
+            .map(
+              (s) =>
+                `<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--fg-dim);"><span>${esc(s)}</span><span style="font-family:ui-monospace,monospace;font-size:11px;color:var(--fg-muted);">${profiles[s]?.criteria?.length ?? 0} criteria</span></div>`,
+            )
+            .join("")}</div>`
+        : ""
+    }
+  `;
+  // Wire up handlers
+  setTimeout(() => {
+    const exportBtn = card.querySelector<HTMLButtonElement>("#profile-export");
+    const importBtn = card.querySelector<HTMLButtonElement>("#profile-import");
+    const clearBtn = card.querySelector<HTMLButtonElement>("#profile-clear");
+    const fileInput = card.querySelector<HTMLInputElement>("#profile-file");
+    exportBtn?.addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(loadProfiles(), null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `lens-profiles-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+    importBtn?.addEventListener("click", () => fileInput?.click());
+    fileInput?.addEventListener("change", async () => {
+      const f = fileInput.files?.[0];
+      if (!f) return;
+      try {
+        const data = JSON.parse(await f.text());
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
+        alert(`Imported ${Object.keys(data).length} preference profile(s).`);
+        location.reload();
+      } catch (e) {
+        alert(`Import failed: ${(e as Error).message}`);
+      }
+    });
+    clearBtn?.addEventListener("click", () => {
+      if (confirm("Clear all preference profiles AND audit history? This cannot be undone.")) {
+        localStorage.removeItem(PROFILE_KEY);
+        localStorage.removeItem(HISTORY_KEY);
+        location.reload();
+      }
+    });
+  }, 0);
   return card;
 }
 
@@ -373,21 +441,29 @@ function verdictBanner(r: AuditResult): HTMLElement {
   const trueCount = r.claims.filter((c) => c.verdict === "true").length;
   const total = r.claims.length;
 
+  const unverifiableCount = r.claims.filter((c) => c.verdict === "unverifiable").length;
+  const counts = `${falseCount} false · ${misleadCount} misleading · ${trueCount} verified · ${unverifiableCount} unverifiable (out of ${total} total)`;
+
   let cls = "good";
   let icon = "✓";
   let title = "The AI's claims check out.";
-  let body = `${trueCount} of ${total} attribute claims verified.`;
+  let body = counts;
 
   if (falseCount > 0) {
     cls = "bad";
     icon = "✗";
     title = `Lens flagged ${falseCount} false claim${falseCount === 1 ? "" : "s"} in the AI's recommendation.`;
-    body = `${falseCount} false, ${misleadCount} misleading, ${trueCount} verified out of ${total} total.`;
+    body = counts;
   } else if (misleadCount > 0) {
     cls = "mixed";
     icon = "⚠";
     title = `Lens flagged ${misleadCount} misleading claim${misleadCount === 1 ? "" : "s"}.`;
-    body = `${misleadCount} misleading, ${trueCount} verified out of ${total} total.`;
+    body = counts;
+  } else if (unverifiableCount > 0 && trueCount === 0) {
+    cls = "mixed";
+    icon = "?";
+    title = `${unverifiableCount} of ${total} claims could not be verified from available data.`;
+    body = counts;
   }
 
   const div = document.createElement("div");

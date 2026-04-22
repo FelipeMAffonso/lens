@@ -18,7 +18,12 @@
     "deploy:api": "npm run deploy -w @lens/api",
     "deploy:cross": "npm run deploy -w @lens/cross-model",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,html,css}\""
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,html,css}\"",
+    "packs:bundle": "node scripts/bundle-packs.mjs",
+    "packs:validate": "node scripts/validate-pack-schema.mjs",
+    "packs:judge": "node scripts/validate-packs.mjs",
+    "packs:enrich": "node scripts/enrich-pack.mjs --all",
+    "packs:reg-watch": "node scripts/check-regulation-status.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.7.0",
