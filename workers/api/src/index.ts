@@ -11,6 +11,7 @@ import { dispatchCron } from "./cron/dispatcher.js";
 import { CRON_JOBS } from "./cron/jobs.js";
 import { handleWebhook } from "./webhooks/handler.js";
 import { listWebhooks } from "./webhooks/registry.js";
+import { transcribe, TranscribeRequestSchema } from "./voice/transcribe.js";
 import {
   handleRequest as authHandleRequest,
   handleSignout as authHandleSignout,
@@ -25,6 +26,7 @@ export interface Env {
   GOOGLE_API_KEY?: string;
   OPENROUTER_API_KEY?: string;
   CROSS_MODEL_AGENT_URL?: string;
+  DEEPGRAM_API_KEY?: string;
   /**
    * "real" (default) = live Opus 4.7 web search; "fixture" = short-circuit to a hardcoded
    * catalog for the category. Fixture mode exists to unblock demo latency and for CI-style
@@ -134,6 +136,17 @@ app.get("/cron/jobs", (c) =>
 // F5 — webhook surface.
 app.post("/webhook/:id", (c) => handleWebhook(c as never));
 app.get("/webhooks", (c) => c.json({ hooks: listWebhooks() }));
+
+// F11 — voice transcription surface.
+app.post("/voice/transcribe", async (c) => {
+  const body = await c.req.json().catch(() => null);
+  const parsed = TranscribeRequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json({ error: "invalid_input", issues: parsed.error.issues }, 400);
+  }
+  const result = await transcribe(parsed.data, c.env as unknown as { DEEPGRAM_API_KEY?: string });
+  return c.json(result);
+});
 
 // F17 — trace endpoints. Backed by workflow_runs in D1.
 // More-specific route (`/trace/recent`) MUST come before the param route so

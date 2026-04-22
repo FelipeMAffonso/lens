@@ -159,47 +159,62 @@ export function scanDocument(doc: Document = document): HeuristicHit[] {
 }
 
 /**
- * Render an inline warning badge on the page for each hit.
- * This is the "surface-and-warn" intervention (packs/intervention/surface-and-warn.json).
+ * F7 — Per-pattern Shadow-DOM badges pinned to matched elements; aggregate
+ * snackbar when >3 hits; per-host learned suppression after 3 dismissals.
+ * Legacy single-overlay path preserved as the fallback when no matched
+ * elements can be located.
  */
-export function renderBadges(hits: HeuristicHit[]): void {
-  const existing = document.getElementById("lens-overlay");
-  if (existing) existing.remove();
+import { attachDarkPatternBadge } from "./content/overlay/badge.js";
+import { renderAggregateSnackbar } from "./content/overlay/snackbar.js";
 
+const AGGREGATE_THRESHOLD = 3;
+
+export function renderBadges(hits: HeuristicHit[]): void {
+  // Clear any legacy overlay from the prior implementation.
+  document.getElementById("lens-overlay")?.remove();
+  document.getElementById("lens-snackbar")?.remove();
   if (hits.length === 0) return;
 
-  const overlay = document.createElement("div");
-  overlay.id = "lens-overlay";
-  overlay.style.cssText = `
-    position: fixed; bottom: 20px; right: 20px; z-index: 2147483647;
-    background: #161b22; color: #e8eaed; border: 2px solid #ff7b72;
-    border-radius: 12px; padding: 14px 16px; max-width: 360px;
-    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  `;
-  overlay.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-      <strong style="color: #ff7b72; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;">⚠ Lens · ${hits.length} pattern${hits.length > 1 ? "s" : ""} detected</strong>
-      <button id="lens-close" style="background: none; border: none; color: #8b949e; cursor: pointer; font-size: 16px; padding: 0;">×</button>
-    </div>
-    <ul style="margin: 0; padding-left: 16px; font-size: 13px; color: #e8eaed;">
-      ${hits
-        .slice(0, 5)
-        .map(
-          (h) => `
-        <li style="margin-bottom: 4px;">
-          <strong style="color: #ffa657;">${h.brignullId}</strong>
-          <span style="color: #8b949e; font-size: 11px;"> · ${h.severity}</span>
-          <div style="color: #8b949e; font-size: 12px; margin-top: 2px;">${(h.matchedElement.text || "").slice(0, 80)}</div>
-        </li>
-      `,
-        )
-        .join("")}
-    </ul>
-    <div style="font-size: 11px; color: #8b949e; margin-top: 8px;">
-      Open <a href="https://lens-b1h.pages.dev" target="_blank" style="color: #7ee787;">Lens</a> for a full audit.
-    </div>
-  `;
-  document.body.append(overlay);
-  document.getElementById("lens-close")?.addEventListener("click", () => overlay.remove());
+  // Try to attach per-hit inline badges for hits with an anchorable element.
+  const attached: Array<{ hit: HeuristicHit; host: HTMLElement }> = [];
+  for (const hit of hits) {
+    const anchor = locateAnchor(hit);
+    if (!anchor) continue;
+    const host = attachDarkPatternBadge(anchor, hit);
+    if (host) attached.push({ hit, host });
+  }
+
+  // AMBIENT_MODEL §2 "one badge per page" — when >3 are anchored OR hits lack
+  // anchors, aggregate into a snackbar so we never overwhelm the page.
+  if (attached.length === 0 || hits.length > AGGREGATE_THRESHOLD) {
+    renderAggregateSnackbar(hits, () => {
+      window.open("https://lens-b1h.pages.dev", "_blank", "noopener,noreferrer");
+    });
+  }
+}
+
+function locateAnchor(hit: HeuristicHit): HTMLElement | null {
+  const sel = hit.matchedElement.selector;
+  if (sel) {
+    try {
+      const el = document.querySelector<HTMLElement>("." + sel.split(/\s+/).join("."));
+      if (el) return el;
+    } catch {
+      // invalid selector, fall through
+    }
+  }
+  // Fallback: find a visible element whose textContent contains the hit text.
+  const text = (hit.matchedElement.text || "").slice(0, 50).trim();
+  if (!text) return null;
+  // Cheap O(DOM) scan — only run for small hit counts, acceptable cost.
+  const candidates = document.querySelectorAll<HTMLElement>(
+    "span, div, label, td, li, p, strong, em, small",
+  );
+  for (const c of candidates) {
+    if ((c.innerText ?? "").includes(text)) {
+      return c;
+    }
+    if (candidates.length > 2000) break; // safety cap
+  }
+  return null;
 }
