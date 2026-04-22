@@ -26,6 +26,7 @@ import { authMiddleware, type AuthVars } from "./auth/middleware.js";
 import { rateLimitMiddleware } from "./ratelimit/middleware.js";
 import { handlePassiveScan } from "./passive-scan/handler.js";
 import { handlePriceHistory } from "./price-history/handler.js";
+import { handleTotalCost } from "./total-cost/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -333,6 +334,9 @@ app.post("/passive-scan", (c) => handlePassiveScan(c as never, packRegistry));
 // S4-W21 — price-history + fake-sale detection. Returns 90-day series for
 // a retailer URL, computes rolling stats, and emits a sale-legitimacy verdict.
 app.get("/price-history", (c) => handlePriceHistory(c as never));
+
+// S4-W24 — true-total-cost. Product URL + optional zip → itemized cost.
+app.get("/total-cost", (c) => handleTotalCost(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these
