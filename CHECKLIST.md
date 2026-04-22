@@ -130,7 +130,7 @@
 
 | # | Workflow | Status | File | Commit |
 |---|---|---|---|---|
-| CJ-W46 | Values overlay | ⬜ | 🔬 | |
+| CJ-W46 | Values overlay | ✅ | `BLOCKS/CJ-W46-values-overlay.md` | `79e425e` |
 | CJ-W47 | Family / household profiles | ⬜ | 🔬 | |
 | CJ-W48 | Gift-buying mode | ⬜ | 🔬 | |
 | CJ-W49 | Group-buy pooling | ⬜ | 🔬 | |
@@ -228,6 +228,7 @@
 - 2026-04-22: F2 ✅ — persistence layer closed. Migration 0005 adds the 5 tables BLOCKS/F2 specified (audits, preferences, watchers, interventions, welfare_deltas); 10 new src/db modules (client + schemas + 5 repos + in-memory D1 shim for hermetic tests); 12 new HTTP endpoints (GET /history/audits, /history/welfare-delta[/rows], /preferences, /watchers, /interventions + PUT /preferences + POST /watchers + PATCH /watchers/:id/active + POST /interventions + POST /interventions/:id/sent + DELETE /preferences/:id). 41 new tests (427/427 green). Live smoke: PUT+GET preference roundtrips via `x-lens-anon-id` header. Commit `604235e`.
 - 2026-04-22: S3-W15 ✅ — per-host DOM parsers + universal structured extractors. 6 host adapters (amazon/bestbuy/walmart/target/homedepot/shopify) + 3 universal strategies (JSON-LD / OpenGraph / microdata) + orchestrator with priority merge + source-tagged output. extract.ts#extractFromUrl now skips the Opus round-trip when the structured parse is confident (name + price). 51 new tests (478/478 green). Deployed b35a159a. Commit `3749c44`.
 - 2026-04-22: S4-W24 ✅ — /total-cost reveal. 50-state+DC tax table + USPS first-3-digit ZIP bucketing, per-host shipping policy (Amazon Prime / $35-threshold free for BBY/Walmart/Target / $45 for HD / Costco free / Shopify-generic 5% cap), category-pack-driven hiddenCosts (one-time vs ongoing frequency classification, 3-year projection). Extension-readable productName + category overrides. 29 new tests (507/507 green). Live smoke: Breville Bambino at $349.99 in Bay Area → upfront $375.36, year1 $1,367.86, year3 $2,402.86. Commit `4d7a693`.
+- 2026-04-22: CJ-W46 ✅ — values-overlay reranker + persistence. 7-key taxonomy (country-of-origin/union-made/carbon-footprint/animal-welfare/b-corp/small-business/repairability), brand allowlists (B-Corp + UAW + USA-made + animal-welfare + small-business + iFixit repairability scores), longest-match brand tokenization, POST /values-overlay/rerank + PUT/GET persistence via F2 preferences. Empty overlay is a true no-op. 38 new tests (545/545 green). Live smoke: Patagonia b-corp weight 0.3 promotes it over a non-B-Corp competitor (0.95 vs 0.7). Commit `79e425e`.
 
 ---
 
