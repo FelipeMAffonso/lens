@@ -72,7 +72,7 @@
 | S3-W15 | URL evaluation (deepen parser) | ✅ | `BLOCKS/S3-W15-url-evaluation.md` | `3749c44` |
 | S3-W16 | Source provenance | ✅ | `BLOCKS/S3-W16-source-provenance.md` | `6d65b7e` |
 | S3-W17 | Review authenticity (add LLM layer) | 🟡 | 🔬 | |
-| S3-W18 | Counterfeit / grey-market | ⬜ | 🔬 | |
+| S3-W18 | Counterfeit / grey-market | ✅ | `BLOCKS/S3-W18-counterfeit-check.md` | `2fff3d1` |
 | S3-W19 | Sponsorship scanner | ⬜ | 🔬 | |
 | S3-W20 | Claim verification (reuse) | ✅ | 🔬 | |
 
@@ -238,6 +238,7 @@
 - 2026-04-22: S4-W28 ✅ — /checkout/summary composite verdict LIVE. Pure aggregator folds the 6 S4-* + S3-W16 per-signal summaries the extension has already computed into proceed/hesitate/rethink with ordered rationale + one-sentence recommendation. Transparent deltas (fake-sale -25, incompatible -40, critical breach -30, etc.), clamp [0,100], blocker dominance rule demotes proceed→hesitate when any blocker fires, signalCount surfaces for UI honesty. 29 new tests (777/777 green, +29). Live smoke: Marriott-style (1 warn passive + low breach + flat total) → proceed/90; (critical breach + incompatible + fake-sale) → rethink/5. Commit `6c1da79`.
 - 2026-04-22: S4-W27 ✅ — /scam/assess LIVE. Five deterministic signals (no LLM): domain-age fixture WHOIS, typosquat via Levenshtein vs 40+ brand allowlist WITH hyphen-token splitting (catches "amaz0n-deals" → "amaz0n" → distance-1 to "amazon"), HTTPS presence, verified-retailer trust-signal (-15 bonus), price-too-low vs category floors. 3-band verdict (safe < 20, caution < 55, scam ≥ 55). 32 new tests (811/811 green, +34). Live smoke: amaz0n-deals.com → scam/80 (typosquat+new-domain both fail); target.com → safe/0 (32y old + verified). Stage-4 track: 7 of 8 ✅. Commit `0a99bb6`.
 - 2026-04-22: S4-W25 ✅ — /privacy-audit closes Stage-4 at 8 of 8. Opus 4.7 structured JSON extraction of {dataCollected, sharedWithThirdParties, retention, deletion, consentDarkPatterns, regulatoryFrameworks} + graceful heuristic fallback (15 data-type + 6 third-party + 8 regulatory-framework + 6 dark-pattern regex rules). Transparency score 0-100 with 3 bands, robust JSON parser mirrors S4-W22 Stage-2 shape. 33 new tests (844/844 green, +33). Live smoke on apple.com/legal/privacy → source:"opus", band:"high", score:90, 7 data categories + 2 frameworks extracted faithfully. Commit `32df2a8`.
+- 2026-04-22: S3-W18 ✅ — /counterfeit/check LIVE. 6 deterministic signals: seller-age (fail < 90d), feedback-volume (warn < 10), **feedback-distribution-bimodal** (fail when ≥20% 1-star AND ≥60% 5-star — the classic "planted 5s + defrauded 1s, sparse middle" shape), price-too-low (floor/3), unauthorized-retailer-claim, grey-market-indicator. Category floor table rebased across counterfeit + scam modules to realistic mid-range minimums. 17 new tests (863/863 green, +17). Live smoke: fake-Bambino scenario (42d seller + 13 feedback bimodal + $99 espresso) → likely-counterfeit / risk 95. Stage-3 track: 6 of 7 ✅. Commit `2fff3d1`.
 
 ---
 
