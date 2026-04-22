@@ -96,4 +96,17 @@ export interface AuditResult {
   createdAt: string;                // ISO timestamp
   /** Stage-level warnings — surfaces silent degradation that previously vanished. */
   warnings?: Array<{ stage: string; message: string }>;
+  /**
+   * B2 parallel enrichments — each audit fans out to the per-signal checks
+   * so the card surfaces scam/breach/price/provenance verdicts alongside the
+   * claim audit. Each entry is best-effort: a failed or skipped enrichment
+   * shows `status: "skipped" | "error"` with a reason rather than blocking.
+   */
+  enrichments?: {
+    scam?: { status: "ok" | "skipped" | "error"; verdict?: "safe" | "caution" | "scam"; riskScore?: number; host?: string; reason?: string } | null;
+    breach?: { status: "ok" | "skipped" | "error"; score?: number; band?: "none" | "low" | "moderate" | "elevated" | "critical"; domain?: string; reason?: string } | null;
+    priceHistory?: { status: "ok" | "skipped" | "error"; verdict?: "genuine-sale" | "fake-sale" | "modest-dip" | "no-sale" | "insufficient-data"; reason?: string } | null;
+    provenance?: { status: "ok" | "skipped" | "error"; score?: number; affiliateFlags?: number; reason?: string } | null;
+    sponsorship?: { status: "ok" | "skipped" | "error"; verdict?: "clear" | "disclosed-partnership" | "undisclosed-partnership"; reason?: string } | null;
+  };
 }

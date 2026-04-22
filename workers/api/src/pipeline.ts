@@ -5,6 +5,7 @@ import { searchCandidates } from "./search.js";
 import { verifyClaims } from "./verify.js";
 import { rankCandidates } from "./rank.js";
 import { runCrossModelCheck } from "./crossModel.js";
+import { runEnrichments } from "./enrich.js";
 
 export interface PipelineOptions {
   onEvent?: (event: string, data: unknown) => void;
@@ -101,6 +102,19 @@ export async function runAuditPipeline(
       ) ?? null
     : null;
 
+  // B2 — parallel enrichments. Runs after rank so we can pass aiPickCandidate
+  // and the ranked candidate list; each signal wrapped in its own try/catch
+  // inside runEnrichments so a failure never blocks the primary audit.
+  emit("enrich:start", {});
+  const enrichments = await runEnrichments(
+    extract.intent,
+    extract.aiRecommendation,
+    ranked,
+    aiPickCandidate,
+    env,
+  );
+  emit("enrich:done", { enrichments });
+
   const tTotal = Date.now();
 
   // Surface stage-level warnings to the caller. Silent failures are a critic-flagged
@@ -110,7 +124,11 @@ export async function runAuditPipeline(
     warnings.push({ stage: "extract", message: "No claims extracted from AI text — paste may be too short or non-recommendation." });
   }
   if (candidates.length === 0) {
-    warnings.push({ stage: "search", message: "No candidates found. Switch LENS_SEARCH_MODE to 'real' or check fixture coverage for this category." });
+    warnings.push({
+      stage: "search",
+      message:
+        "Live web search returned no products and no pack SKU match for this category. Try a more specific category term (e.g. 'robot vacuum' instead of 'cleaning device'), or your Opus API key may be rate-limited.",
+    });
   }
   if (crossModel.length === 0) {
     warnings.push({ stage: "crossModel", message: "No cross-model picks. Provider keys may be missing or rate-limited. Check Worker secrets." });
@@ -159,5 +177,6 @@ export async function runAuditPipeline(
       total: tTotal - t0,
     },
     createdAt: new Date().toISOString(),
+    enrichments,
   };
 }
