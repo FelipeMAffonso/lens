@@ -47,12 +47,13 @@ export function mountChatView(opts: ChatViewOptions): void {
   let rotator: RotatingStatusHandle | null = null;
   let lastAudit: AuditResult | null = null;
 
-  // First bot greeting — the Study-3-faithful opener. If the user already has
-  // saved turns for this session, we just replay them instead.
+  // First bot greeting — the Study-3-faithful opener. Em-dash-free per
+  // CLAUDE.md "zero tolerance" rule. If the user already has saved turns
+  // for this session, we just replay them instead.
   const preExisting = store.all();
   if (preExisting.length === 0) {
     const greeting =
-      "Hey! I'm Lens — your independent shopping agent. What are you thinking of buying?";
+      "Hey, I'm Lens, your independent shopping agent. What are you thinking of buying?";
     const t = store.append("assistant", greeting);
     transcript.append(botBubble(t.text));
     renderSeedChips();
@@ -61,6 +62,13 @@ export function mountChatView(opts: ChatViewOptions): void {
       transcript.append(turn.role === "user" ? userBubble(turn.text) : botBubble(turn.text));
     }
     chipsHost.remove();
+    // Judge P0-3: if we're restoring a prior session that already ended in
+    // an audit card, surface a "Start a new audit" affordance so the user
+    // isn't stuck in followup phase forever.
+    if (preExisting.some((t) => t.role === "assistant" && /full ranking is below/i.test(t.text))) {
+      phase = "followup";
+      renderNewAuditChip();
+    }
   }
   composer.focus();
 
@@ -74,6 +82,13 @@ export function mountChatView(opts: ChatViewOptions): void {
     scrollBottom();
 
     if (phase === "followup") {
+      // Judge P1-9: detect a new-topic signal and re-enter Stage-1 rather
+      // than routing to followup with the old audit as context.
+      if (looksLikeNewTopic(text)) {
+        resetForNewAudit();
+        await runClarifyTurn();
+        return;
+      }
       await runFollowup(text);
       return;
     }
@@ -136,7 +151,10 @@ export function mountChatView(opts: ChatViewOptions): void {
     phase = "generating";
     composer.setDisabled(true);
     composer.setPlaceholder("Hold on — Lens is searching real products…");
-    rotator = mountRotatingStatus(transcript);
+    rotator = mountRotatingStatus(transcript, undefined, {
+      // Judge P1-5: pause announcements while the user focuses the composer.
+      pauseWhenFocused: composer.textarea,
+    });
     scrollBottom();
 
     // Fold the full conversation into a single audit prompt. Rank engine reads
@@ -173,8 +191,10 @@ export function mountChatView(opts: ChatViewOptions): void {
 
       phase = "followup";
       composer.setDisabled(false);
-      composer.setPlaceholder("Ask a follow-up — e.g. \"what about the runner-up?\"");
+      composer.setPlaceholder('Ask a follow-up, e.g. "what about the runner-up?"');
       composer.focus();
+      // Judge P0-3: show "Start a new audit" chip after the card drops.
+      renderNewAuditChip();
     } catch (err) {
       rotator?.stop();
       rotator = null;
@@ -272,10 +292,82 @@ export function mountChatView(opts: ChatViewOptions): void {
   }
 
   function buildAuditPrompt(): string {
-    // Join all user turns into a single rich prompt. The audit pipeline's
-    // extract node is already tolerant of paragraph-style prose.
-    const userTurns = store.all().filter((t) => t.role === "user").map((t) => t.text);
-    return userTurns.join("\n\n");
+    // Judge P0-4: fold assistant clarifier Qs as Q/A pairs so the extract
+    // node sees both the tradeoff that was offered AND the user's choice.
+    // Plain user-only blob was dropping all of that context.
+    const turns = store.all();
+    const lines: string[] = [];
+    let pendingQ: string | null = null;
+    for (const t of turns) {
+      if (t.role === "assistant") {
+        // Only the clarifier questions are useful as Q/A context; the
+        // initial greeting + final recap are not. Simple heuristic: if it
+        // ends in "?" we treat it as a clarifier.
+        if (t.text.trimEnd().endsWith("?")) pendingQ = t.text;
+      } else {
+        // user turn
+        if (pendingQ) {
+          lines.push(`Q: ${pendingQ}\nA: ${t.text}`);
+          pendingQ = null;
+        } else {
+          lines.push(t.text);
+        }
+      }
+    }
+    return lines.join("\n\n");
+  }
+
+  function looksLikeNewTopic(text: string): boolean {
+    const t = text.toLowerCase().trim();
+    // Explicit reset language.
+    if (/^(new question|different product|instead[,.]|actually[,.]|start over|reset)\b/.test(t)) return true;
+    // Mentions a category keyword not matching the prior audit.
+    const priorCat = lastAudit?.intent?.category?.toLowerCase();
+    const CATEGORY_WORDS = [
+      "laptop", "phone", "tv", "television", "headphone", "earbud", "chair",
+      "espresso", "blender", "vacuum", "camera", "monitor", "printer", "router",
+      "tablet", "watch", "mattress", "pillow", "backpack", "luggage",
+    ];
+    for (const word of CATEGORY_WORDS) {
+      if (t.includes(word) && priorCat && !priorCat.includes(word)) return true;
+    }
+    return false;
+  }
+
+  function resetForNewAudit(): void {
+    phase = "elicit";
+    lastAudit = null;
+    composer.setPlaceholder("Tell Lens what you're shopping for…");
+    // Don't wipe conversation history (keeps context). Just move on.
+  }
+
+  function renderNewAuditChip(): void {
+    if (document.querySelector(".lc-new-audit-chip")) return;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "lc-chip lc-new-audit-chip";
+    b.textContent = "↻ Start a new shopping question";
+    b.addEventListener("click", () => {
+      store.clear();
+      // Hide the old result card. main.ts doesn't expose a clear API so
+      // we directly clear #result-body — it's a known contract.
+      const body = document.getElementById("result-body");
+      if (body) body.innerHTML = "";
+      const resultSection = document.getElementById("result");
+      if (resultSection) resultSection.setAttribute("hidden", "true");
+      transcript.innerHTML = "";
+      b.remove();
+      lastAudit = null;
+      phase = "elicit";
+      const greeting =
+        "Hey, I'm Lens. What are you shopping for this time?";
+      const t = store.append("assistant", greeting);
+      transcript.append(botBubble(t.text));
+      composer.setPlaceholder("Tell Lens what you're shopping for…");
+      composer.clear();
+      composer.focus();
+    });
+    chipsHost.append(b);
   }
 }
 

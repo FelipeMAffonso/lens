@@ -95,7 +95,7 @@ Rate-limit policies (`ratelimit/config.ts`):
 
 ### Study-3 faithful system prompts
 
-**Stage 1 (elicit) system prompt** (verbatim from Study 3 WORKER_ROUTE.js, adapted for Lens's `/chat/clarify`):
+**Stage 1 (elicit) system prompt** (adapted from Study 3 WORKER_ROUTE.js with Lens-specific additions — the `READY` fast-path token, the bold-options + 1-2 emoji budget, and the per-category trade-off vocabulary. The Study 3 source is four shorter plain lines; the Lens port keeps the tone + "1-2 brief clarifying questions" discipline verbatim while tightening the decidability of the stop gate):
 
 ```
 You are Lens's preference elicitor — a friendly, brisk AI shopping coach.
@@ -274,3 +274,4 @@ Chat mode is **active** (user-initiated per AMBIENT_MODEL §2); silent-unless-si
 ## Progress log (internal)
 
 - 2026-04-22: Block file written. Study 3 bot pattern extracted by prior agent. Stop-condition + system prompts pinned from `WORKER_ROUTE.js` + `QUALTRICS_CHATBOT.js`.
+- 2026-04-22: First implementation shipped + deployed. Judge P0/P1 fixes applied: greeting em-dash removed (CLAUDE.md zero-tolerance), `?chat=0` persists to localStorage + UI toggle in footer, "Start a new shopping question" chip rendered after audit card drops, buildAuditPrompt now folds assistant clarifier Qs as `Q: … A: …` pairs so extract-node sees the tradeoff context, bold renderer ignores unbalanced `**`, affiliate scrub regex expanded to 20+ known patterns (Impact/Rakuten/Amazon smid + more), stop-gate supports fullwidth `？` and Arabic `؟` question marks, running-earbuds fallback updated from neckband to open-ear/bone-conduction (2026 market reality), blender fallback reframed from false smoothies-vs-soups binary to cold-only-vs-hot+ice, rotator pauses aria-live on composer focus, rotator holds on final phrase rather than looping, reduced-motion disables dot-pulse + transitions + press-scale + chip hover, focus rings on chips + send button, new-topic detector routes back to Stage-1 instead of followup-against-stale-audit. P2/P3 items (CSP verification, privacy.html one-liner, layout-thrash on keystrokes, Stage-3 Opus wire-in) tracked for a follow-up polish block.

@@ -70,7 +70,8 @@ export interface ChatFollowupResponse {
   source: "opus" | "fallback";
 }
 
-const AFFIL_PATTERN = /\b(?:ref|tag|utm_[a-z]+|gclid|fbclid|msclkid|ascsubtag|pd_rd_[a-z]+|linkCode)=[^\s&]+/gi;
+// Judge P0-6: expanded affiliate-param allowlist (same as clarify.ts).
+const AFFIL_PATTERN = /\b(?:ref|ref_|tag|utm_[a-z_]+|gclid|fbclid|msclkid|ascsubtag|pd_rd_[a-z]+|linkCode|irclickid|clickid|affid|aff_id|aff_sub\d*|aff_trace_key|partner|campaign_id|ranMID|ranSiteID|smid|bltag|sref)=[^\s&#]+/gi;
 function scrub(s: string): string {
   return s.replace(AFFIL_PATTERN, "").replace(/\s{2,}/g, " ").trim();
 }

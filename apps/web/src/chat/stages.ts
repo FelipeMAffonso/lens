@@ -14,7 +14,10 @@ export function userTurns(turns: Turn[]): number {
 export function lastAssistantEndedInQ(turns: Turn[]): boolean {
   for (let i = turns.length - 1; i >= 0; i--) {
     const t = turns[i]!;
-    if (t.role === "assistant") return t.text.trimEnd().endsWith("?");
+    if (t.role === "assistant") {
+      // Judge P1-1: match ASCII, fullwidth, Arabic, and trailing-punct forms.
+      return /[?？؟][\s)\]\"'*]*$/.test(t.text.trimEnd());
+    }
   }
   return false;
 }
@@ -27,10 +30,12 @@ export function shouldTriggerAudit(turns: Turn[]): boolean {
 }
 
 // Rotating-status phrases shown during the Stage-2 audit wall.
+// Judge P3-1: softer phrasing ("checking the claims the AIs made" vs
+// "catching any confabulated claims") so Sarah-in-VISION §3 parses it.
 export const ROTATING_STATUS_PHRASES: readonly string[] = [
   "Looking at real products on retailer sites…",
   "Checking spec sheets against your criteria…",
-  "Catching any confabulated claims…",
+  "Checking the claims the AIs made…",
   "Comparing against other frontier models…",
   "Ranking with transparent utility math…",
 ] as const;

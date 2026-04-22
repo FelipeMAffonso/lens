@@ -188,6 +188,22 @@
   transition: border-color 150ms var(--lc-ease), background 150ms var(--lc-ease);
 }
 .lc-chip:hover { border-color: var(--lc-accent); background: rgba(218,119,86,0.06); }
+/* Judge P1-8: visible focus rings on chips + send button. */
+.lc-chip:focus-visible {
+  outline: 2px solid var(--lc-accent);
+  outline-offset: 2px;
+}
+.lc-composer-send:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(218,119,86,0.45);
+}
+.lc-new-audit-chip {
+  background: rgba(218,119,86,0.06);
+  border-color: var(--lc-accent);
+  color: var(--lc-accent);
+  font-weight: 600;
+}
 
 @media (max-width: 480px) {
   .lc-root { margin: 12px auto; padding: 0 10px; }
@@ -197,7 +213,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Judge P1-6: full reduced-motion coverage. Disable bubble in-slide,
+     dot-pulse, rotator fades + spin, composer press-scale, chip hovers. */
   .lc-bubble { animation: none; }
   .lc-rotator-text { transition: none; }
   .lc-rotator-spinner { animation: none; }
+  .lc-dot { animation: none; opacity: 0.7; }
+  .lc-composer-send:active:not(:disabled) { transform: none; }
+  .lc-composer-input { transition: none; }
+  .lc-composer-send { transition: none; }
+  .lc-chip { transition: none; }
 }

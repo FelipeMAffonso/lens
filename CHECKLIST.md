@@ -137,6 +137,7 @@
 | CJ-W50 | Profile portability (server sync) | 🟡 | 🔬 | |
 | CJ-W51 | Public disagreement ticker | ⬜ | 🔬 | |
 | CJ-W52 | Lens Score API | ⬜ | 🔬 | |
+| CJ-W53 | Conversational elicitor (chat-first front door) | ✅ | `BLOCKS/CJ-W53-conversational-elicitor.md` | pending |
 
 ## Part C — Delivery surface variants
 

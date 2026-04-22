@@ -17,7 +17,10 @@ export function lastAssistantEndedInQuestion(turns: ChatTurn[]): boolean {
   for (let i = turns.length - 1; i >= 0; i--) {
     const t = turns[i]!;
     if (t.role === "assistant") {
-      return t.text.trimEnd().endsWith("?");
+      const trimmed = t.text.trimEnd();
+      // Judge P1-1: accept ASCII `?`, fullwidth `？` (U+FF1F), Arabic `؟`,
+      // and common trailing-punct forms like `(question?)`, `"question?"`.
+      return /[?？؟][\s)\]\"'*]*$/.test(trimmed);
     }
   }
   return false;

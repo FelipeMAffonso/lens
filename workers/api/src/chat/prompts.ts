@@ -77,9 +77,12 @@ export const FALLBACK_CLARIFIERS: Record<
     expectsOneOf: ["ANC", "sound quality", "comfort"],
   },
   "running-earbuds": {
+    // Judge P1-4: 2026 runner reality — true-wireless vs open-ear / bone-
+    // conduction (Shokz-style) is the live tradeoff. Neckband is a dying
+    // form factor for this use case.
     question:
-      "What's your budget? And do you prefer **true wireless** or **neckband-style** for secure fit while running?",
-    expectsOneOf: ["true wireless", "neckband"],
+      "What's your budget? And do you prefer **true wireless** buds or **open-ear / bone-conduction** (you hear your surroundings)?",
+    expectsOneOf: ["true wireless", "open-ear"],
   },
   tv: {
     question:
@@ -102,9 +105,11 @@ export const FALLBACK_CLARIFIERS: Record<
     expectsOneOf: ["vacuum + mop", "vacuum only"],
   },
   blender: {
+    // Judge P1-4: "smoothies vs soups+processing" was a false binary (many
+    // users want both). Reframe around cold-only vs high-heat capability.
     question:
-      "What's your budget? And is this for **smoothies + protein shakes** or **hot soups / food processing** too?",
-    expectsOneOf: ["smoothies", "soups + processing"],
+      "What's your budget? And do you want a **cold-drinks-only** blender (smoothies, shakes) or one that also **handles hot soups + ice crushing**?",
+    expectsOneOf: ["cold-only", "hot + ice"],
   },
   generic: {
     question:

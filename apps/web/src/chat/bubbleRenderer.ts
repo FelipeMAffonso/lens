@@ -8,8 +8,12 @@ export function escapeHtml(s: string): string {
 
 // Render **bold** markers from the Study 3 tradeoff pattern into <strong>.
 // Nothing else is allowed (no italic, no links, no html). Keeps bot output safe.
+// Judge P0-5: only apply bold when `**` count is even, so a stray unbalanced
+// marker ("**really important") leaves clean text rather than a broken <strong>.
 function renderBoldOnly(s: string): string {
   const esc = escapeHtml(s);
+  const starCount = (esc.match(/\*\*/g) ?? []).length;
+  if (starCount % 2 !== 0) return esc.replace(/\*\*/g, "");
   return esc.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong>${inner}</strong>`);
 }
 

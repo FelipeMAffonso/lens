@@ -910,13 +910,24 @@ void loadPackStats();
 // CJ-W53 — chat-first dispatch. Flag via ?chat=1 OR localStorage.lens.ui.v2="chat"
 // OR by default (first Sunday of the hackathon — chat is the primary surface;
 // legacy paste-box remains reachable via ?chat=0 for direct comparison).
+// Judge P0-2: persist `?chat=0` into localStorage so the legacy choice sticks
+// across reloads without the param. Surface a toggle link in the footer so
+// users without URL-editing skills can flip between views.
 (function maybeMountChat(): void {
   try {
     const params = new URLSearchParams(window.location.search);
     const flag = params.get("chat");
     const stored = (typeof localStorage !== "undefined" && localStorage.getItem("lens.ui.v2")) || "";
-    const off = flag === "0" || stored === "legacy";
-    const on = flag === "1" || stored === "chat" || !off; // default ON
+    if (flag === "0") {
+      try { localStorage.setItem("lens.ui.v2", "legacy"); } catch { /* silent */ }
+    } else if (flag === "1") {
+      try { localStorage.setItem("lens.ui.v2", "chat"); } catch { /* silent */ }
+    }
+    const decisionFlag = flag === "0" || flag === "1" ? flag : null;
+    const off = decisionFlag === "0" || (decisionFlag == null && stored === "legacy");
+    const on = !off;
+    // Render UI-view toggle in the footer regardless of current mode.
+    renderUiToggle(on);
     if (!on) return;
     // Lazy-import so the legacy bundle stays small when chat is disabled.
     void import("./chat/ChatView.js").then(({ mountChatView }) => {
@@ -938,6 +949,23 @@ void loadPackStats();
     console.warn("[main] chat mount failed:", (err as Error).message);
   }
 })();
+
+function renderUiToggle(chatActive: boolean): void {
+  const footer = document.querySelector(".site-footer");
+  if (!footer) return;
+  if (document.getElementById("lens-ui-toggle")) return;
+  const p = document.createElement("p");
+  p.className = "footer-fine";
+  p.id = "lens-ui-toggle";
+  p.style.cssText = "margin-top:8px;";
+  const label = chatActive
+    ? "Prefer the classic paste-box view?"
+    : "Prefer the new chat view?";
+  const target = chatActive ? "?chat=0" : "?chat=1";
+  const cta = chatActive ? "Switch to classic" : "Switch to chat";
+  p.innerHTML = `${label} <a href="${target}" style="color:var(--accent,#DA7756);">${cta}</a>.`;
+  footer.append(p);
+}
 
 // ---- F1 auth wiring (vanilla) ----
 import { runCallbackIfPresent } from "./auth/callback.js";

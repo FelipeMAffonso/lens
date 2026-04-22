@@ -37,7 +37,10 @@ export type ChatClarifyResponse =
 // CJ-W53 judge-hardening: strip tracking/affiliate params from any URL Opus
 // might embed in a clarifier. Low risk (Stage 1 doesn't recommend products)
 // but keeps the affiliate-zero invariant load-bearing across all surfaces.
-const AFFIL_PATTERN = /\b(?:ref|tag|utm_[a-z]+|gclid|fbclid|msclkid|ascsubtag|pd_rd_[a-z]+|linkCode)=[^\s&]+/gi;
+// Judge P0-6: expanded affiliate-param allowlist — Impact Radius, generic
+// clickid, affiliate networks, AliExpress, Rakuten, Amazon smid, bltag, sref,
+// and a few more. Keeps non-negotiable #8 load-bearing.
+const AFFIL_PATTERN = /\b(?:ref|ref_|tag|utm_[a-z_]+|gclid|fbclid|msclkid|ascsubtag|pd_rd_[a-z]+|linkCode|irclickid|clickid|affid|aff_id|aff_sub\d*|aff_trace_key|partner|campaign_id|ranMID|ranSiteID|smid|bltag|sref)=[^\s&#]+/gi;
 function scrubClarifierText(s: string): string {
   return s.replace(AFFIL_PATTERN, "").replace(/\s{2,}/g, " ").trim();
 }
@@ -51,6 +54,20 @@ export async function handleChatClarify(
     return c.json({ kind: "error", message: "invalid_input", issues: parsed.error.issues }, 400);
   }
   const { turns, category, userPrompt } = parsed.data;
+
+  // Judge P1-2: defensive early-return — if schema ever relaxes to allow 0
+  // turns, fall back to the generic clarifier rather than calling Opus with
+  // an empty transcript.
+  if (turns.length === 0) {
+    const fb = pickFallback(category);
+    const out: ChatClarifyResponse = {
+      kind: "clarify",
+      question: scrubClarifierText(fb.question),
+      ...(fb.expectsOneOf ? { expectsOneOf: fb.expectsOneOf } : {}),
+      source: "fallback",
+    };
+    return c.json(out);
+  }
 
   // Hard local gate first — if the stop logic says we're ready, skip Opus.
   if (isReadyToGenerate(turns) || userGaveEverything(turns)) {

@@ -8,11 +8,22 @@ export interface RotatingStatusHandle {
   finalize(finalText?: string): void;
 }
 
+export interface RotatingStatusOptions {
+  intervalMs?: number;
+  pauseWhenFocused?: HTMLElement | null;
+}
+
 export function mountRotatingStatus(
   parent: HTMLElement,
   phrases: readonly string[] = ROTATING_STATUS_PHRASES,
-  intervalMs = 2500,
+  opts: RotatingStatusOptions | number = {},
 ): RotatingStatusHandle {
+  // Back-compat: legacy 3rd arg was the intervalMs number.
+  const resolved: RotatingStatusOptions =
+    typeof opts === "number" ? { intervalMs: opts } : opts;
+  const intervalMs = resolved.intervalMs ?? 2500;
+  const pauseEl = resolved.pauseWhenFocused ?? null;
+
   const root = document.createElement("div");
   root.className = "lc-rotator";
   root.setAttribute("role", "status");
@@ -25,11 +36,20 @@ export function mountRotatingStatus(
 
   const textEl = root.querySelector<HTMLElement>(".lc-rotator-text")!;
   let idx = 0;
+  let cycles = 0;
   let stopped = false;
+  let paused = false;
+
   const tick = (): void => {
-    if (stopped) return;
+    if (stopped || paused) return;
+    // Judge P1-10: after one full cycle, hold on the last phrase rather
+    // than looping back to the first — audit wall is ~25-30s, phrases are
+    // 5x2.5s=12.5s. Looping feels repetitive; holding feels settled.
+    if (idx >= phrases.length - 1) {
+      cycles++;
+      if (cycles >= 1) return; // stay on the last phrase
+    }
     idx = (idx + 1) % phrases.length;
-    // crossfade via class swap; CSS handles the timing
     textEl.classList.add("lc-rotator-text-out");
     setTimeout(() => {
       if (stopped) return;
@@ -39,16 +59,39 @@ export function mountRotatingStatus(
   };
   const timer = setInterval(tick, intervalMs);
 
+  // Judge P1-5: pause announcements when the user focuses the composer so
+  // we don't fight the focus with aria-live swaps.
+  const onFocus = (): void => {
+    paused = true;
+    root.setAttribute("aria-live", "off");
+  };
+  const onBlur = (): void => {
+    paused = false;
+    root.setAttribute("aria-live", "polite");
+  };
+  if (pauseEl) {
+    pauseEl.addEventListener("focus", onFocus);
+    pauseEl.addEventListener("blur", onBlur);
+  }
+
+  const detachFocusHandlers = (): void => {
+    if (!pauseEl) return;
+    pauseEl.removeEventListener("focus", onFocus);
+    pauseEl.removeEventListener("blur", onBlur);
+  };
+
   return {
     root,
     stop(): void {
       stopped = true;
       clearInterval(timer);
+      detachFocusHandlers();
       root.remove();
     },
     finalize(finalText?: string): void {
       stopped = true;
       clearInterval(timer);
+      detachFocusHandlers();
       if (finalText) {
         textEl.textContent = finalText;
         root.classList.add("lc-rotator-done");
