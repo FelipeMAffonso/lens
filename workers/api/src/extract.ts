@@ -3,6 +3,7 @@ import type { Env } from "./index.js";
 import { opusExtendedThinking } from "./anthropic.js";
 import { findCategoryPack } from "./packs/registry.js";
 import { categoryCriteriaPrompt } from "./packs/prompter.js";
+import { scrubTrackingParams } from "./url-scrub.js";
 
 const SYSTEM_PROMPT = `You audit AI shopping recommendations. Decompose the pasted assistant answer into two JSON objects.
 
@@ -307,6 +308,10 @@ function buildFromStructured(
       statedValue: `${structured.currency ?? "USD"} ${structured.price}`,
     });
   }
+  // Scrub the user-pasted URL before carrying it forward — the user may have
+  // pasted an affiliate-tagged URL (Amazon with ?tag=, Google AI Mode link, etc)
+  // and Lens's non-negotiable (VISION_COMPLETE §13 #8) is no affiliate links ever.
+  const cleanedUrl = scrubTrackingParams(input.url) ?? undefined;
   const aiRecommendation: AIRecommendation = {
     host: "unknown",
     pickedProduct: {
@@ -314,13 +319,13 @@ function buildFromStructured(
       ...(structured.brand ? { brand: structured.brand } : {}),
       ...(structured.price !== undefined ? { price: structured.price } : {}),
       ...(structured.currency ? { currency: structured.currency } : {}),
-      url: input.url,
+      ...(cleanedUrl ? { url: cleanedUrl } : {}),
     },
     claims,
     reasoningTrace:
       structured.description ??
       `Structured extraction from ${structured.host ?? "page"} (source=${structured.sources?.name ?? "unknown"}).`,
-    sourceUrl: input.url,
+    ...(cleanedUrl ? { sourceUrl: cleanedUrl } : {}),
   };
   return { intent, aiRecommendation };
 }
