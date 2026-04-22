@@ -1,0 +1,13 @@
+# workers/mcp — local secrets for `wrangler dev`.
+# Copy to `.dev.vars` (gitignored). For production, set with:
+#   npx wrangler secret put <NAME>
+# Full reference: ../../docs/secrets.md
+#
+# The MCP worker exposes `lens.audit`, `lens.spec_optimal`,
+# `lens.dark_pattern_scan`, `lens.regulation_lookup`, `lens.pack_get`,
+# `lens.pack_list`, `lens.review_scan` as JSON-RPC tools. Each tool is a
+# thin wrapper around the upstream workers/api — no model keys are needed
+# here. LENS_API_URL is the only knob: override only when pointing the
+# MCP server at a locally running workers/api (useful during development).
+
+LENS_API_URL=http://127.0.0.1:8787

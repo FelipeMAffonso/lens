@@ -1,0 +1,16 @@
+# workers/cross-model — local secrets for `wrangler dev`.
+# Copy to `.dev.vars` (gitignored). For production, set with:
+#   npx wrangler secret put <NAME>
+# Full reference: ../../docs/secrets.md
+#
+# This worker fans out a single question to GPT-4o + Gemini-2.5-flash +
+# Llama-3.3-70B, then has Opus 4.7 synthesize 2-3 sentences describing the
+# disagreement. Each provider is optional — the worker skips providers
+# whose key is unset. ANTHROPIC_API_KEY is required for the synthesis step.
+
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Optional fanout providers (at least one recommended for useful output).
+OPENAI_API_KEY=sk-...
+GOOGLE_API_KEY=AI...
+OPENROUTER_API_KEY=sk-or-...

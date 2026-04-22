@@ -1,22 +1,55 @@
-# Copy to .dev.vars (never committed) for local `wrangler dev`.
-# For production, set with: wrangler secret put VAR_NAME
+# workers/api — local secrets for `wrangler dev`.
+# Copy this file to `.dev.vars` (gitignored). For production, set each secret
+# with: `npx wrangler secret put <NAME>` from inside `workers/api/`.
+# Full reference: ../../docs/secrets.md
 
-# Core
+# ─── Core models ────────────────────────────────────────────────────────────
+# ANTHROPIC_API_KEY is REQUIRED — every Opus 4.7 call fails without it.
 ANTHROPIC_API_KEY=sk-ant-...
+
+# Optional cross-model fanout (S2-W12). If any is unset the worker skips
+# that provider gracefully; at least one non-Anthropic provider is needed
+# for meaningful cross-assistant disagreement output.
 OPENAI_API_KEY=sk-...
 GOOGLE_API_KEY=AI...
 OPENROUTER_API_KEY=sk-or-...
+
+# Set to the deployed workers/cross-model URL to offload fanout to the
+# sibling worker (recommended). Leave unset to run fanout in-process.
 CROSS_MODEL_AGENT_URL=
 
-# F1 auth (magic-link + anon)
-# Generate JWT secret with: openssl rand -base64 64
+# ─── F1 — auth (magic-link + anon) ──────────────────────────────────────────
+# Generate with: openssl rand -base64 64
+# Required for /auth/request, /auth/verify, /auth/whoami, /auth/signout.
 JWT_SECRET=
-# Resend (resend.com) — free tier fine for hackathon
+
+# Resend (resend.com) — free tier fine for hackathon.
+# Unset falls back to console.log the magic-link URL (dev-only).
 RESEND_API_KEY=
 RESEND_FROM_EMAIL="Lens <no-reply@lens.example>"
+
+# Origin where magic-link callback pages live. Match your deployed Pages URL
+# (prod) or http://localhost:5173 for local Vite dev.
 MAGIC_LINK_BASE_URL=https://lens-b1h.pages.dev
 
-# F12 email ingestion (Gmail OAuth)
+# Production-only: set to the parent domain you want the session cookie to
+# span (e.g. .webmarinelli.workers.dev). Leave empty in local dev.
+LENS_COOKIE_DOMAIN=
+
+# ─── F11 — voice input ──────────────────────────────────────────────────────
+# Deepgram Nova-3 streaming transcription. Unset falls back to a stub
+# transcript so the UI flow still works in demos without a key.
+DEEPGRAM_API_KEY=
+
+# ─── F12 — Gmail OAuth (email ingestion + subscription discovery) ──────────
+# Create an OAuth 2.0 Web Application client at
+# https://console.cloud.google.com/apis/credentials.
+# Authorized redirect URI must match GMAIL_OAUTH_REDIRECT_URI below.
 GMAIL_OAUTH_CLIENT_ID=
 GMAIL_OAUTH_CLIENT_SECRET=
 GMAIL_OAUTH_REDIRECT_URI=https://lens-api.webmarinelli.workers.dev/oauth/gmail/callback
+
+# ─── F18 — search mode override ─────────────────────────────────────────────
+# "fixture" uses the hand-crafted catalog in src/fixtureCatalog.ts (fast,
+# deterministic, safe for demos). "real" hits Opus 4.7's live web_search.
+LENS_SEARCH_MODE=fixture

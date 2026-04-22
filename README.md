@@ -47,11 +47,34 @@ A peer-reviewed study of 18 frontier models across 382,000 shopping trials (Affo
 ## Install (developer, load-unpacked)
 
 ```bash
-npm install                                 # npm workspaces, not pnpm
+npm install --no-audit --no-fund            # npm workspaces, not pnpm
 node scripts/bundle-packs.mjs               # bundle packs/ -> workers/api/src/packs/all.generated.ts
+
+# Copy every env template (see docs/secrets.md for what to fill in).
+cp workers/api/.dev.vars.example workers/api/.dev.vars
+cp workers/cross-model/.dev.vars.example workers/cross-model/.dev.vars
+cp workers/mcp/.dev.vars.example workers/mcp/.dev.vars
+cp apps/web/.env.example apps/web/.env.local
+
 cd workers/api && npx wrangler deploy       # deploy the Worker
 cd apps/web && npm run dev                  # local web dashboard
 # Load apps/extension as unpacked in chrome://extensions
+```
+
+### Secrets
+
+**Every secret Lens reads is documented in [`docs/secrets.md`](docs/secrets.md)**, including the exact `wrangler secret put` command per worker, which are required vs optional, and the graceful fallback when an optional key is missing. The minimum to boot meaningfully is `ANTHROPIC_API_KEY` in `workers/api/.dev.vars`.
+
+For production, each worker gets its own secret store:
+
+```bash
+cd workers/api
+for NAME in ANTHROPIC_API_KEY JWT_SECRET RESEND_API_KEY \
+            OPENAI_API_KEY GOOGLE_API_KEY OPENROUTER_API_KEY \
+            GMAIL_OAUTH_CLIENT_ID GMAIL_OAUTH_CLIENT_SECRET \
+            DEEPGRAM_API_KEY; do
+  npx wrangler secret put "$NAME"
+done
 ```
 
 ## Running the pack-maintenance agents
