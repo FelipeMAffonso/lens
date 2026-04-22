@@ -154,20 +154,21 @@ export function assessScam(req: ScamAssessRequest, now: Date = new Date()): Scam
   };
 }
 
-/** Price floors (USD) for the price-too-low signal. Minimum plausible price
- *  for a LEGITIMATE product in the category. Dividing by 3 gives the
- *  impossibly-low scam threshold. */
+/** Price floors (USD) for the price-too-low signal. Minimum LEGITIMATE
+ *  product price for mid-range SKUs in the category. Dividing by 3 gives
+ *  the impossibly-low threshold. Kept in sync with counterfeit/assess.ts —
+ *  update both together via PR. */
 const CATEGORY_PRICE_FLOOR: Record<string, number> = {
-  laptops: 400,
-  laptop: 400,
-  "espresso machines": 100,
-  "espresso machine": 100,
-  headphones: 40,
-  televisions: 200,
-  tv: 200,
-  smartphones: 300,
-  smartphone: 300,
-  cameras: 300,
-  camera: 300,
-  watches: 80,
+  laptops: 900,
+  laptop: 900,
+  "espresso machines": 300,
+  "espresso machine": 300,
+  headphones: 80,
+  televisions: 500,
+  tv: 500,
+  smartphones: 500,
+  smartphone: 500,
+  cameras: 700,
+  camera: 700,
+  watches: 150,
 };
