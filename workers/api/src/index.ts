@@ -27,6 +27,11 @@ import { rateLimitMiddleware } from "./ratelimit/middleware.js";
 import { handlePassiveScan } from "./passive-scan/handler.js";
 import { handlePriceHistory } from "./price-history/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
+import { createAudit, listAudits } from "./db/repos/audits.js";
+import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
+import { listWelfareDeltas, welfareSummary } from "./db/repos/welfare.js";
+import { createIntervention, listInterventionsByUser, markInterventionSent } from "./db/repos/interventions.js";
+import { createWatcher, listWatchersByUser, setWatcherActive } from "./db/repos/watchers.js";
 export { RateLimitCounter } from "./ratelimit/counter-do.js";
 
 export interface Env {
@@ -328,6 +333,226 @@ app.post("/passive-scan", (c) => handlePassiveScan(c as never, packRegistry));
 // S4-W21 — price-history + fake-sale detection. Returns 90-day series for
 // a retailer URL, computes rolling stats, and emits a sale-legitimacy verdict.
 app.get("/price-history", (c) => handlePriceHistory(c as never));
+
+// ─── F2 — history + preferences + watchers + interventions endpoints ──────
+// Every row-level write still flows through the workflow engine; these
+// surfaces expose the persisted state back to the web UI.
+
+function principalOrNull(
+  c: { get: (key: string) => unknown },
+): { userId: string | null; anonUserId: string | null } {
+  return {
+    userId: (c.get("userId") as string | undefined) ?? null,
+    anonUserId: (c.get("anonUserId") as string | undefined) ?? null,
+  };
+}
+
+app.get("/history/audits", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const { userId, anonUserId } = principalOrNull(c);
+  if (!userId && !anonUserId) return c.json({ audits: [] });
+  const category = c.req.query("category") ?? undefined;
+  const limit = Math.min(Number(c.req.query("limit") ?? 50), 500);
+  const rows = await listAudits(d1 as never, {
+    ...(userId ? { userId } : {}),
+    ...(anonUserId ? { anonUserId } : {}),
+    ...(category ? { category } : {}),
+    limit,
+  });
+  return c.json({ count: rows.length, audits: rows });
+});
+
+app.get("/history/welfare-delta", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const { userId, anonUserId } = principalOrNull(c);
+  if (!userId && !anonUserId) {
+    return c.json({
+      totalAudits: 0,
+      auditsWithAiComparison: 0,
+      avgUtilityDelta: null,
+      totalPriceDelta: null,
+      byCategory: {},
+    });
+  }
+  const summary = await welfareSummary(d1 as never, {
+    ...(userId ? { userId } : {}),
+    ...(anonUserId ? { anonUserId } : {}),
+  });
+  return c.json(summary);
+});
+
+app.get("/history/welfare-delta/rows", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const { userId, anonUserId } = principalOrNull(c);
+  if (!userId && !anonUserId) return c.json({ rows: [] });
+  const limit = Math.min(Number(c.req.query("limit") ?? 50), 500);
+  const rows = await listWelfareDeltas(d1 as never, {
+    ...(userId ? { userId } : {}),
+    ...(anonUserId ? { anonUserId } : {}),
+    limit,
+  });
+  return c.json({ count: rows.length, rows });
+});
+
+// Preferences. GET returns the list for the signed-in (or anon) principal.
+// PUT upserts. DELETE removes by id.
+app.get("/preferences", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const { userId, anonUserId } = principalOrNull(c);
+  if (!userId && !anonUserId) return c.json({ preferences: [] });
+  const category = c.req.query("category");
+  if (category) {
+    const one = await findPreference(d1 as never, {
+      ...(userId ? { userId } : {}),
+      ...(anonUserId ? { anonUserId } : {}),
+      category,
+    });
+    return c.json({ preference: one });
+  }
+  const rows = await listPreferencesByUser(d1 as never, {
+    ...(userId ? { userId } : {}),
+    ...(anonUserId ? { anonUserId } : {}),
+  });
+  return c.json({ count: rows.length, preferences: rows });
+});
+
+app.put("/preferences", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const { userId, anonUserId } = principalOrNull(c);
+  if (!userId && !anonUserId) return c.json({ error: "unauthenticated" }, 401);
+  const body = (await c.req.json().catch(() => null)) as {
+    category?: string;
+    criteria?: unknown;
+    valuesOverlay?: unknown;
+    sourceWeighting?: { vendor: number; independent: number };
+  } | null;
+  if (!body || typeof body.category !== "string" || body.criteria === undefined) {
+    return c.json({ error: "invalid_input", expected: "category + criteria" }, 400);
+  }
+  const row = await upsertPreference(d1 as never, {
+    userId: userId ?? null,
+    anonUserId: anonUserId ?? null,
+    category: body.category,
+    criteria: body.criteria,
+    ...(body.valuesOverlay !== undefined ? { valuesOverlay: body.valuesOverlay } : {}),
+    ...(body.sourceWeighting !== undefined ? { sourceWeighting: body.sourceWeighting } : {}),
+  });
+  return c.json({ ok: true, preference: row });
+});
+
+app.delete("/preferences/:id", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  await deletePreference(d1 as never, c.req.param("id"));
+  return c.json({ ok: true });
+});
+
+// Watchers — standing cron-driven subscriptions.
+app.get("/watchers", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const { userId } = principalOrNull(c);
+  if (!userId) return c.json({ error: "unauthenticated" }, 401);
+  const kindParam = c.req.query("kind");
+  const allowed = ["recall", "price_drop", "firmware", "subscription", "alert_criteria"] as const;
+  type Kind = (typeof allowed)[number];
+  const kind = (allowed as readonly string[]).includes(kindParam ?? "") ? (kindParam as Kind) : undefined;
+  const rows = kind
+    ? await listWatchersByUser(d1 as never, userId, kind)
+    : await listWatchersByUser(d1 as never, userId);
+  return c.json({ count: rows.length, watchers: rows });
+});
+
+app.post("/watchers", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const { userId } = principalOrNull(c);
+  if (!userId) return c.json({ error: "unauthenticated" }, 401);
+  const body = (await c.req.json().catch(() => null)) as {
+    kind?: "recall" | "price_drop" | "firmware" | "subscription" | "alert_criteria";
+    config?: unknown;
+    active?: boolean;
+  } | null;
+  if (!body?.kind || body.config === undefined) {
+    return c.json({ error: "invalid_input", expected: "kind + config" }, 400);
+  }
+  const row = await createWatcher(d1 as never, {
+    userId,
+    kind: body.kind,
+    config: body.config,
+    ...(body.active !== undefined ? { active: body.active } : {}),
+  });
+  return c.json({ ok: true, watcher: row });
+});
+
+app.patch("/watchers/:id/active", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const body = (await c.req.json().catch(() => null)) as { active?: boolean } | null;
+  if (body?.active === undefined) {
+    return c.json({ error: "invalid_input", expected: "active: boolean" }, 400);
+  }
+  await setWatcherActive(d1 as never, c.req.param("id"), body.active);
+  return c.json({ ok: true });
+});
+
+// Interventions — Lens-drafted advocate actions.
+app.get("/interventions", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const { userId } = principalOrNull(c);
+  if (!userId) return c.json({ error: "unauthenticated" }, 401);
+  const statusParam = c.req.query("status");
+  const allowedStatus = ["drafted", "sent", "acknowledged", "resolved", "failed"] as const;
+  const status = (allowedStatus as readonly string[]).includes(statusParam ?? "")
+    ? (statusParam as (typeof allowedStatus)[number])
+    : undefined;
+  const rows = status
+    ? await listInterventionsByUser(d1 as never, userId, status)
+    : await listInterventionsByUser(d1 as never, userId);
+  return c.json({ count: rows.length, interventions: rows });
+});
+
+app.post("/interventions", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const { userId } = principalOrNull(c);
+  if (!userId) return c.json({ error: "unauthenticated" }, 401);
+  const body = (await c.req.json().catch(() => null)) as {
+    packSlug?: string;
+    payload?: unknown;
+    relatedPurchaseId?: string;
+    relatedAuditId?: string;
+    relatedWatcherId?: string;
+  } | null;
+  if (!body?.packSlug || body.payload === undefined) {
+    return c.json({ error: "invalid_input", expected: "packSlug + payload" }, 400);
+  }
+  const row = await createIntervention(d1 as never, {
+    userId,
+    packSlug: body.packSlug,
+    payload: body.payload,
+    ...(body.relatedPurchaseId ? { relatedPurchaseId: body.relatedPurchaseId } : {}),
+    ...(body.relatedAuditId ? { relatedAuditId: body.relatedAuditId } : {}),
+    ...(body.relatedWatcherId ? { relatedWatcherId: body.relatedWatcherId } : {}),
+  });
+  return c.json({ ok: true, intervention: row });
+});
+
+app.post("/interventions/:id/sent", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  await markInterventionSent(d1 as never, c.req.param("id"));
+  return c.json({ ok: true });
+});
+
+// Re-export createAudit so downstream pipeline nodes can pick it up.
+export { createAudit };
 
 // Per-host dark-pattern aggregate count — used by the public ticker UI
 // to surface "marriott.com flagged 847 times in 90 days".
