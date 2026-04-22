@@ -259,6 +259,15 @@ function renderResult(r: AuditResult): void {
   body.append(headerCard(r, isJob1));
   if (!isJob1) body.append(verdictBanner(r));
   body.append(heroPickCard(r));
+  // B5: parallel-enrichment signals + repairability render immediately below
+  // the top pick so the user sees the full trust surface in one glance.
+  body.append(enrichmentsCard(r));
+  const repairSection = document.createElement("section");
+  repairSection.className = "card";
+  repairSection.id = "repairability-card-slot";
+  repairSection.innerHTML = `<div class="card-header"><h2>Repairability</h2></div><p class="muted" style="margin:0;">Loading iFixit data…</p>`;
+  body.append(repairSection);
+  void hydrateRepairabilityCard(r, repairSection);
   body.append(criteriaCard(r));
   if (!isJob1 && r.claims.length > 0) body.append(claimsCard(r));
   body.append(alternativesCard(r));
@@ -267,6 +276,105 @@ function renderResult(r: AuditResult): void {
   body.append(welfareDeltaCard());
   body.append(profileCard());
   body.append(elapsedFooter(r));
+}
+
+// B5 — enrichmentsCard renders all parallel-enrichment signals (B2) as a
+// grid of chips with verdict + source badge. Skipped signals are honestly
+// labeled so the user sees the full trust surface.
+function enrichmentsCard(r: AuditResult): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "card";
+  const e = r.enrichments ?? {};
+  const has = e.scam || e.breach || e.priceHistory || e.provenance || e.sponsorship;
+  if (!has) {
+    card.innerHTML = `<div class="card-header"><h2>Trust signals</h2></div><p class="muted" style="margin:0;">Enrichment pipeline did not run for this audit.</p>`;
+    return card;
+  }
+  const rows: string[] = [];
+  const chipFor = (
+    label: string,
+    status: "ok" | "skipped" | "error" | undefined,
+    verdict: string | undefined,
+    reason: string | undefined,
+    cls: string,
+  ): string => {
+    const statusCls = status === "ok" ? "ok" : status === "error" ? "err" : "skip";
+    const text = status === "ok" ? (verdict ?? "ok") : status === "error" ? `error: ${reason ?? ""}` : `skipped: ${reason ?? ""}`;
+    return `<div class="trust-chip ${cls} ${statusCls}">
+      <div class="trust-chip-label">${esc(label)}</div>
+      <div class="trust-chip-value">${esc(text)}</div>
+    </div>`;
+  };
+  if (e.scam) rows.push(chipFor("Scam / fraud", e.scam.status, e.scam.verdict, e.scam.reason, "scam"));
+  if (e.breach) rows.push(chipFor("Seller breach history", e.breach.status, e.breach.band, e.breach.reason, "breach"));
+  if (e.priceHistory) rows.push(chipFor("Price history", e.priceHistory.status, e.priceHistory.verdict, e.priceHistory.reason, "price"));
+  if (e.provenance) rows.push(chipFor("Source provenance", e.provenance.status, e.provenance.score !== undefined ? `score ${(e.provenance.score * 100).toFixed(0)}/100` : undefined, e.provenance.reason, "prov"));
+  if (e.sponsorship) rows.push(chipFor("Sponsorship / affiliate", e.sponsorship.status, e.sponsorship.verdict, e.sponsorship.reason, "spon"));
+  card.innerHTML = `
+    <div class="card-header">
+      <h2>Trust signals</h2>
+      <p class="card-subtitle">Parallel enrichment on the picked product's retailer + catalog</p>
+    </div>
+    <div class="trust-grid">${rows.join("")}</div>
+  `;
+  return card;
+}
+
+// B5 — repairability card (async fetch /repairability/lookup)
+async function hydrateRepairabilityCard(r: AuditResult, slot: HTMLElement): Promise<void> {
+  const top = r.specOptimal;
+  if (!top || !top.name || top.name.startsWith("(no candidates")) {
+    slot.innerHTML = `<div class="card-header"><h2>Repairability</h2></div><p class="muted" style="margin:0;">No product to assess.</p>`;
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/repairability/lookup`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        productName: top.name,
+        ...(top.brand ? { brand: top.brand } : {}),
+        ...(r.intent.category ? { category: r.intent.category } : {}),
+      }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = (await res.json()) as {
+      source: string;
+      score?: number;
+      band: string;
+      commonFailures: string[];
+      partsAvailability: { manufacturer: string; thirdParty: string };
+      citations: Array<{ label: string; url: string; source: string }>;
+      reason?: string;
+    };
+    const scoreDisplay = body.score !== undefined ? `${body.score}/10` : "—";
+    const bandCls = body.band === "easy" ? "band-easy" : body.band === "medium" ? "band-medium" : body.band === "hard" ? "band-hard" : body.band === "unrepairable" ? "band-bad" : "band-unknown";
+    slot.innerHTML = `
+      <div class="card-header">
+        <h2>Repairability</h2>
+        <p class="card-subtitle">iFixit-style score · source: ${esc(body.source)}</p>
+      </div>
+      <div class="repair-grid">
+        <div class="repair-score ${bandCls}">
+          <div class="repair-score-num">${esc(scoreDisplay)}</div>
+          <div class="repair-band">${esc(body.band)}</div>
+        </div>
+        <div class="repair-detail">
+          ${body.commonFailures.length > 0 ? `<div><strong>Common failure modes:</strong><ul style="margin:4px 0 0 18px;padding:0;">${body.commonFailures.slice(0, 4).map((f) => `<li>${esc(f)}</li>`).join("")}</ul></div>` : ""}
+          <div style="margin-top:8px;"><strong>Parts availability:</strong><br/>
+            <span class="muted">Manufacturer:</span> ${esc(body.partsAvailability.manufacturer)}<br/>
+            <span class="muted">Third-party:</span> ${esc(body.partsAvailability.thirdParty)}
+          </div>
+          ${body.reason ? `<p class="muted" style="margin-top:8px;">${esc(body.reason)}</p>` : ""}
+        </div>
+      </div>
+      ${body.citations.length > 0
+        ? `<details style="margin-top:10px;"><summary>Citations (${body.citations.length})</summary><ul style="margin:4px 0 0 18px;padding:0;">${body.citations.map((c) => `<li><a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--hl-hi);">${esc(c.label)}</a> <span class="muted">(${esc(c.source)})</span></li>`).join("")}</ul></details>`
+        : ""}
+    `;
+  } catch (err) {
+    slot.innerHTML = `<div class="card-header"><h2>Repairability</h2></div><p class="muted" style="margin:0;">Lookup failed: ${esc((err as Error).message)}</p>`;
+  }
 }
 
 // W11 — Alternative surfacing at price tiers
@@ -494,12 +602,18 @@ function heroPickCard(r: AuditResult): HTMLElement {
   const o = r.specOptimal;
   const card = document.createElement("section");
   card.className = "card";
+  // B5: surface a clickable retailer link (URL already scrubbed of affiliate
+  // params at the search boundary).
+  const urlLink = o.url
+    ? `<a href="${esc(o.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--hl-hi);text-decoration:underline;font-size:13px;">View at retailer ↗</a>`
+    : `<span class="muted" style="font-size:13px;">No retailer URL available</span>`;
   card.innerHTML = `
     <div class="card-header"><h2>Lens's top pick</h2></div>
     <div class="hero-pick">
       <div>
         <div class="pick-product"><span class="brand">${esc(o.brand ?? "")}</span> <span class="name">${esc(o.name)}</span></div>
         <div class="pick-price">Price: <span class="amount">$${o.price ?? "?"}</span> · <span class="muted">Best fit for your stated priorities</span></div>
+        <div style="margin-top:6px;">${urlLink}</div>
       </div>
     </div>
     <details open>
@@ -667,7 +781,8 @@ function crossModelCard(r: AuditResult): HTMLElement {
 function elapsedFooter(r: AuditResult): HTMLElement {
   const el = document.createElement("p");
   el.className = "elapsed";
-  el.textContent = `${(r.elapsedMs.total / 1000).toFixed(1)}s end-to-end · extract ${r.elapsedMs.extract}ms · search ${r.elapsedMs.search}ms · verify ${r.elapsedMs.verify}ms · rank ${r.elapsedMs.rank}ms · cross-model ${r.elapsedMs.crossModel}ms`;
+  const enrichPart = r.elapsedMs.enrich !== undefined ? ` · enrich ${r.elapsedMs.enrich}ms` : "";
+  el.textContent = `${(r.elapsedMs.total / 1000).toFixed(1)}s end-to-end · extract ${r.elapsedMs.extract}ms · search ${r.elapsedMs.search}ms · verify ${r.elapsedMs.verify}ms · rank ${r.elapsedMs.rank}ms · cross-model ${r.elapsedMs.crossModel}ms${enrichPart}`;
   return el;
 }
 

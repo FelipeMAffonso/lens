@@ -383,3 +383,74 @@ details[open] summary { color: var(--fg-dim); }
 
 /* Selection */
 ::selection { background: var(--accent-ring); color: var(--fg); }
+
+/* B5 — trust-signals enrichments grid + repairability card */
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+.trust-chip {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 58px;
+}
+.trust-chip-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-muted);
+  font-weight: 600;
+}
+.trust-chip-value {
+  font-size: 13px;
+  color: var(--fg-dim);
+  font-weight: 500;
+  word-break: break-word;
+}
+.trust-chip.ok { border-left: 3px solid #3fb27f; }
+.trust-chip.ok .trust-chip-value { color: #247a50; }
+.trust-chip.err { border-left: 3px solid #d85a5a; }
+.trust-chip.err .trust-chip-value { color: #8a2f2f; }
+.trust-chip.skip { border-left: 3px solid var(--fg-muted); }
+.trust-chip.skip .trust-chip-value { font-style: italic; }
+
+.repair-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.repair-score {
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+.repair-score-num { font-size: 28px; font-weight: 700; font-family: "SF Mono", Menlo, Consolas, monospace; }
+.repair-band {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  margin-top: 4px;
+}
+.repair-score.band-easy { border-color: #3fb27f; background: #ecfaf2; }
+.repair-score.band-easy .repair-score-num { color: #247a50; }
+.repair-score.band-medium { border-color: #c78a1f; background: #fdf5e6; }
+.repair-score.band-medium .repair-score-num { color: #9c6b14; }
+.repair-score.band-hard { border-color: #d85a5a; background: #fdecec; }
+.repair-score.band-hard .repair-score-num { color: #8a2f2f; }
+.repair-score.band-bad { border-color: #6b2020; background: #f5e1e1; }
+.repair-score.band-bad .repair-score-num { color: #4a1313; }
+.repair-score.band-unknown { border-color: var(--border); background: var(--bg); }
+.repair-detail { font-size: 14px; color: var(--fg); line-height: 1.55; }
+@media (max-width: 720px) {
+  .repair-grid { grid-template-columns: 1fr; }
+}

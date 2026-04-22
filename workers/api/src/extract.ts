@@ -471,7 +471,17 @@ function parseExtractJson(
  * with no AI assistant output to audit. Returns a synthetic aiRecommendation
  * marked host="unknown" with empty claims — downstream stages render accordingly.
  */
-const QUERY_SYSTEM = `You parse a shopping intent from a plain natural-language user query. Return ONLY the "intent" object (the same schema used in the paste audit, no aiRecommendation). Derive criteria weights from ORDER and EMPHASIS in the user's language when not explicit. Normalize weights to sum to 1. For every criterion, include "confidence": <0..1> — your self-assessed confidence the criterion reflects the user's explicit words (1.0 = user said this word; 0.4-0.5 = inferred from vague adjective). Return a single JSON object {"intent": {...}} — no prose, no markdown fences.`;
+const QUERY_SYSTEM = `You parse a shopping intent from a plain natural-language user query. Return ONLY the "intent" object (the same schema used in the paste audit, no aiRecommendation).
+
+REQUIREMENTS:
+- "category" MUST be a concrete short noun phrase describing the product type (e.g. "espresso machine", "laptop", "headphones", "robot vacuum", "wireless charger"). Never "product", "item", "thing", "gadget", "device" alone — always give the specific category.
+- Derive criteria weights from ORDER and EMPHASIS in the user's language when not explicit. Earlier + emphasized criteria get more weight. Normalize weights to sum to 1.
+- For every criterion include "confidence": <0..1> — your self-assessed confidence the criterion reflects the user's explicit words (1.0 = user literally said this word; 0.4-0.5 = inferred from vague adjective like "fast", "nice"; 0.8 = strongly implied by context).
+- When user says "price matters" or "cheap" or "under $X", add a criterion {"name":"price","direction":"lower_is_better","weight":...,"confidence":1.0}.
+- When user says "X matters most" or "X matters a lot", that criterion gets the LARGEST weight.
+- If a budget is implied ("under $400"), include "budget":{"max":400,"currency":"USD"}.
+
+Return a single JSON object {"intent": {...}} — no prose, no markdown fences.`;
 
 async function extractQueryOnly(
   input: Extract<AuditInput, { kind: "query" }>,
