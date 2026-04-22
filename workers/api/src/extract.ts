@@ -182,18 +182,37 @@ async function extractFromUrl(
   input: Extract<AuditInput, { kind: "url" }>,
   env: Env,
 ): Promise<{ intent: UserIntent; aiRecommendation: AIRecommendation }> {
+  // B3: browser-like headers so Amazon/Best Buy/etc don't serve a captcha.
   let rawHtml = "";
+  let fetchStatus: number | "error" = "error";
   try {
     const res = await fetch(input.url, {
       redirect: "follow",
-      headers: { "user-agent": "Mozilla/5.0 Lens/1.0" },
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        "Accept":
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1",
+      },
     });
+    fetchStatus = res.status;
     if (res.ok) {
-      rawHtml = (await res.text()).slice(0, 300_000);
+      rawHtml = (await res.text()).slice(0, 400_000);
+    } else {
+      console.warn("[extract:url] fetch non-OK: status=%d", res.status);
     }
   } catch (e) {
     console.error("[extract:url] fetch failed:", (e as Error).message);
   }
+  console.log("[extract:url] fetch_status=%s html_bytes=%d", fetchStatus, rawHtml.length);
 
   // S3-W15 — structured parser runs first. When we get a confident parse,
   // skip the Opus round-trip and build the AIRecommendation deterministically.
@@ -261,13 +280,32 @@ function buildFromStructured(
   };
   const claims: AIRecommendation["claims"] = [];
   if (structured.features && structured.features.length > 0) {
-    for (const f of structured.features.slice(0, 6)) {
-      claims.push({ attribute: "feature", statedValue: f });
+    // B3: break each feature bullet into a proper attribute/statedValue pair.
+    // Before, 6 bullets were all labeled "feature" with their full text as the
+    // value — useless for downstream verify. Now we extract the claim's
+    // attribute (first noun phrase before a colon / "with" / "—") and carry
+    // the rest as the stated value, so verify can check each spec individually.
+    for (const f of structured.features.slice(0, 10)) {
+      const split =
+        f.match(/^([^:—\-]{3,60}?):\s*(.+)$/) ??
+        f.match(/^([^—\-]{3,60}?)\s*[—\-]\s*(.+)$/);
+      if (split && split[1] && split[2]) {
+        claims.push({ attribute: split[1].trim(), statedValue: split[2].trim().slice(0, 300) });
+      } else {
+        // No natural split — carry the full bullet as a self-describing claim.
+        claims.push({ attribute: "feature", statedValue: f.slice(0, 300) });
+      }
     }
   }
   if (structured.sku) claims.push({ attribute: "sku", statedValue: structured.sku });
   if (structured.rating !== undefined) {
     claims.push({ attribute: "rating", statedValue: String(structured.rating) });
+  }
+  if (structured.price !== undefined) {
+    claims.push({
+      attribute: "price",
+      statedValue: `${structured.currency ?? "USD"} ${structured.price}`,
+    });
   }
   const aiRecommendation: AIRecommendation = {
     host: "unknown",
