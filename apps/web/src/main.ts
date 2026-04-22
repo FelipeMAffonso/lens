@@ -229,15 +229,29 @@ async function runStream(body: unknown, logEl: HTMLElement): Promise<void> {
   }
 }
 
+// Human-readable status labels for each pipeline stage. Replaces the previous
+// dev-log style (`extract:done`, `search:done`) with copy a shopper understands.
+// Maps Study 3 ecological-bot pattern: short friendly status lines, not a log.
 function summarize(event: string, data: unknown): string {
   const d = data as Record<string, unknown>;
-  if (event === "extract:done") return `category: ${(d.intent as any)?.category ?? "?"}`;
-  if (event === "search:done") return `${d.count} real products found`;
-  if (event === "verify:done") return `${(d.claims as unknown[])?.length ?? 0} AI claims checked`;
-  if (event === "rank:done") return `top pick: ${(d.top as Candidate)?.name ?? "?"}`;
+  if (event === "extract:done") {
+    const cat = (d.intent as { category?: string } | undefined)?.category;
+    return cat && cat !== "product" ? `Understanding what you need — ${cat}` : "Understanding what you need";
+  }
+  if (event === "search:done") return `Looking at ${d.count ?? "?"} real products`;
+  if (event === "verify:done") {
+    const n = (d.claims as unknown[])?.length ?? 0;
+    return n === 0 ? "No AI claims to check" : `Double-checking ${n} AI claim${n === 1 ? "" : "s"}`;
+  }
+  if (event === "rank:done") {
+    const top = (d.top as Candidate)?.name;
+    return top ? `Best match: ${top}` : "Ranking your top matches";
+  }
   if (event === "crossModel:done") {
-    const r = d.results as Array<{ provider: string; model: string; agreesWithLens: boolean }>;
-    return r.length === 0 ? "(no other-model picks)" : r.map((x) => `${x.provider}: ${x.agreesWithLens ? "agrees ✓" : "sides with host AI"}`).join(", ");
+    const r = d.results as Array<{ provider: string; model: string; agreesWithLens: boolean }> | undefined;
+    if (!r || r.length === 0) return "Other-model comparison skipped";
+    const agree = r.filter((x) => x.agreesWithLens).length;
+    return `Other frontier models: ${agree} of ${r.length} agree with Lens`;
   }
   return "";
 }
@@ -246,6 +260,31 @@ function logLine(text: string): HTMLLIElement {
   const el = document.createElement("li");
   el.textContent = text;
   return el;
+}
+
+// Humanize snake_case + camelCase criterion names into consumer-friendly labels.
+// `cpu_performance` → "CPU performance", `batteryLife` → "Battery life".
+// Known acronyms stay uppercased; everything else gets sentence-cased.
+const ACRONYMS = new Set([
+  "cpu", "gpu", "ssd", "hdd", "ram", "anc", "oled", "lcd", "led", "usb", "hdmi",
+  "ac", "dc", "ip", "nvme", "wifi", "pd", "dpi", "iso", "uv", "ev", "fps", "mph",
+  "mpg", "btu", "db", "nm", "oz", "lb", "kg",
+]);
+function humanizeCriterion(raw: string): string {
+  if (!raw) return raw;
+  const tokens = raw
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (tokens.length === 0) return raw;
+  return tokens
+    .map((t, i) => {
+      const low = t.toLowerCase();
+      if (ACRONYMS.has(low)) return low.toUpperCase();
+      return i === 0 ? low[0]!.toUpperCase() + low.slice(1) : low;
+    })
+    .join(" ");
 }
 
 function renderResult(r: AuditResult): void {
@@ -682,7 +721,7 @@ function criteriaCard(r: AuditResult): HTMLElement {
     const row = document.createElement("div");
     row.className = "criterion-row";
     row.innerHTML = `
-      <div class="label"><strong>${esc(c.name)}</strong></div>
+      <div class="label"><strong>${esc(humanizeCriterion(c.name))}</strong></div>
       <input type="range" min="0" max="100" value="${pct}" data-criterion="${esc(c.name)}" />
       <div class="value" data-criterion-val="${esc(c.name)}" style="text-align:right;color:var(--fg-dim);font-family:inherit;font-size:12px;min-width:120px;">${priorityLabel(c.weight)}</div>
     `;
@@ -722,7 +761,7 @@ function claimRow(c: Claim): string {
     <div class="claim-icon">${icon}</div>
     <div class="claim-body">
       <div>
-        <span class="claim-attr">${esc(c.attribute ?? "?")}</span>
+        <span class="claim-attr">${esc(humanizeCriterion(c.attribute ?? "?"))}</span>
         <span class="claim-stated">${esc(c.statedValue ?? "")}</span>
         <span class="claim-verdict-badge">${esc(label)}</span>
       </div>

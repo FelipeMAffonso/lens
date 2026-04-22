@@ -13,6 +13,7 @@ import { canStage2, askForConsent, getConsent } from "./content/consent.js";
 import { upgradeBadge, findBadgeByBrignullId, type BadgeConfirmation } from "./content/overlay/badge.js";
 import { bootPriceHistory } from "./content/retail/price-history-badge.js";
 import { bootCheckoutSummary, isCartOrCheckout } from "./content/retail/cart-summary-badge.js";
+import { bootReviewScan } from "./content/retail/review-scan-badge.js";
 
 type HostAI = "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
 
@@ -154,6 +155,11 @@ const boot = (): void => {
   // on a supported retailer product page. Top-frame only.
   if (window === window.top) {
     void bootPriceHistory();
+    // V-EXT-INLINE-h: Amazon review-authenticity banner. Amazon-only; runs
+    // after short delay so the review list has time to render below the fold.
+    setTimeout(() => {
+      void bootReviewScan();
+    }, 1500);
     // V-EXT-INLINE-f: cart/checkout-summary badge. Runs after a short delay so
     // the passive-scan hit-list stabilizes first; composes the hits into a
     // single checkout-readiness verdict.
@@ -189,6 +195,7 @@ setTimeout(boot, 2500);
 function retailReboot(): void {
   if (window !== window.top) return;
   void bootPriceHistory();
+  void bootReviewScan();
   if (isCartOrCheckout()) {
     try {
       const hits = scanDocument();
