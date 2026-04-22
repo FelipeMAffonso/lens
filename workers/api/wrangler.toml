@@ -17,6 +17,17 @@ RESEND_FROM_EMAIL = "Lens <no-reply@lens.example>"
 [observability]
 enabled = true
 
+[triggers]
+crons = [
+  "*/15 * * * *",
+  "17 */2 * * *",
+  "13 6 * * 1",
+  "7 9 * * *",
+  "23 10 * * *",
+  "31 7 * * 1",
+  "41 * * * *"
+]
+
 [[d1_databases]]
 binding = "LENS_D1"
 database_name = "lens-production"

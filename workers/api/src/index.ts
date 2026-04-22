@@ -5,7 +5,10 @@ import { runAuditPipeline } from "./pipeline.js";
 import { ReviewScanRequestSchema, scanReviews } from "./review-scan.js";
 import { WorkflowEngine } from "./workflow/engine.js";
 import { auditWorkflow } from "./workflow/specs/audit.js";
+import "./workflow/specs/recall-watch.js"; // register cron-targeted workflow
 import { getWorkflow, workflowStats } from "./workflow/registry.js";
+import { dispatchCron } from "./cron/dispatcher.js";
+import { CRON_JOBS } from "./cron/jobs.js";
 import {
   handleRequest as authHandleRequest,
   handleSignout as authHandleSignout,
@@ -114,6 +117,53 @@ app.post("/audit", async (c) => {
 // List registered workflows (useful for debugging + MCP tool discovery later).
 app.get("/workflows", (c) => c.json(workflowStats()));
 
+// F4 — cron registry introspection.
+app.get("/cron/jobs", (c) =>
+  c.json({
+    total: CRON_JOBS.length,
+    jobs: CRON_JOBS.map((j) => ({
+      pattern: j.pattern,
+      workflowId: j.workflowId,
+      description: j.description,
+    })),
+  }),
+);
+
+// F17 — trace endpoints. Backed by workflow_runs in D1.
+// More-specific route (`/trace/recent`) MUST come before the param route so
+// Hono doesn't match `:runId === "recent"`.
+app.get("/traces", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const workflowFilter = c.req.query("workflow");
+  const limit = Math.min(Number(c.req.query("limit") ?? 20), 100);
+  const res = workflowFilter
+    ? await d1
+        .prepare(
+          `SELECT id, workflow_id, status, started_at, completed_at FROM workflow_runs WHERE workflow_id = ? ORDER BY started_at DESC LIMIT ?`,
+        )
+        .bind(workflowFilter, limit)
+        .all()
+    : await d1
+        .prepare(
+          `SELECT id, workflow_id, status, started_at, completed_at FROM workflow_runs ORDER BY started_at DESC LIMIT ?`,
+        )
+        .bind(limit)
+        .all();
+  return c.json({ runs: res.results ?? [] });
+});
+
+app.get("/trace/:runId", async (c) => {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const row = await d1
+    .prepare(`SELECT * FROM workflow_runs WHERE id = ? LIMIT 1`)
+    .bind(c.req.param("runId"))
+    .first();
+  if (!row) return c.json({ error: "not_found" }, 404);
+  return c.json(row);
+});
+
 app.post("/audit/stream", async (c) => {
   // Server-sent-events variant for the live streaming sub-agent panel.
   // Emits events: "extract", "search", "verify", "rank", "crossModel:<provider>", "done", "error".
@@ -165,5 +215,21 @@ app.post("/review-scan", async (c) => {
   const result = scanReviews(parsed.data);
   return c.json(result);
 });
+
+// F4 — Cloudflare Cron Trigger handler. Exported alongside `default` so
+// wrangler routes scheduled events to dispatchCron. `ctx.waitUntil` keeps
+// the worker alive until the dispatcher completes.
+export async function scheduled(
+  event: { cron: string; scheduledTime: number },
+  env: Env,
+  ctx: { waitUntil: (p: Promise<unknown>) => void },
+): Promise<void> {
+  ctx.waitUntil(
+    dispatchCron(
+      { cron: event.cron, scheduledTime: event.scheduledTime },
+      env as unknown as Record<string, unknown>,
+    ),
+  );
+}
 
 export default app;
