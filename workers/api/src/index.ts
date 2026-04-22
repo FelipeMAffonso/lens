@@ -61,6 +61,11 @@ import { handlePrivacyAudit } from "./privacy-audit/handler.js";
 import { handleCounterfeitCheck } from "./counterfeit/handler.js";
 import { handleSponsorshipScan } from "./sponsorship/handler.js";
 import { handleReturnDraft } from "./returns/handler.js";
+import {
+  handleRecord as handlePerformanceRecord,
+  handleRead as handlePerformanceRead,
+  handleHistory as handlePerformanceHistory,
+} from "./performance/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -424,6 +429,11 @@ app.post("/sponsorship/scan", (c) => handleSponsorshipScan(c as never));
 
 // S6-W35 — returns / warranty claim letter. Requires auth.
 app.post("/returns/draft", (c) => handleReturnDraft(c as never));
+
+// S6-W37 — post-purchase performance tracking + Layer-4 preference update.
+app.post("/purchase/:id/performance", (c) => handlePerformanceRecord(c as never));
+app.get("/purchase/:id/performance", (c) => handlePerformanceRead(c as never));
+app.get("/performance/history", (c) => handlePerformanceHistory(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these

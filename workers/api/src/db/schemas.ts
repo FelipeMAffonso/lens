@@ -88,6 +88,21 @@ export const InterventionRowSchema = z.object({
 export type InterventionRow = z.infer<typeof InterventionRowSchema>;
 export type InterventionStatus = z.infer<typeof InterventionStatusEnum>;
 
+// ─── performance_ratings ─────────────────────────────────────────────────
+export const PerformanceRatingRowSchema = z.object({
+  id: z.string().min(1),
+  user_id: z.string().min(1),
+  purchase_id: z.string().min(1),
+  overall_rating: z.number().int().min(1).max(5),
+  would_buy_again: z.number().int().min(0).max(1),
+  criterion_feedback_json: z.string().nullable(),
+  notes: z.string().nullable(),
+  preference_snapshot_json: z.string().nullable(),
+  category: z.string().nullable(),
+  created_at: z.string(),
+});
+export type PerformanceRatingRow = z.infer<typeof PerformanceRatingRowSchema>;
+
 // ─── welfare_deltas ───────────────────────────────────────────────────────
 export const WelfareDeltaRowSchema = z.object({
   audit_id: z.string().min(1),
