@@ -53,3 +53,13 @@ GMAIL_OAUTH_REDIRECT_URI=https://lens-api.webmarinelli.workers.dev/oauth/gmail/c
 # "fixture" uses the hand-crafted catalog in src/fixtureCatalog.ts (fast,
 # deterministic, safe for demos). "real" hits Opus 4.7's live web_search.
 LENS_SEARCH_MODE=fixture
+
+# ─── S4-W21 — price history (Keepa) ─────────────────────────────────────────
+# Optional. When set + LENS_PRICE_MODE=auto|keepa, /price-history hits the
+# real Keepa API for Amazon products. Unset falls back to a deterministic
+# URL-hashed fixture series.
+KEEPA_API_KEY=
+# "auto" = keepa when key + productId present, fixture otherwise.
+# "keepa" = require real Keepa; 503 when missing. "fixture" = always fixture.
+# "none"  = empty series + insufficient-data verdict.
+LENS_PRICE_MODE=auto

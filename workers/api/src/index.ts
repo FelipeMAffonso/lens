@@ -25,6 +25,7 @@ import {
 import { authMiddleware, type AuthVars } from "./auth/middleware.js";
 import { rateLimitMiddleware } from "./ratelimit/middleware.js";
 import { handlePassiveScan } from "./passive-scan/handler.js";
+import { handlePriceHistory } from "./price-history/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 export { RateLimitCounter } from "./ratelimit/counter-do.js";
 
@@ -35,6 +36,9 @@ export interface Env {
   OPENROUTER_API_KEY?: string;
   CROSS_MODEL_AGENT_URL?: string;
   DEEPGRAM_API_KEY?: string;
+  // S4-W21 — price history
+  KEEPA_API_KEY?: string;
+  LENS_PRICE_MODE?: "keepa" | "fixture" | "auto" | "none";
   /**
    * "real" (default) = live Opus 4.7 web search; "fixture" = short-circuit to a hardcoded
    * catalog for the category. Fixture mode exists to unblock demo latency and for CI-style
@@ -320,6 +324,10 @@ app.post("/review-scan", async (c) => {
 // worker runs Opus 4.7 against matched packs and returns per-hit verdicts
 // with regulation citations + intervention suggestions.
 app.post("/passive-scan", (c) => handlePassiveScan(c as never, packRegistry));
+
+// S4-W21 — price-history + fake-sale detection. Returns 90-day series for
+// a retailer URL, computes rolling stats, and emits a sale-legitimacy verdict.
+app.get("/price-history", (c) => handlePriceHistory(c as never));
 
 // Per-host dark-pattern aggregate count — used by the public ticker UI
 // to surface "marriott.com flagged 847 times in 90 days".

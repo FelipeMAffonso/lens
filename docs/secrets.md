@@ -33,6 +33,7 @@ The primary Worker. Source-of-truth for auth, workflow engine, packs, voice tran
 | `GMAIL_OAUTH_CLIENT_ID` | optional | F12 Gmail OAuth scope — receipts + subscription discovery. | `src/email/oauth.ts`, `src/email/handler.ts` | `/oauth/gmail/request` and `/oauth/gmail/callback` return 503. |
 | `GMAIL_OAUTH_CLIENT_SECRET` | optional | Paired with `GMAIL_OAUTH_CLIENT_ID`. | `src/email/oauth.ts` | 503 (see above). |
 | `DEEPGRAM_API_KEY` | optional | F11 server-side voice transcription via Deepgram Nova-3. | `src/voice/transcribe.ts` | `/voice/transcribe` returns a stub transcript so the UI remains functional in demos. |
+| `KEEPA_API_KEY` | optional | S4-W21 real Amazon price history via Keepa. | `src/price-history/keepa.ts` | Worker falls back to the URL-hashed fixture series. |
 
 Generate `JWT_SECRET` with:
 ```bash
@@ -61,6 +62,7 @@ done
 | Name | Default | Meaning |
 |---|---|---|
 | `LENS_SEARCH_MODE` | `"fixture"` | `"fixture"` uses the hand-crafted catalog (fast, deterministic); `"real"` hits Opus 4.7's live `web_search_20260209`. |
+| `LENS_PRICE_MODE` | `"auto"` | S4-W21: `"auto"` uses Keepa when `KEEPA_API_KEY` set + productId known, falls back to fixture. `"keepa"` requires real Keepa. `"fixture"` always fixture. `"none"` empty series. |
 | `MAGIC_LINK_BASE_URL` | `"https://lens-b1h.pages.dev"` | Origin of the sign-in callback page emailed to users. |
 | `RESEND_FROM_EMAIL` | `"Lens <no-reply@lens.example>"` | From-address on outbound Lens email. Replace with a verified sender in your Resend account. |
 | `GMAIL_OAUTH_REDIRECT_URI` | (none) | Exact redirect URI registered with Google. Defaults to the production API path if unset. |
