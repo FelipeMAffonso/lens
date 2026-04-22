@@ -1,6 +1,12 @@
 // S0-W5 — HTTP glue for the subscriptions surface.
+// S6-W36 upgrades /subs/:id/cancel-draft from a stub to real pack-template
+// rendering and adds POST /subs/audit.
 
 import type { Context } from "hono";
+import { createIntervention } from "../db/repos/interventions.js";
+import { registry as packRegistry } from "../packs/registry.js";
+import { auditSubscriptions } from "./audit.js";
+import { renderCancelDraft, type CancelDraftTemplate } from "./cancel-drafter.js";
 import { classifyMessage } from "./classifier.js";
 import {
   deleteById,
@@ -135,8 +141,29 @@ export async function handleDelete(
 }
 
 /**
- * POST /subs/:id/cancel-draft — stub of the cancel-intervention flow.
- * Later wires through intervention/draft-cancel-subscription pack.
+ * POST /subs/audit — aggregate audit of the signed-in principal's subs.
+ * Optional body: { userState?, windowDays? }.
+ */
+export async function handleAudit(
+  c: Context<{ Bindings: EnvBindings; Variables: { userId?: string; anonUserId?: string } }>,
+): Promise<Response> {
+  const d1 = c.env.LENS_D1;
+  if (!d1) return c.json({ error: "d1_unavailable" }, 503);
+  const userId = c.get("userId") as string | undefined;
+  if (!userId) return c.json({ error: "unauthenticated" }, 401);
+  const body = (await c.req.json().catch(() => null)) as
+    | { windowDays?: number; userState?: string }
+    | null;
+  const rows = await listByUser(d1 as never, userId, { limit: 500 });
+  const windowDays = Math.min(Math.max(1, Number(body?.windowDays ?? 30)), 90);
+  const audit = auditSubscriptions(rows, { windowDays });
+  return c.json(audit);
+}
+
+/**
+ * POST /subs/:id/cancel-draft — renders the intervention/draft-cancel-
+ * subscription pack template with state-law citation + enforcement agency,
+ * persists a drafted intervention, returns the sendable letter.
  */
 export async function handleCancelDraft(
   c: Context<{ Bindings: EnvBindings; Variables: { userId?: string; anonUserId?: string } }>,
@@ -148,15 +175,64 @@ export async function handleCancelDraft(
   const id = c.req.param("id") ?? "";
   if (!id) return c.json({ error: "missing_id" }, 400);
   const row = await getById(d1 as never, id);
-  if (!row || row.user_id !== userId) return c.json({ error: "not_found" }, 404);
-  // Stub — a real draft would pull intervention/draft-cancel-subscription
-  // pack template and substitute service + account-id + cancellation-url.
+  if (!row) return c.json({ error: "not_found" }, 404);
+  if (row.user_id !== userId) return c.json({ error: "forbidden" }, 403);
+
+  const body = (await c.req.json().catch(() => ({}))) as {
+    userState?: string;
+    userName?: string;
+    userIdentifier?: string;
+    planName?: string;
+    signupDate?: string;
+    cancelDate?: string;
+  } | null;
+
+  const pack = packRegistry.bySlug.get("intervention/draft-cancel-subscription");
+  if (!pack || pack.type !== "intervention") {
+    return c.json({ error: "pack_not_found", slug: "intervention/draft-cancel-subscription" }, 500);
+  }
+  const packBody = (pack as unknown as {
+    body: {
+      template: { subject: string; bodyTemplate: string; stateLawSnippets: Record<string, string> };
+      failureFallback?: { nextIntervention?: string };
+    };
+    version: string;
+  }).body;
+
+  const template: CancelDraftTemplate = {
+    subject: packBody.template.subject,
+    bodyTemplate: packBody.template.bodyTemplate,
+    stateLawSnippets: packBody.template.stateLawSnippets,
+  };
+  const draft = renderCancelDraft(row, template, body ?? {});
+
+  const intervention = await createIntervention(d1 as never, {
+    userId,
+    packSlug: "intervention/draft-cancel-subscription",
+    payload: {
+      subscriptionId: row.id,
+      service: row.service,
+      subject: draft.subject,
+      body: draft.body,
+      stateLaw: draft.stateLaw,
+      enforcementAgency: draft.enforcementAgency,
+      tokens: draft.tokens,
+    },
+  });
+
   return c.json({
     ok: true,
+    interventionId: intervention.id,
     draft: {
-      service: row.service,
-      instruction: `Open ${row.service} → Account → Billing → Cancel. Lens pre-fills the cancellation form once the pack surface ships.`,
-      interventionSlug: "intervention/draft-cancel-subscription",
+      subject: draft.subject,
+      body: draft.body,
+      to: draft.to,
+      format: draft.format,
     },
+    stateLaw: draft.stateLaw,
+    enforcementAgency: draft.enforcementAgency,
+    templateSource: `intervention/draft-cancel-subscription@${(pack as { version: string }).version}`,
+    fallback: packBody.failureFallback?.nextIntervention ?? "intervention/file-ftc-complaint",
+    generatedAt: new Date().toISOString(),
   });
 }

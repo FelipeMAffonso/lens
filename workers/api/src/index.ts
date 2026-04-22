@@ -39,6 +39,7 @@ import {
   handlePatch as handleSubsPatch,
   handleDelete as handleSubsDelete,
   handleCancelDraft as handleSubsCancelDraft,
+  handleAudit as handleSubsAudit,
 } from "./subs/handler.js";
 import "./subs/workflow.js"; // register subs.discover workflow
 import {
@@ -380,6 +381,7 @@ app.put("/values-overlay", (c) => handleValuesPut(c as never));
 
 // S0-W5 — subscription discovery.
 app.post("/subs/scan", (c) => handleSubsScan(c as never));
+app.post("/subs/audit", (c) => handleSubsAudit(c as never));
 app.get("/subs", (c) => handleSubsList(c as never));
 app.get("/subs/upcoming", (c) => handleSubsUpcoming(c as never));
 app.patch("/subs/:id", (c) => handleSubsPatch(c as never));
