@@ -3,6 +3,13 @@ import { cors } from "hono/cors";
 import { AuditInputSchema } from "@lens/shared";
 import { runAuditPipeline } from "./pipeline.js";
 import { ReviewScanRequestSchema, scanReviews } from "./review-scan.js";
+import {
+  handleRequest as authHandleRequest,
+  handleSignout as authHandleSignout,
+  handleVerify as authHandleVerify,
+  handleWhoami as authHandleWhoami,
+} from "./auth/magic-link.js";
+import { authMiddleware, type AuthVars } from "./auth/middleware.js";
 
 export interface Env {
   ANTHROPIC_API_KEY: string;
@@ -16,15 +23,43 @@ export interface Env {
    * regression tests against known inputs.
    */
   LENS_SEARCH_MODE?: "real" | "fixture";
+  // F1 auth
+  LENS_D1?: D1Database;
+  JWT_SECRET?: string;
+  RESEND_API_KEY?: string;
+  RESEND_FROM_EMAIL?: string;
+  MAGIC_LINK_BASE_URL?: string;
+  LENS_COOKIE_DOMAIN?: string;
 }
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env; Variables: AuthVars }>();
 
-app.use("*", cors({ origin: "*", allowMethods: ["GET", "POST", "OPTIONS"] }));
+app.use(
+  "*",
+  cors({
+    origin: (origin) => origin, // reflect origin (cookies require non-wildcard)
+    allowMethods: ["GET", "POST", "OPTIONS"],
+    allowHeaders: ["content-type", "x-lens-anon-id"],
+    credentials: true,
+    exposeHeaders: ["x-lens-anon-id-new"],
+  }),
+);
+app.use("*", authMiddleware);
 
 app.get("/health", (c) =>
-  c.json({ ok: true, service: "lens-api", ts: new Date().toISOString() }),
+  c.json({
+    ok: true,
+    service: "lens-api",
+    ts: new Date().toISOString(),
+    auth: { d1: !!c.env.LENS_D1, jwt: !!c.env.JWT_SECRET, resend: !!c.env.RESEND_API_KEY },
+  }),
 );
+
+// ---- F1 auth endpoints ---------------------------------------------------
+app.post("/auth/request", (c) => authHandleRequest(c as never));
+app.post("/auth/verify", (c) => authHandleVerify(c as never));
+app.get("/auth/whoami", (c) => authHandleWhoami(c as never));
+app.post("/auth/signout", (c) => authHandleSignout(c as never));
 
 app.get("/packs/stats", async (c) => {
   const { packStats } = await import("./packs/registry.js");

@@ -7,16 +7,26 @@ compatibility_flags = ["nodejs_compat"]
 # "fixture" uses the hardcoded catalog in src/fixtureCatalog.ts (fast, deterministic — demo default).
 # "real" hits the live Opus 4.7 web_search tool.
 LENS_SEARCH_MODE = "fixture"
+MAGIC_LINK_BASE_URL = "https://lens-b1h.pages.dev"
+RESEND_FROM_EMAIL = "Lens <no-reply@lens.example>"
 
-# Secrets set via: wrangler secret put ANTHROPIC_API_KEY
+# Secrets set via: wrangler secret put <NAME>
+# Required for F1 auth: JWT_SECRET.
+# Optional: RESEND_API_KEY (falls back to console log), GMAIL_OAUTH_CLIENT_ID/SECRET (F12).
 
 [observability]
 enabled = true
 
-# [[kv_namespaces]]
-# binding = "CACHE"
-# id = "<fill-in-after-wrangler-kv-namespace-create>"
+[[d1_databases]]
+binding = "LENS_D1"
+database_name = "lens-production"
+database_id = "a88ccf86-7a09-4cfc-a189-b6104984203d"
+migrations_dir = "migrations"
 
-# [[r2_buckets]]
-# binding = "FIXTURES"
-# bucket_name = "lens-fixtures"
+[[kv_namespaces]]
+binding = "LENS_KV"
+id = "49edb0b70c3945b3af1a89f7ba3d9ed4"
+
+[[r2_buckets]]
+binding = "LENS_R2"
+bucket_name = "lens-blobs"

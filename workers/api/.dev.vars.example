@@ -1,7 +1,22 @@
 # Copy to .dev.vars (never committed) for local `wrangler dev`.
 # For production, set with: wrangler secret put VAR_NAME
+
+# Core
 ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
 GOOGLE_API_KEY=AI...
 OPENROUTER_API_KEY=sk-or-...
 CROSS_MODEL_AGENT_URL=
+
+# F1 auth (magic-link + anon)
+# Generate JWT secret with: openssl rand -base64 64
+JWT_SECRET=
+# Resend (resend.com) — free tier fine for hackathon
+RESEND_API_KEY=
+RESEND_FROM_EMAIL="Lens <no-reply@lens.example>"
+MAGIC_LINK_BASE_URL=https://lens-b1h.pages.dev
+
+# F12 email ingestion (Gmail OAuth)
+GMAIL_OAUTH_CLIENT_ID=
+GMAIL_OAUTH_CLIENT_SECRET=
+GMAIL_OAUTH_REDIRECT_URI=https://lens-api.webmarinelli.workers.dev/oauth/gmail/callback

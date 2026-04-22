@@ -725,3 +725,36 @@ $("audit-btn").addEventListener("click", () => {
   void runAudit();
 });
 void loadPackStats();
+
+// ---- F1 auth wiring (vanilla) ----
+import { runCallbackIfPresent } from "./auth/callback.js";
+import { openSignInModal } from "./auth/signin-modal.js";
+import { refreshSession, subscribe, signout } from "./auth/session.js";
+
+void runCallbackIfPresent();
+void refreshSession();
+
+// Inject a minimal nav-level auth control beside the existing brand/nav meta.
+function renderAuthControl(): void {
+  const nav = document.querySelector(".top-nav");
+  if (!nav) return;
+  const existing = document.getElementById("lens-auth-control");
+  if (existing) existing.remove();
+  const el = document.createElement("div");
+  el.id = "lens-auth-control";
+  el.style.cssText = "display:flex;align-items:center;gap:10px;margin-left:auto;font-size:13px;";
+  nav.append(el);
+  subscribe((state) => {
+    if (state.user) {
+      el.innerHTML = `<span style="color:var(--fg-muted);">${escape(state.user.email)}</span> <button id="lens-signout" style="background:none;border:0;color:var(--accent-hi);cursor:pointer;font:inherit;text-decoration:underline;">Sign out</button>`;
+      el.querySelector<HTMLButtonElement>("#lens-signout")!.addEventListener("click", () => void signout());
+    } else if (!state.loading) {
+      el.innerHTML = `<button id="lens-signin" style="background:none;border:1px solid var(--border);color:var(--fg-dim);padding:5px 12px;border-radius:4px;cursor:pointer;font:inherit;font-size:12px;">Sign in to sync</button>`;
+      el.querySelector<HTMLButtonElement>("#lens-signin")!.addEventListener("click", () => openSignInModal());
+    }
+  });
+}
+function escape(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+}
+renderAuthControl();
