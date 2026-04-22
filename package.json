@@ -23,12 +23,25 @@
     "packs:validate": "node scripts/validate-pack-schema.mjs",
     "packs:judge": "node scripts/validate-packs.mjs",
     "packs:enrich": "node scripts/enrich-pack.mjs --all",
-    "packs:reg-watch": "node scripts/check-regulation-status.mjs"
+    "packs:reg-watch": "node scripts/check-regulation-status.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:shared": "vitest run --project @lens/shared",
+    "test:workers": "vitest run --project @lens/api --project @lens/cross-model",
+    "test:web": "vitest run --project @lens/web",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e:web": "playwright test -c apps/web/playwright.config.ts",
+    "test:e2e:ext": "playwright test -c apps/extension/playwright.config.ts",
+    "test:ci": "npm run test && npm run test:e2e:web"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.0",
     "@types/node": "^22.7.0",
+    "@vitest/coverage-v8": "^2.1.3",
+    "happy-dom": "^15.7.4",
     "prettier": "^3.3.3",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.3"
   },
   "engines": {
     "node": ">=20"

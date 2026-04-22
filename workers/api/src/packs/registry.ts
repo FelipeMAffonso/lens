@@ -83,6 +83,12 @@ export const registry: PackRegistry = buildRegistry(
 /**
  * Match a free-text category name against category packs' aliases.
  * Returns the best-matching pack or null.
+ *
+ * Match priority:
+ *  1. Exact alias match.
+ *  2. Substring match — prefer LONGER aliases so "espresso machine in my kitchen"
+ *     resolves to category/espresso-machines (alias "espresso machine", len 16)
+ *     rather than category/kitchen-knives (alias "kitchen", len 7).
  */
 export function findCategoryPack(categoryText: string): CategoryPack | null {
   if (!categoryText) return null;
@@ -92,11 +98,14 @@ export function findCategoryPack(categoryText: string): CategoryPack | null {
   const exact = registry.categoriesByAlias.get(key);
   if (exact) return exact;
 
-  // Substring match either direction.
+  // Longest-alias-first substring match.
+  const candidates: Array<[string, CategoryPack]> = [];
   for (const [alias, pack] of registry.categoriesByAlias.entries()) {
-    if (key.includes(alias) || alias.includes(key)) return pack;
+    if (key.includes(alias) || alias.includes(key)) candidates.push([alias, pack]);
   }
-  return null;
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => b[0].length - a[0].length);
+  return candidates[0]![1];
 }
 
 export function getRegulationsForJurisdiction(jurisdiction: string): RegulationPack[] {

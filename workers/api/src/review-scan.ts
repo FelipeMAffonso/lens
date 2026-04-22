@@ -67,7 +67,7 @@ function temporalClustering(reviews: Review[]): number {
   let maxCluster = 0;
   for (let i = 0; i < dated.length; i++) {
     let j = i;
-    while (j < dated.length && dated[j] - dated[i] <= WINDOW) j++;
+    while (j < dated.length && (dated[j] as number) - (dated[i] as number) <= WINDOW) j++;
     maxCluster = Math.max(maxCluster, j - i);
   }
   return maxCluster / dated.length;
@@ -89,9 +89,11 @@ function languageHomogeneity(reviews: Review[]): number {
   let total = 0;
   let count = 0;
   for (let i = 0; i < sigs.length; i++) {
+    const si = sigs[i]!;
     for (let j = i + 1; j < sigs.length; j++) {
-      const inter = [...sigs[i]].filter((b) => sigs[j].has(b)).length;
-      const union = new Set([...sigs[i], ...sigs[j]]).size;
+      const sj = sigs[j]!;
+      const inter = [...si].filter((b) => sj.has(b)).length;
+      const union = new Set([...si, ...sj]).size;
       if (union > 0) {
         total += inter / union;
         count++;

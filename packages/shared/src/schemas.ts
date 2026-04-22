@@ -23,7 +23,11 @@ export const AuditInputSchema = z.discriminatedUnion("kind", [
   }),
   z.object({
     kind: z.literal("url"),
-    url: z.string().url().max(2000),
+    url: z
+      .string()
+      .url()
+      .max(2000)
+      .refine((v) => /^https?:\/\//i.test(v), { message: "URL must start with http:// or https://" }),
     userPrompt: z.string().max(10_000).optional(),
     category: z.string().max(200).optional(),
   }),
