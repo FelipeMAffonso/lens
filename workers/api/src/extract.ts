@@ -401,6 +401,12 @@ function parseExtractJson(
         ? { name, weight: 1, direction: "higher_is_better" as const, confidence: 0.5 }
         : null;
     }
+    // Judge P2-7: nested arrays (e.g. Opus returning [["wireless","charger"], "fast"])
+    // would silently drop without this warning. Surface for observability.
+    if (Array.isArray(c)) {
+      console.warn("[extract] dropped nested-array criterion: %s", JSON.stringify(c).slice(0, 100));
+      return null;
+    }
     if (!c || typeof c !== "object") return null;
     const obj = c as Record<string, unknown>;
     const name = typeof obj.name === "string" ? obj.name.trim() : "";

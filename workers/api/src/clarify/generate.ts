@@ -130,11 +130,20 @@ function parseOpusResponse(raw: string): ClarifyQuestion[] {
 function sanitizeShift(raw: unknown): Record<string, number> {
   if (!raw || typeof raw !== "object") return {};
   const out: Record<string, number> = {};
+  // Judge P1-8: cap shift at ±0.3. A single answer should not pull a weight
+  // more than 0.3 before renormalize — matches the block's own example shifts
+  // (0.15 / 0.10 / 0.05) and prevents overshoot.
+  // Judge P0-3: cap keys per shift to 8 so a crafted answer can't create 5000
+  // criteria via one POST.
+  let count = 0;
   for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
-    if (typeof v === "number" && Number.isFinite(v)) out[k] = Math.max(-0.5, Math.min(0.5, v));
-    else if (typeof v === "string") {
+    if (count >= 8) break;
+    if (typeof v === "number" && Number.isFinite(v)) {
+      out[k] = Math.max(-0.3, Math.min(0.3, v));
+      count++;
+    } else if (typeof v === "string") {
       const n = Number.parseFloat(v);
-      if (Number.isFinite(n)) out[k] = Math.max(-0.5, Math.min(0.5, n));
+      if (Number.isFinite(n)) { out[k] = Math.max(-0.3, Math.min(0.3, n)); count++; }
     }
   }
   return out;

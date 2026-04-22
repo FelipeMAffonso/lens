@@ -14,6 +14,10 @@ export const POLICIES: RateLimitPolicy[] = [
   { route: "voice", windowSeconds: 86_400, anonLimit: 20, userLimit: 200 },
   { route: "review-scan", windowSeconds: 3600, anonLimit: 100, userLimit: 1000 },
   { route: "passive-scan", windowSeconds: 3600, anonLimit: 60, userLimit: 600 },
+  // Judge P0-4: /clarify + /clarify/apply both fire Opus 4.7 generation.
+  // Unauthed calls without a cap let a botnet burn the Anthropic bill. Tight
+  // window + low anon limit; generous user limit.
+  { route: "clarify", windowSeconds: 3600, anonLimit: 20, userLimit: 200 },
 ];
 
 export function findPolicy(route: string): RateLimitPolicy | undefined {

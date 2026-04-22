@@ -30,6 +30,7 @@ export function routeFromPath(path: string): string | null {
   if (path.startsWith("/voice/transcribe")) return "voice";
   if (path.startsWith("/review-scan")) return "review-scan";
   if (path.startsWith("/passive-scan")) return "passive-scan";
+  if (path.startsWith("/clarify")) return "clarify"; // judge P0-4
   return null;
 }
 

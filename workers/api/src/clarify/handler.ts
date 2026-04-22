@@ -7,7 +7,7 @@ import type { Context } from "hono";
 import type { Env } from "../index.js";
 import type { ClarifyResponse } from "./types.js";
 import { ClarifyRequestSchema, ClarifyApplyRequestSchema, CONFIDENCE_THRESHOLD } from "./types.js";
-import { applyClarificationAnswers, lowConfidenceCriteria } from "./apply.js";
+import { applyClarificationAnswers, ClarifyClipZeroedError, lowConfidenceCriteria } from "./apply.js";
 import { generateQuestions } from "./generate.js";
 
 export async function handleClarify(
@@ -60,9 +60,23 @@ export async function handleClarifyApply(
     return c.json({ error: "invalid_input", issues: parsed.error.issues }, 400);
   }
   const { intent, answers } = parsed.data;
-  const updated = applyClarificationAnswers(
-    { ...intent, rawCriteriaText: intent.rawCriteriaText },
-    answers,
-  );
-  return c.json({ ok: true, intent: updated, updatedAt: new Date().toISOString() });
+  try {
+    const updated = applyClarificationAnswers(
+      { ...intent, rawCriteriaText: intent.rawCriteriaText },
+      answers,
+    );
+    return c.json({ ok: true, intent: updated, updatedAt: new Date().toISOString() });
+  } catch (err) {
+    if (err instanceof ClarifyClipZeroedError) {
+      // Judge P1-6: clip zeroed all weights → refuse rather than silently flatten.
+      return c.json(
+        {
+          error: "clip_zeroed_weights",
+          message: "The applied answers would zero every weight. Please re-prompt or widen your criteria.",
+        },
+        422,
+      );
+    }
+    throw err;
+  }
 }

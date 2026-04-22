@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { UserIntent } from "@lens/shared";
-import { applyClarificationAnswers, lowConfidenceCriteria } from "./apply.js";
+import { applyClarificationAnswers, ClarifyClipZeroedError, lowConfidenceCriteria, MAX_CRITERIA } from "./apply.js";
 import type { ClarifyQuestion } from "./types.js";
 
 function q(id: string, targetCriterion: string, shiftA: Record<string, number>, shiftB: Record<string, number>): ClarifyQuestion {
@@ -41,14 +41,31 @@ describe("applyClarificationAnswers", () => {
     expect(r!.confidence).toBe(0.9);
   });
 
-  it("clips individual weights to [0,1]", () => {
+  it("clips individual weights to [0,1]; positive clip OK", () => {
     const intent = mkIntent([{ name: "a", weight: 0.9, direction: "higher_is_better", confidence: 0.4 }]);
     const question = q("q1", "a", { a: 0.5 }, { a: -0.9 });
     const outA = applyClarificationAnswers(intent, [{ question, answer: { questionId: "q1", chose: "A" } }]);
-    expect(outA.criteria[0]!.weight).toBe(1); // 0.9 + 0.5 = 1.4 → clipped to 1 → renormalized to 1 (single criterion)
-    const outB = applyClarificationAnswers(intent, [{ question, answer: { questionId: "q1", chose: "B" } }]);
-    // 0.9 - 0.9 = 0, renormalize uniform → 1
-    expect(outB.criteria[0]!.weight).toBe(1);
+    expect(outA.criteria[0]!.weight).toBe(1); // 0.9 + 0.5 = 1.4 → clipped to 1 → renormalized to 1
+  });
+
+  it("(judge P1-6) throws ClarifyClipZeroedError when clip zeros every weight", () => {
+    const intent = mkIntent([{ name: "a", weight: 0.9, direction: "higher_is_better", confidence: 0.4 }]);
+    const question = q("q1", "a", { a: 0 }, { a: -0.9 });
+    expect(() =>
+      applyClarificationAnswers(intent, [{ question, answer: { questionId: "q1", chose: "B" } }]),
+    ).toThrow(ClarifyClipZeroedError);
+  });
+
+  it("(judge P0-3) caps criteria count at MAX_CRITERIA after apply", () => {
+    // Craft an answer that creates 30 new criteria.
+    const intent = mkIntent([{ name: "base", weight: 1, direction: "higher_is_better", confidence: 0.4 }]);
+    const bloatShift: Record<string, number> = {};
+    for (let i = 0; i < 30; i++) bloatShift[`crit_${i}`] = 0.1;
+    const question = q("q1", "base", bloatShift, { base: 0 });
+    const out = applyClarificationAnswers(intent, [{ question, answer: { questionId: "q1", chose: "A" } }]);
+    expect(out.criteria.length).toBeLessThanOrEqual(MAX_CRITERIA);
+    const total = out.criteria.reduce((s, c) => s + c.weight, 0);
+    expect(total).toBeCloseTo(1, 6);
   });
 
   it("creates new criteria when shift targets unknown names", () => {
@@ -122,8 +139,9 @@ describe("lowConfidenceCriteria", () => {
     expect(lowConfidenceCriteria(intent, 0.6)).toEqual(["a", "c"]);
   });
 
-  it("defaults confidence to 1 when missing", () => {
+  it("(judge P1-9) defaults missing confidence to threshold — no accidental trigger", () => {
     const intent = mkIntent([{ name: "a", weight: 1, direction: "higher_is_better" }]);
+    // conf defaults to threshold (0.6); not < 0.6 so not flagged.
     expect(lowConfidenceCriteria(intent, 0.6)).toEqual([]);
   });
 

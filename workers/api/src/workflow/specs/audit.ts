@@ -129,18 +129,26 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
     {
       id: "enrich",
       label: "Parallel enrichments (scam, breach, price, provenance, sponsorship)",
-      inputsFrom: ["extract", "search", "rank"],
-      timeoutMs: 20_000,
+      // Judge P1-3: enrich only needs extract + search. Previously declared
+      // `rank` as an input which made Kahn put enrich in a later batch, blocking
+      // behind verify's 90s timeout even though enrich doesn't use verify or
+      // ranked order. AI-pick matching works on name-substring so candidate
+      // iteration order is irrelevant — insertion-order `search` works the
+      // same as utility-order `rank` for the enrichment signals.
+      inputsFrom: ["extract", "search"],
+      // Judge P3-9: enrich is pure CPU — deterministic hash + fixture lookup +
+      // Levenshtein. 20s was 100× over-provisioned. Drop to 2s so a future
+      // refactor that adds I/O fails fast.
+      timeoutMs: 2_000,
       handler: async (input, ctx) => {
         const env = ctx.env as unknown as Env;
-        const { extract, search, rank: ranked } = input as {
+        const { extract, search } = input as {
           extract: ExtractOut;
           search: SearchOut;
-          rank: RankOut;
         };
         const aiPickName = extract.aiRecommendation.pickedProduct?.name?.toLowerCase() ?? "";
         const aiPickCandidate = aiPickName
-          ? ranked.find(
+          ? search.find(
               (c) =>
                 typeof c.name === "string" &&
                 c.name.trim().length > 0 &&
@@ -290,7 +298,7 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
             crossModel: tCrossModel - tExtract,
             verify: tVerify - tSearch,
             rank: tRank - tSearch,
-            ...(tEnrich ? { enrich: tEnrich - Math.max(tVerify, tRank) } : {}),
+            ...(tEnrich ? { enrich: tEnrich - tSearch } : {}),
             total: tNow - t0,
           },
           createdAt: new Date().toISOString(),
