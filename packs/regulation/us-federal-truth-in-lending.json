@@ -1,0 +1,38 @@
+{
+  "slug": "regulation/us-federal-truth-in-lending",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "Truth in Lending Act (TILA) / Regulation Z",
+  "summary": "Federal consumer credit disclosure law requiring standardized APR and fee disclosures.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "TILA (15 U.S.C. 1601 et seq., implemented by CFPB Regulation Z, 12 CFR Part 1026) requires lenders to disclose APR, finance charge, amount financed, and total payments in a standardized format.", "sourceUrl": "https://www.consumerfinance.gov/rules-policy/regulations/1026/", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "CFPB 2024 interpretive rule treats Pay-in-4 BNPL providers as 'credit card' issuers under TILA, subjecting them to disclosure obligations and chargeback rights.", "sourceUrl": "https://www.consumerfinance.gov/about-us/newsroom/cfpb-takes-action-to-ensure-buy-now-pay-later-lenders-adhere-to-consumer-protections/", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "us-federal",
+    "productCategories": ["credit-cards", "mortgages", "auto-loans", "student-loans", "bnpl"],
+    "businessScope": { "appliesTo": ["consumer-credit-extensions", "closed-end-loans", "open-end-credit"] }
+  },
+  "body": {
+    "officialName": "Truth in Lending Act / Regulation Z",
+    "citation": "15 U.S.C. §§ 1601-1667f; 12 CFR Part 1026",
+    "status": "in-force",
+    "effectiveDate": "1969-07-01",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "Requires standardized disclosure of APR, finance charge, amount financed, total of payments, and payment schedule in a Schumer-Box-like format for consumer credit. Also grants right of rescission on certain home-secured loans. CFPB enforces (E1). BNPL 'pay-in-4' lenders are now covered as credit-card issuers (E2).",
+    "userRightsPlainLanguage": "Any lender extending credit to US consumers must give you the APR, total cost, and payment schedule in a standardized box BEFORE you sign. For refinanced home loans, you have 3 business days to rescind. Buy-Now-Pay-Later providers must also provide these disclosures and honor chargebacks like credit card issuers.",
+    "enforcementSignals": [
+      { "action": "cfpb-complaint", "url": "https://www.consumerfinance.gov/complaint/", "description": "CFPB is the primary TILA enforcer." }
+    ],
+    "evidenceRefs": ["E1", "E2"]
+  }
+}

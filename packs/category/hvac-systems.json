@@ -1,0 +1,55 @@
+{
+  "slug": "category/hvac-systems",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "HVAC systems (home)",
+  "summary": "Central air conditioners, heat pumps, furnaces — high-cost home-improvement category.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "SEER2 is the current US efficiency rating for AC/heat pumps (replaced SEER in 2023). Higher SEER2 = more efficient. Federal minimums: SEER2 14.3 (north) / 14.3 (south) for split ACs.", "sourceUrl": "https://www.energy.gov/energysaver/central-air-conditioning", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Inflation Reduction Act tax credits of up to 30% or $2,000 (whichever is less) for heat-pump purchases, through 2032.", "sourceUrl": "https://www.irs.gov/credits-deductions/energy-efficient-home-improvement-credit", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["hvac", "air conditioner", "heat pump", "furnace", "central ac"],
+    "productTags": ["hvac", "home-appliance"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "seer2_rating", "unit": "SEER2", "direction": "higher_is_better", "typicalRange": [14, 26], "notes": "Federal minimum 14.3 (E1); Energy Star 16+; premium 20+." },
+      { "name": "hspf2_rating", "unit": "HSPF2", "direction": "higher_is_better", "typicalRange": [6.7, 11], "notes": "Heating efficiency (heat pumps)." },
+      { "name": "capacity_tons", "unit": "tons", "direction": "target", "typicalRange": [1.5, 5], "notes": "Right-size for square footage; oversized AC cools unevenly." },
+      { "name": "variable_speed", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "warranty_years_parts", "unit": "years", "direction": "higher_is_better", "typicalRange": [5, 12] },
+      { "name": "warranty_years_compressor", "unit": "years", "direction": "higher_is_better", "typicalRange": [5, 12] },
+      { "name": "price_installed", "unit": "USD", "direction": "lower_is_better", "typicalRange": [5000, 25000] }
+    ],
+    "specNormalization": {
+      "seer2_rating": { "regex": "(\\d+(?:\\.\\d+)?)\\s*SEER2?", "unit": "SEER2" },
+      "capacity_tons": { "regex": "(\\d+(?:\\.\\d+)?)\\s*ton", "unit": "tons" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "Seer 20 / high efficiency", "reality": "SEER is the old rating; SEER2 replaced it in 2023. A SEER 20 model is SEER2 ~19. Marketing sometimes still uses SEER (E1).", "verdict": "misleading", "checkPrompt": "Is the cited rating SEER or SEER2? They differ by ~5%." },
+      { "pattern": "lifetime warranty on compressor", "reality": "Almost always parts-only; labor is 1-5 years typical. A compressor replacement labor job runs $1000-$2500.", "verdict": "misleading", "checkPrompt": "Does the lifetime warranty cover labor? Typically no." },
+      { "pattern": "qualifies for $5000 tax credit", "reality": "Actual cap is 30% up to $2000 for heat pumps (E2). Sometimes combined with state rebates for higher totals, but the federal cap is firm.", "verdict": "false", "checkPrompt": "Has the user verified the specific federal + state rebate stack for their jurisdiction?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Home size and insulation? Over-sizing is a common HVAC mistake; Manual J load calculation is standard.",
+      "Electric panel capacity? Heat pumps may require panel upgrade ($1500-$3000).",
+      "Ductwork condition? Older ductwork may need sealing or replacement to get SEER2 benefits."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Installation labor ($3000-$8000)", "annualCostUsd": [3000, 8000], "frequency": "one-time" },
+      { "name": "Annual maintenance contract", "annualCostUsd": [150, 350], "frequency": "annual" },
+      { "name": "Duct modifications", "annualCostUsd": [500, 4000], "frequency": "one-time" },
+      { "name": "Refrigerant recharges (older R-22 systems)", "annualCostUsd": [150, 600], "frequency": "conditional" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "moderate", "notes": "Licensed-HVAC only for refrigerant work; major brands have parts availability 10-15 years." }
+  }
+}

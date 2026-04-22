@@ -1,0 +1,55 @@
+{
+  "slug": "category/electric-bikes",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Electric bikes (e-bikes)",
+  "summary": "Consumer e-bikes $600-$8000, Class 1/2/3, pedal-assist and throttle.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "US e-bike Class 1 = pedal-assist to 20mph. Class 2 = throttle to 20mph. Class 3 = pedal-assist to 28mph. Class determines where the bike is legal to ride (trails, bike lanes, streets).", "sourceUrl": "https://peopleforbikes.org/electric-bikes/", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "UL 2849 is the voluntary US safety certification for e-bike electrical systems; many e-bike fires have been traced to uncertified battery packs.", "sourceUrl": "https://www.nyc.gov/site/fdny/life-safety/electrical-safety/electric-bike-safety.page", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["ebike", "e-bike", "electric bike", "electric bicycle", "pedal-assist bike"],
+    "productTags": ["ebike", "transportation"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "class", "unit": "categorical", "direction": "target", "typicalRange": ["Class 1", "Class 2", "Class 3"], "notes": "Class determines legal-to-ride zones (E1)." },
+      { "name": "motor_watts", "unit": "watts", "direction": "higher_is_better", "typicalRange": [250, 750], "notes": "750W is the federal max; anything above isn't a consumer-class e-bike (E1)." },
+      { "name": "battery_wh", "unit": "Wh", "direction": "higher_is_better", "typicalRange": [250, 1000] },
+      { "name": "range_miles", "unit": "miles", "direction": "higher_is_better", "typicalRange": [15, 80] },
+      { "name": "ul_2849_certified", "unit": "boolean", "direction": "binary", "target": true, "notes": "Safety certification — fires are non-trivial risk with uncertified packs (E2)." },
+      { "name": "weight_lbs", "unit": "lbs", "direction": "lower_is_better", "typicalRange": [40, 80] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [600, 8000] }
+    ],
+    "specNormalization": {
+      "motor_watts": { "regex": "(\\d+)\\s*(?:W|watt)", "unit": "watts" },
+      "battery_wh": { "regex": "(\\d+(?:\\.\\d+)?)\\s*Wh", "unit": "Wh" },
+      "range_miles": { "regex": "(\\d+)\\s*(?:mile|mi)", "unit": "miles" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "60-mile range", "reality": "Range claims are manufacturer-best-case: flat terrain, lightest rider, lowest assist level. Real-world range on hilly terrain at moderate assist is 40-60% of claimed (E1).", "verdict": "misleading", "checkPrompt": "Is the range figure specified with assist level and terrain assumptions?" },
+      { "pattern": "powerful 750W motor", "reality": "750W is the FEDERAL CAP for consumer e-bikes, not a differentiator. Motor peak wattage matters less than torque (Nm) for hill-climbing.", "verdict": "misleading", "checkPrompt": "Is peak wattage framed as premium? 750W is the regulatory max, not a feature." },
+      { "pattern": "safe certified battery", "reality": "Check for UL 2849 specifically. 'Safety tested in-house' or generic 'CE' marks don't match UL 2849's scope (E2).", "verdict": "misleading", "checkPrompt": "Is the battery UL 2849 certified specifically?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "E-bike below $500 from direct-from-China marketplace seller", "action": "flag — likely uncertified battery, documented fire risk (E2)" }
+    ],
+    "compatibilityQuestions": [
+      "Where will you ride? Class 3 not allowed on most multi-use paths.",
+      "Bike storage: indoor or outdoor? Uncertified batteries should NEVER be indoor-charged per NYC FDNY."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Replacement battery (after 500-1000 charge cycles, typically 2-4 years)", "annualCostUsd": [300, 900], "frequency": "every few years" },
+      { "name": "Helmet, lock, lights", "annualCostUsd": [100, 300], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "bicycle", "typicalPartsAvailability": "moderate", "notes": "Bosch-motor bikes have strong parts support. Direct-from-China brands often have replace-whole-motor-assembly only." }
+  }
+}

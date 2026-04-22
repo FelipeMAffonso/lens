@@ -4,18 +4,31 @@
     <meta charset="UTF-8" />
     <title>Lens</title>
     <style>
-      body { width: 320px; font: 14px system-ui, -apple-system, "Segoe UI", sans-serif; padding: 12px; }
-      button { width: 100%; padding: 10px; font-weight: 600; border: 0; border-radius: 6px; background: #1a7f37; color: white; cursor: pointer; }
-      a { color: #8250df; text-decoration: none; }
-      #status { color: #57606a; font-size: 12px; margin-top: 8px; }
+      body { width: 340px; margin: 0; background: #0a0c10; color: #e9edf5; font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+      .wrap { padding: 14px; }
+      h3 { margin: 0 0 10px; font-size: 16px; letter-spacing: -0.01em; }
+      .tagline { color: #9aa4b8; font-size: 12px; margin: 0 0 12px; }
+      button { width: 100%; padding: 10px; font-weight: 600; border: 0; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 13px; margin-bottom: 6px; }
+      .primary { background: #7ee787; color: #0a0c10; }
+      .secondary { background: #262c3a; color: #e9edf5; }
+      .primary:hover, .secondary:hover { filter: brightness(1.1); }
+      #status { color: #9aa4b8; font-size: 12px; margin-top: 8px; border-top: 1px solid #262c3a; padding-top: 8px; }
+      a { color: #60a5fa; text-decoration: none; }
+      .hits { display: none; margin-top: 8px; padding: 8px; background: #131720; border: 1px solid #262c3a; border-radius: 6px; }
+      .hits.show { display: block; }
+      .hit-row { font-size: 11px; color: #ffa657; margin-bottom: 4px; }
     </style>
   </head>
   <body>
-    <h3 style="margin:0 0 8px">Lens</h3>
-    <p style="margin:0 0 12px; color:#57606a">Click to audit the current page's AI recommendation.</p>
-    <button id="audit">Audit this page</button>
-    <div id="status"></div>
-    <p style="margin-top:12px"><a href="https://github.com/felipemaffonso/lens" target="_blank">GitHub</a></p>
+    <div class="wrap">
+      <h3>◉ Lens</h3>
+      <p class="tagline">Your independent shopping agent.</p>
+      <button class="primary" id="audit-page">Audit this page in Lens</button>
+      <button class="secondary" id="rescan">Re-scan for dark patterns</button>
+      <div class="hits" id="hits-panel"></div>
+      <div id="status">Ready.</div>
+      <p style="margin-top: 10px; font-size: 11px;"><a href="https://lens-b1h.pages.dev" target="_blank">Open dashboard</a> · <a href="https://github.com/FelipeMAffonso/lens" target="_blank">GitHub</a></p>
+    </div>
     <script src="popup.js"></script>
   </body>
 </html>

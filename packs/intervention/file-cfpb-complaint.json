@@ -1,0 +1,43 @@
+{
+  "slug": "intervention/file-cfpb-complaint",
+  "type": "intervention",
+  "version": "1.0.0",
+  "name": "File CFPB consumer complaint",
+  "summary": "Route a financial-product complaint to the CFPB's consumer complaint database.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "CFPB's complaint portal at consumerfinance.gov/complaint accepts complaints about credit cards, mortgages, debt collection, credit reports, student loans, bank accounts, and BNPL products. Companies are required to respond within 15 days.", "sourceUrl": "https://www.consumerfinance.gov/complaint/", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "triggerTypes": ["financial-product-issue", "unfair-deceptive-practice", "credit-error", "unauthorized-charge"] },
+  "body": {
+    "canonicalName": "File CFPB consumer complaint",
+    "description": "Draft a complaint narrative with the user's details, the financial product, and the alleged violation. CFPB publishes complaint summaries publicly (the CFPB Consumer Complaint Database) — increasing public pressure on the company.",
+    "executionType": "escalate-regulator",
+    "consentTier": "explicit-per-action",
+    "prerequisites": [
+      { "kind": "product-identified", "description": "User has named the financial product/service" },
+      { "kind": "company-identified", "description": "User has named the company (or the company can be inferred from the product)" }
+    ],
+    "template": {
+      "format": "cfpb-complaint-narrative",
+      "fields": {
+        "product": "{product_category}",
+        "issue": "{issue_category}",
+        "narrative": "On {date}, I {interaction}. The company {company} engaged in {alleged_violation}. This appears to violate {regulation_cited}. I have attempted to resolve directly by {resolution_attempts} with {outcome}. I am seeking {remedy_sought}."
+      }
+    },
+    "successSignals": [
+      { "kind": "company-response", "within": "15 days", "description": "CFPB requires company response within 15 days" },
+      { "kind": "cfpb-casework", "description": "Higher-tier complaints escalated to CFPB casework" }
+    ],
+    "failureFallback": {
+      "nextIntervention": "intervention/file-ftc-complaint"
+    },
+    "regulatoryBasis": ["regulation/us-federal-truth-in-lending"]
+  }
+}

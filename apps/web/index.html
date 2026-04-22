@@ -76,6 +76,12 @@
             <button class="chip" data-example-url="https://www.amazon.com/gp/product/B07NVSXLF4">Amazon espresso example</button>
             <button class="chip" data-example-url="https://www.lenovo.com/us/en/p/laptops/thinkpad/thinkpad-e-series/thinkpad-e14-gen-5-amd/len101t0043">ThinkPad E14 example</button>
           </div>
+          <div style="margin-top: 10px; padding-top: 14px; border-top: 1px dashed var(--border);">
+            <label for="photo-input">Or upload a photo of the product</label>
+            <input id="photo-input" type="file" accept="image/png,image/jpeg" />
+            <label for="photo-prompt" style="margin-top: 10px;">Context (optional)</label>
+            <input id="photo-prompt" type="text" placeholder="e.g. saw this at the store, considering it" />
+          </div>
         </div>
 
         <div class="mode-section hidden" id="text-section">
