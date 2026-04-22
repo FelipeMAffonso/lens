@@ -5,23 +5,70 @@ import { lookupCatalog } from "./fixtureCatalog.js";
 import { findCategoryPack } from "./packs/registry.js";
 
 /**
- * Candidate search.
+ * Candidate search — B1 architecture: always web_search, merge with pack SKUs.
  *
- * Two modes:
- *  - "fixture" (LENS_SEARCH_MODE=fixture): deterministic, hand-curated catalog. Fast (<10 ms).
- *    Used for the submission demo and CI regression tests.
- *  - "real" (default): live Opus 4.7 web search with dynamic filtering. Slower (~30-90 s) and
- *    subject to Cloudflare subrequest timeout — capped aggressively to fit.
+ * Previous design let LENS_SEARCH_MODE=fixture skip the live web search entirely
+ * for categories with packs — which meant the audit ran against a tiny, stale,
+ * category-locked set that was years out of date. The user's directive
+ * (2026-04-22): "everything has to have web search".
+ *
+ * New design:
+ *  1. Build a `seed` candidate list from pack.representativeSkus + fixtureCatalog
+ *     when available (deterministic, fast). Cap at 5 seed entries.
+ *  2. Run Opus 4.7 web_search_20260209 in parallel — always — to pull 6-8 live
+ *     products from the real web.
+ *  3. Merge + dedup by normalized (brand, name). Web results take precedence
+ *     on duplicates (they have current prices + fresh URLs), but pack SKUs are
+ *     retained when web missed them (known-good demo stability).
+ *  4. Return merged list (up to 12 candidates) to the pipeline.
+ *
+ * LENS_SEARCH_MODE=fixture remains as an escape hatch for CI regression tests
+ * and offline demos — it disables the web call so rank tests are hermetic.
  */
 export async function searchCandidates(intent: UserIntent, env: Env): Promise<Candidate[]> {
+  const seedCandidates = collectSeeds(intent);
+
+  // Fixture-only mode (CI regression, offline demo) — skip the web call.
+  // Kept as the escape hatch so hermetic tests don't hit the network.
   if (env.LENS_SEARCH_MODE === "fixture") {
-    // Prefer pack-declared representativeSkus when available; this is the
-    // G13 SKU index: every category pack can ship its own SKU fixtures.
-    const pack = findCategoryPack(intent.category);
-    const skus = pack?.body.representativeSkus;
-    if (skus && skus.length > 0) {
-      console.log("[search] fixture: using %d representativeSkus from pack %s", skus.length, pack.slug);
-      return skus.map((s) => ({
+    console.log("[search] fixture mode (escape hatch): %d seeds, skipping web_search", seedCandidates.length);
+    return seedCandidates;
+  }
+
+  // Always call web_search (the new default). Run it unconditionally so every
+  // audit gets fresh live data, not a stale cached fixture.
+  let webCandidates: Candidate[] = [];
+  try {
+    webCandidates = await webSearchCandidates(intent, env);
+  } catch (err) {
+    const e = err as Error;
+    console.error("[search] web_search failed: %s", e.message);
+    // If web fails and we have seeds, return seeds so the pipeline still produces something.
+    if (seedCandidates.length > 0) {
+      console.warn("[search] falling back to %d seeds after web failure", seedCandidates.length);
+      return seedCandidates;
+    }
+    // No seeds + failed web = honest empty. Pipeline will emit a warning.
+    return [];
+  }
+
+  const merged = mergeCandidates(seedCandidates, webCandidates);
+  console.log(
+    "[search] seeds=%d web=%d merged=%d",
+    seedCandidates.length,
+    webCandidates.length,
+    merged.length,
+  );
+  return merged.slice(0, 12);
+}
+
+function collectSeeds(intent: UserIntent): Candidate[] {
+  const seeds: Candidate[] = [];
+  const pack = findCategoryPack(intent.category);
+  const skus = pack?.body.representativeSkus;
+  if (skus && skus.length > 0) {
+    for (const s of skus.slice(0, 5)) {
+      seeds.push({
         name: s.name,
         brand: s.brand,
         price: s.priceUsd ?? null,
@@ -32,20 +79,26 @@ export async function searchCandidates(intent: UserIntent, env: Env): Promise<Ca
         attributeScores: {},
         utilityScore: 0,
         utilityBreakdown: [],
-      }));
+      });
     }
-    const legacy = lookupCatalog(intent.category);
-    if (legacy.length > 0) {
-      console.log("[search] fixture: using %d legacy catalog entries for %s", legacy.length, intent.category);
-      return legacy;
-    }
-    // Fixture missed — DO NOT silently return espresso. Fall through to live
-    // web_search so the user sees real products for their actual category,
-    // not a category-switching bait-and-switch.
-    console.warn("[search] fixture miss for category=%s — falling through to live web_search", intent.category);
   }
+  if (seeds.length === 0) {
+    const legacy = lookupCatalog(intent.category);
+    for (const c of legacy.slice(0, 5)) seeds.push(c);
+  }
+  return seeds;
+}
 
-  // LIVE WEB SEARCH PATH
+function mergeCandidates(seeds: Candidate[], web: Candidate[]): Candidate[] {
+  // Dedup by normalized (brand|name). Web wins on conflicts.
+  const key = (c: Candidate) => `${(c.brand ?? "").toLowerCase().trim()}|${(c.name ?? "").toLowerCase().trim()}`;
+  const out = new Map<string, Candidate>();
+  for (const s of seeds) out.set(key(s), s);
+  for (const w of web) out.set(key(w), w);
+  return [...out.values()];
+}
+
+async function webSearchCandidates(intent: UserIntent, env: Env): Promise<Candidate[]> {
   const anthropic = client(env);
 
   const system = `You are a product research agent. Find 6-8 real products matching the user's category and criteria.
@@ -55,7 +108,7 @@ No prose outside the JSON. No markdown fences.`;
 
   const userText = [
     `CATEGORY: ${intent.category}`,
-    `CRITERIA: ${intent.criteria.map((c) => `${c.name} (${c.direction}, weight ${c.weight.toFixed(2)})`).join(", ")}`,
+    `CRITERIA: ${(intent.criteria ?? []).map((c) => `${c.name} (${c.direction}, weight ${Number(c.weight ?? 0).toFixed(2)})`).join(", ")}`,
     intent.budget
       ? `BUDGET: up to ${intent.budget.max ?? "no cap"} ${intent.budget.currency}`
       : "",
@@ -86,9 +139,8 @@ No prose outside the JSON. No markdown fences.`;
   console.log("[search] raw_text_length=%d first_200=%s", text.length, text.slice(0, 200));
 
   if (!text.trim()) {
-    throw new Error(
-      `search returned empty text; ${res.content.length} blocks of types: ${res.content.map((b) => b.type).join(",")}`,
-    );
+    console.warn("[search] empty web response: %d blocks of types %s", res.content.length, res.content.map((b) => b.type).join(","));
+    return [];
   }
 
   const json = stripFences(text);
@@ -96,10 +148,12 @@ No prose outside the JSON. No markdown fences.`;
   try {
     parsed = JSON.parse(json);
   } catch {
-    throw new Error(`search returned non-JSON: ${json.slice(0, 300)}`);
+    console.warn("[search] non-JSON response: %s", json.slice(0, 300));
+    return [];
   }
   if (!parsed.candidates || !Array.isArray(parsed.candidates)) {
-    throw new Error(`search response missing 'candidates' array: keys=${Object.keys(parsed).join(",")}`);
+    console.warn("[search] response missing 'candidates' array: keys=%s", Object.keys(parsed).join(","));
+    return [];
   }
   // Judge P0 #2: Opus-freelanced candidates can arrive without `name`, with
   // null/string prices, or with missing `brand`. Validate + coerce before

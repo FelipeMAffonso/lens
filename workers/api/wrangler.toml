@@ -4,9 +4,10 @@ compatibility_date = "2026-04-21"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-# "fixture" uses the hardcoded catalog in src/fixtureCatalog.ts (fast, deterministic — demo default).
-# "real" hits the live Opus 4.7 web_search tool.
-LENS_SEARCH_MODE = "fixture"
+# B1 (2026-04-22): default changed to "real" per user directive "everything has to have web search".
+# Every audit now runs Opus 4.7 web_search_20260209 and merges with pack representativeSkus.
+# "fixture" = escape hatch for CI regression tests only — seeds-only, no network.
+LENS_SEARCH_MODE = "real"
 MAGIC_LINK_BASE_URL = "https://lens-b1h.pages.dev"
 RESEND_FROM_EMAIL = "Lens <no-reply@lens.example>"
 
