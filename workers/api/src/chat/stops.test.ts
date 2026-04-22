@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isReadyToGenerate,
   lastAssistantEndedInQuestion,
+  lastUserEndedInQuestion,
   userGaveEverything,
   userTurnCount,
   type ChatTurn,
@@ -81,6 +82,59 @@ describe("isReadyToGenerate (Study 3 gate)", () => {
       u("thin bezel"),
     ];
     // 4 user turns, last bot asked Q — still ready per hard ceiling.
+    expect(isReadyToGenerate(turns)).toBe(true);
+  });
+});
+
+describe("lastUserEndedInQuestion (calibration fix from 2026-04-22 user feedback)", () => {
+  it("detects explicit ? suffix", () => {
+    expect(lastUserEndedInQuestion([u("why are you asking about stationary desk stand?")])).toBe(
+      true,
+    );
+  });
+
+  it("detects question-word openers even without `?`", () => {
+    expect(lastUserEndedInQuestion([u("why are you asking about stationary desk stand")])).toBe(
+      true,
+    );
+    expect(lastUserEndedInQuestion([u("what is a stationary desk stand")])).toBe(true);
+    expect(lastUserEndedInQuestion([u("how does that differ")])).toBe(true);
+    expect(lastUserEndedInQuestion([u("which one is better")])).toBe(true);
+  });
+
+  it("returns false for a plain preference statement", () => {
+    expect(lastUserEndedInQuestion([u("budget around $200 fully automatic please")])).toBe(false);
+  });
+
+  it("returns false when there are no user turns", () => {
+    expect(lastUserEndedInQuestion([a("hi")])).toBe(false);
+  });
+});
+
+describe("isReadyToGenerate calibration: user question blocks audit", () => {
+  it("does NOT trigger audit on 4th user turn when that turn is a question", () => {
+    const turns: ChatTurn[] = [
+      u("espresso"),
+      a("Budget?"),
+      u("under $300"),
+      a("automatic or manual?"),
+      u("both are fine"),
+      a("What matters more, noise level or speed?"),
+      u("what do you mean by noise level"),
+    ];
+    expect(isReadyToGenerate(turns)).toBe(false);
+  });
+
+  it("still triggers audit when last user turn is a real preference + 4 turns", () => {
+    const turns: ChatTurn[] = [
+      u("espresso"),
+      a("Budget?"),
+      u("under $300"),
+      a("auto or manual?"),
+      u("automatic"),
+      a("ice or no ice?"),
+      u("ice please"),
+    ];
     expect(isReadyToGenerate(turns)).toBe(true);
   });
 });

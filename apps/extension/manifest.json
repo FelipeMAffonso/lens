@@ -20,7 +20,10 @@
     "https://*.walmart.com/*",
     "https://*.target.com/*",
     "https://*.homedepot.com/*",
-    "https://*.costco.com/*"
+    "https://*.costco.com/*",
+    "https://*.ebay.com/*",
+    "https://www.facebook.com/marketplace/*",
+    "https://*.mercari.com/*"
   ],
   "content_scripts": [
     {
@@ -36,7 +39,10 @@
         "https://*.walmart.com/*",
         "https://*.target.com/*",
         "https://*.homedepot.com/*",
-        "https://*.costco.com/*"
+        "https://*.costco.com/*",
+        "https://*.ebay.com/*",
+        "https://www.facebook.com/marketplace/*",
+        "https://*.mercari.com/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle",

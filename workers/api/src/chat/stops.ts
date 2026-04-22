@@ -26,7 +26,31 @@ export function lastAssistantEndedInQuestion(turns: ChatTurn[]): boolean {
   return false;
 }
 
+// 2026-04-22 user-feedback calibration fix: if the USER's last message is
+// itself a question to Lens (e.g. "why are you asking about X?", "what does
+// X mean?"), we must NOT trigger the audit — even if the hard 4-turn ceiling
+// would otherwise. The user is still in dialogue, not ready to commit.
+export function lastUserEndedInQuestion(turns: ChatTurn[]): boolean {
+  for (let i = turns.length - 1; i >= 0; i--) {
+    const t = turns[i]!;
+    if (t.role === "user") {
+      const trimmed = t.text.trimEnd();
+      if (/[?？؟][\s)\]\"'*]*$/.test(trimmed)) return true;
+      // Also treat short "what" / "why" / "how" questions without a `?` as
+      // questions (conversational users often skip punctuation).
+      if (/^(what|why|how|huh|eh|which|can you|could you|would you)\b/i.test(t.text.trim())) {
+        return true;
+      }
+      return false;
+    }
+  }
+  return false;
+}
+
 export function isReadyToGenerate(turns: ChatTurn[]): boolean {
+  // User-feedback calibration: never trigger audit when the user's last
+  // message is a question back to Lens. They want an answer, not a recco.
+  if (lastUserEndedInQuestion(turns)) return false;
   const u = userTurnCount(turns);
   if (u >= 4) return true;
   if (u >= 3 && !lastAssistantEndedInQuestion(turns)) return true;

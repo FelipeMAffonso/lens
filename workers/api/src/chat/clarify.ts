@@ -42,7 +42,14 @@ export type ChatClarifyResponse =
 // and a few more. Keeps non-negotiable #8 load-bearing.
 const AFFIL_PATTERN = /\b(?:ref|ref_|tag|utm_[a-z_]+|gclid|fbclid|msclkid|ascsubtag|pd_rd_[a-z]+|linkCode|irclickid|clickid|affid|aff_id|aff_sub\d*|aff_trace_key|partner|campaign_id|ranMID|ranSiteID|smid|bltag|sref)=[^\s&#]+/gi;
 function scrubClarifierText(s: string): string {
-  return s.replace(AFFIL_PATTERN, "").replace(/\s{2,}/g, " ").trim();
+  // Also strip em-dashes defensively. Prompt rules say "no em-dashes" but
+  // Opus occasionally emits them anyway. Normalize both the em-dash (—) and
+  // en-dash (–) to a comma + space.
+  return s
+    .replace(AFFIL_PATTERN, "")
+    .replace(/\s*[—–]\s*/g, ", ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 export async function handleChatClarify(

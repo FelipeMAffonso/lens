@@ -22,7 +22,24 @@ export function lastAssistantEndedInQ(turns: Turn[]): boolean {
   return false;
 }
 
+export function lastUserEndedInQ(turns: Turn[]): boolean {
+  for (let i = turns.length - 1; i >= 0; i--) {
+    const t = turns[i]!;
+    if (t.role === "user") {
+      const trimmed = t.text.trimEnd();
+      if (/[?？؟][\s)\]\"'*]*$/.test(trimmed)) return true;
+      if (/^(what|why|how|huh|eh|which|can you|could you|would you)\b/i.test(t.text.trim())) {
+        return true;
+      }
+      return false;
+    }
+  }
+  return false;
+}
+
 export function shouldTriggerAudit(turns: Turn[]): boolean {
+  // Calibration fix: if the user's last turn is a question, keep clarifying.
+  if (lastUserEndedInQ(turns)) return false;
   const u = userTurns(turns);
   if (u >= 4) return true;
   if (u >= 3 && !lastAssistantEndedInQ(turns)) return true;

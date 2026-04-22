@@ -14,6 +14,7 @@ import { upgradeBadge, findBadgeByBrignullId, type BadgeConfirmation } from "./c
 import { bootPriceHistory } from "./content/retail/price-history-badge.js";
 import { bootCheckoutSummary, isCartOrCheckout } from "./content/retail/cart-summary-badge.js";
 import { bootReviewScan } from "./content/retail/review-scan-badge.js";
+import { bootCounterfeit } from "./content/retail/counterfeit-badge.js";
 
 type HostAI = "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
 
@@ -160,6 +161,11 @@ const boot = (): void => {
     setTimeout(() => {
       void bootReviewScan();
     }, 1500);
+    // V-EXT-INLINE-i: marketplace counterfeit badge. eBay / Amazon-3P /
+    // FB Marketplace / Walmart-3P / Mercari only. Short delay for SPA paint.
+    setTimeout(() => {
+      void bootCounterfeit();
+    }, 1600);
     // V-EXT-INLINE-f: cart/checkout-summary badge. Runs after a short delay so
     // the passive-scan hit-list stabilizes first; composes the hits into a
     // single checkout-readiness verdict.
@@ -194,8 +200,18 @@ setTimeout(boot, 2500);
 // Amazon pushState between product + cart pages. Re-run both retail boots.
 function retailReboot(): void {
   if (window !== window.top) return;
+  // Judge P1-6 (V-EXT-INLINE-i): sweep stale counterfeit-host badges on SPA
+  // nav so the new listing can render fresh. The WeakSet of anchors doesn't
+  // survive anchor-element replacement.
+  document
+    .querySelectorAll('[data-lens="counterfeit-host"]')
+    .forEach((el) => el.remove());
+  document
+    .querySelectorAll('[data-lens-counterfeit]')
+    .forEach((el) => el.removeAttribute("data-lens-counterfeit"));
   void bootPriceHistory();
   void bootReviewScan();
+  void bootCounterfeit();
   if (isCartOrCheckout()) {
     try {
       const hits = scanDocument();

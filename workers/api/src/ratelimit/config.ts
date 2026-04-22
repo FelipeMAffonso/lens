@@ -34,6 +34,10 @@ export const POLICIES: RateLimitPolicy[] = [
   { route: "chat-clarify", windowSeconds: 3600, anonLimit: 60, userLimit: 600 },
   // CJ-W53: follow-up uses 1M-context (heavier). Much lower anon ceiling.
   { route: "chat-followup", windowSeconds: 3600, anonLimit: 40, userLimit: 400 },
+  // V-EXT-INLINE-i: extension fires /counterfeit/check on every marketplace
+  // listing view. Deterministic (no LLM) but still rate-limit — eBay pushState
+  // churn can burn budget.
+  { route: "counterfeit-check", windowSeconds: 3600, anonLimit: 120, userLimit: 1200 },
 ];
 
 export function findPolicy(route: string): RateLimitPolicy | undefined {
