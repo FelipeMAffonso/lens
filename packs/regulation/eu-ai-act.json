@@ -1,0 +1,44 @@
+{
+  "slug": "regulation/eu-ai-act",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "EU AI Act",
+  "summary": "EU regulation (Regulation 2024/1689) establishing risk-based rules for AI systems, including transparency obligations for generative AI and bans on manipulative practices.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Regulation (EU) 2024/1689 of the European Parliament and of the Council of 13 June 2024 laying down harmonised rules on artificial intelligence (AI Act) — full legal text.", "sourceUrl": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "European Commission AI Act portal — implementation timeline, guidance documents, and AI Office structure.", "sourceUrl": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "Article 5 AI Act prohibited practices including subliminal manipulation, exploitation of vulnerabilities, social scoring, real-time remote biometric identification in public spaces (with narrow exceptions).", "sourceUrl": "https://artificialintelligenceact.eu/article/5/", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "EU",
+    "productCategories": ["ai-system", "generative-ai", "chatbot", "recommendation-system", "biometric-identification", "deepfake", "emotion-recognition"],
+    "businessScope": {
+      "appliesTo": ["Providers placing AI systems on EU market", "Deployers of AI systems operating in EU", "AI system providers whose output is used in EU"],
+      "userResidency": "EU-EEA",
+      "note": "Extraterritorial — applies to non-EU providers if their output is used in EU."
+    }
+  },
+  "body": {
+    "officialName": "Regulation (EU) 2024/1689 of the European Parliament and of the Council of 13 June 2024 laying down harmonised rules on artificial intelligence",
+    "citation": "Regulation (EU) 2024/1689; OJ L, 12.7.2024",
+    "status": "in-force",
+    "effectiveDate": "2024-08-01",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "The AI Act establishes a risk-based framework: (1) prohibited practices (Article 5) — banned outright: subliminal manipulation, social scoring, real-time biometric identification. (2) high-risk AI (Annex III) — hiring, credit, critical infrastructure, law enforcement — subject to conformity assessment, transparency, human oversight. (3) limited-risk AI — chatbots and deepfakes must disclose AI origin (Article 50). (4) general-purpose AI models — transparency + copyright + systemic-risk obligations for models above 10^25 FLOPS (Article 51-55). Staggered effective dates: prohibitions February 2025, GPAI rules August 2025, high-risk August 2026, remaining August 2027. Fines up to €35M or 7% worldwide turnover for Article 5 violations.",
+    "userRightsPlainLanguage": "In the EU, AI systems that chat with you must tell you they're AI (not a human). Deepfakes must be labeled as AI-generated. AI systems used for hiring, credit, or life-affecting decisions must be transparent and must allow human review. AI can't manipulate you subliminally or exploit vulnerabilities to change your behavior against your interest. If an AI shopping assistant recommends products to you in a way that exploits cognitive biases or doesn't disclose that it's generating recommendations, that may violate the AI Act.",
+    "enforcementSignals": [
+      { "action": "European AI Office established within DG CNECT to oversee GPAI enforcement (operational since Q4 2024).", "url": "https://digital-strategy.ec.europa.eu/en/policies/ai-office" },
+      { "action": "Member State competent authorities designated (national level) for high-risk AI enforcement.", "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai" }
+    ],
+    "evidenceRefs": ["E1", "E2", "E3"]
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "slug": "category/home-security-systems",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Home security systems",
+  "summary": "DIY and professionally-monitored home security systems, $200-$2000 hardware plus $10-$60/month monitoring.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "UL 827 is the US Standard for Central-Station Alarm Services; professionally monitored systems must route alarms through a UL-listed central station. Non-UL services can still dispatch police but are not insurance-rated.", "sourceUrl": "https://www.ul.com/services/central-station-alarm-services", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "FCC Z-Wave / Zigbee interoperability documentation — Z-Wave 700/800 series and Zigbee 3.0 are required for vendor-independent sensor pairing.", "sourceUrl": "https://www.fcc.gov/oet/ea/authorizations", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "CISA 2024 Home Security IoT guidance warning on default-password devices and lack of firmware update commitments in low-end Chinese-OEM IP cameras.", "sourceUrl": "https://www.cisa.gov/news-events/news/securing-your-smart-home-devices", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["home security", "alarm system", "security system", "home alarm", "burglar alarm", "smart security"],
+    "productTags": ["home-security", "smart-home", "iot"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "ul_listed_central_station", "unit": "boolean", "direction": "binary", "target": true, "notes": "UL 827 central-station listing is required for most insurance discounts (E1)." },
+      { "name": "monitoring_type", "unit": "categorical", "direction": "target", "typicalRange": ["self-monitored", "optional-professional", "required-professional"] },
+      { "name": "sensor_interop", "unit": "categorical", "direction": "target", "typicalRange": ["proprietary", "zigbee-3.0", "z-wave-700", "matter", "multi-standard"], "notes": "Matter/Zigbee/Z-Wave allow vendor-independent sensors (E2)." },
+      { "name": "cellular_backup", "unit": "boolean", "direction": "binary", "target": true, "notes": "Cellular/LTE backup keeps system armed during internet/power outages." },
+      { "name": "battery_backup_hours", "unit": "hours", "direction": "higher_is_better", "typicalRange": [4, 48] },
+      { "name": "security_record", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "CVE count, default-password posture, firmware update commitment (E3)." },
+      { "name": "contract_length_months", "unit": "months", "direction": "lower_is_better", "typicalRange": [0, 60] },
+      { "name": "price_hardware", "unit": "USD", "direction": "lower_is_better", "typicalRange": [200, 2000] },
+      { "name": "price_monitoring_monthly", "unit": "USD", "direction": "lower_is_better", "typicalRange": [0, 60] }
+    ],
+    "specNormalization": {
+      "contract_length_months": { "regex": "(\\d+)[- ]?(?:month|mo)", "unit": "months" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "free installation", "reality": "Often bundled with 36-60 month monitoring contracts that cost $2000+ total; 'free' hardware often carries cancellation fees >$500. Cancellation window is typically 3 days post-install.", "verdict": "misleading", "checkPrompt": "What's the contract length, monthly cost, and cancellation fee?" },
+      { "pattern": "military-grade encryption", "reality": "No defined standard. Meaningful security posture is AES-128+ at rest, TLS 1.2+ in transit, and a documented CVE disclosure process (E3). 'Military-grade' is marketing copy.", "verdict": "misleading", "checkPrompt": "Does the vendor publish a CVE disclosure policy and firmware update commitment period?" },
+      { "pattern": "AI-powered person detection", "reality": "Computer-vision detection accuracy varies 60-95% across brands and is highly lighting-dependent. False-positive rates of 5-15/week are common for lower-tier cameras.", "verdict": "misleading", "checkPrompt": "Is the detection rate cited with a false-positive figure and independent testing source?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Ring/Nest/Arlo cameras from non-authorized Amazon seller at 40%+ below MSRP", "action": "flag — commonly grey-market imports without US firmware-update support" }
+    ],
+    "compatibilityQuestions": [
+      "Renting or owning? Renters need wireless DIY systems with no drilling.",
+      "Existing smart-home ecosystem (Alexa, HomeKit, Google)? Matter-compatible systems integrate best.",
+      "Required by homeowner's insurance for discount? May need UL 827 central-station monitoring."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Professional monitoring subscription", "annualCostUsd": [120, 720], "frequency": "monthly" },
+      { "name": "Cellular backup surcharge", "annualCostUsd": [60, 120], "frequency": "monthly" },
+      { "name": "Cloud video storage", "annualCostUsd": [36, 240], "frequency": "monthly" },
+      { "name": "Equipment replacement (batteries, sensors)", "annualCostUsd": [30, 100], "frequency": "bi-annual" },
+      { "name": "Permit fee (many municipalities require alarm permits)", "annualCostUsd": [25, 100], "frequency": "annual" },
+      { "name": "False-alarm fines", "annualCostUsd": [0, 500], "frequency": "variable" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss", "regulation/us-ca-ccpa"],
+    "repairability": {
+      "ifixitCategoryId": null,
+      "typicalPartsAvailability": "low-for-proprietary high-for-open",
+      "notes": "Open-standard (Z-Wave/Zigbee/Matter) systems support third-party replacement sensors. Proprietary hubs (Ring, SimpliSafe) require OEM sensors."
+    },
+    "representativeSkus": [
+      {
+        "sku": "simplisafe-essentials-7pc", "name": "Essentials 7-Piece Kit", "brand": "SimpliSafe", "model": "Essentials", "priceUsd": 249, "currency": "USD",
+        "url": "https://simplisafe.com/",
+        "specs": { "ul_listed_central_station": true, "monitoring_type": "optional-professional", "sensor_interop": "proprietary", "cellular_backup": true, "battery_backup_hours": 24, "security_record": 0.78, "contract_length_months": 0, "price_monitoring_monthly": 30 },
+        "tier": "mid"
+      },
+      {
+        "sku": "ring-alarm-pro-14pc", "name": "Alarm Pro 14-Piece", "brand": "Ring", "model": "Alarm Pro 14-Piece", "priceUsd": 499, "currency": "USD",
+        "url": "https://ring.com/products/alarm-security-kit-14-piece-pro",
+        "specs": { "ul_listed_central_station": true, "monitoring_type": "optional-professional", "sensor_interop": "proprietary", "cellular_backup": true, "battery_backup_hours": 24, "security_record": 0.72, "contract_length_months": 0, "price_monitoring_monthly": 20 },
+        "tier": "mid"
+      },
+      {
+        "sku": "abode-iota-kit", "name": "iota Security Kit", "brand": "Abode", "model": "iota", "priceUsd": 329, "currency": "USD",
+        "url": "https://goabode.com/shop/iota-all-in-one-security-kit",
+        "specs": { "ul_listed_central_station": true, "monitoring_type": "optional-professional", "sensor_interop": "multi-standard", "cellular_backup": true, "battery_backup_hours": 12, "security_record": 0.82, "contract_length_months": 0, "price_monitoring_monthly": 24 },
+        "tier": "mid", "notes": "Z-Wave + Zigbee + HomeKit + Alexa — best open-interop."
+      },
+      {
+        "sku": "adt-self-setup", "name": "Self Setup Security System", "brand": "ADT", "model": "Self Setup", "priceUsd": 599, "currency": "USD",
+        "url": "https://www.adt.com/self-setup",
+        "specs": { "ul_listed_central_station": true, "monitoring_type": "required-professional", "sensor_interop": "proprietary", "cellular_backup": true, "battery_backup_hours": 24, "security_record": 0.85, "contract_length_months": 36, "price_monitoring_monthly": 45 },
+        "tier": "premium", "notes": "3-year contract; $599 hardware + $1620 monitoring = $2219 TCO."
+      },
+      {
+        "sku": "vivint-smart-hub-kit", "name": "Smart Hub + Door/Window Sensors", "brand": "Vivint", "model": "Smart Hub Kit", "priceUsd": 1599, "currency": "USD",
+        "url": "https://www.vivint.com/",
+        "specs": { "ul_listed_central_station": true, "monitoring_type": "required-professional", "sensor_interop": "proprietary", "cellular_backup": true, "battery_backup_hours": 24, "security_record": 0.88, "contract_length_months": 60, "price_monitoring_monthly": 50 },
+        "tier": "premium", "notes": "5-year contract; aggressive door-to-door sales channel + high cancellation fees."
+      },
+      {
+        "sku": "eufy-5pc-kit", "name": "5-Piece Home Alarm Kit", "brand": "Eufy", "model": "T8990", "priceUsd": 179, "currency": "USD",
+        "url": "https://us.eufy.com/products/t89902d1",
+        "specs": { "ul_listed_central_station": false, "monitoring_type": "self-monitored", "sensor_interop": "proprietary", "cellular_backup": false, "battery_backup_hours": 8, "security_record": 0.7, "contract_length_months": 0, "price_monitoring_monthly": 0 },
+        "tier": "budget", "notes": "No professional monitoring option; insurance discount typically unavailable."
+      }
+    ]
+  }
+}

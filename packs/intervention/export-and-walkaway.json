@@ -1,0 +1,44 @@
+{
+  "slug": "intervention/export-and-walkaway",
+  "type": "intervention",
+  "version": "1.0.0",
+  "name": "Export and walk away",
+  "summary": "When a user is about to commit to a locked-in service (long contract, proprietary ecosystem, subscription with exit fees), Lens offers a one-click action to export all their data out of the current platform before they commit, enabling portability and genuine choice.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "GDPR Article 20 establishes the right to data portability: users have the right to receive personal data in a structured, commonly used, machine-readable format and to transmit it to another controller.", "sourceUrl": "https://gdpr-info.eu/art-20-gdpr/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "CCPA/CPRA §1798.130(a)(2) grants California consumers the right to receive personal information in a portable format that is usable to transmit to another entity.", "sourceUrl": "https://oag.ca.gov/privacy/ccpa", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "EU Digital Markets Act Article 6(9) requires gatekeepers to provide effective portability of end-user data generated through use of the relevant core platform service.", "sourceUrl": "https://digital-markets-act.ec.europa.eu/", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "triggerTypes": ["long-contract-about-to-sign", "lock-in-ecosystem-purchase", "subscription-with-exit-fee", "walled-garden-commit"] },
+  "body": {
+    "canonicalName": "Export and walk away",
+    "description": "When Lens detects the user is about to commit to a service/product that has meaningful switching cost (multi-year contract, proprietary ecosystem with non-standard formats, subscription with cancellation fees), it offers a pre-commitment action: export all their current data from any competing service they might be leaving, verify the export works, and only then complete the new commitment. The user retains leverage instead of becoming captured.",
+    "executionType": "automate-consent",
+    "consentTier": "explicit-per-action",
+    "prerequisites": [
+      { "kind": "trigger-detection", "description": "Contract length ≥24 months, or ecosystem lock-in score ≥0.7, or cancellation fee >$50." },
+      { "kind": "user-opt-in", "description": "User confirms they want Lens to prepare an export from their current provider before committing." },
+      { "kind": "jurisdiction", "description": "User is in a jurisdiction with data portability rights (EU, California, Colorado, UK, Brazil)." }
+    ],
+    "template": {
+      "exportRequestEmailTemplate": "Subject: Request for data portability under {regulationCitation}\n\nTo {currentProvider},\n\nUnder {regulationCitation}, I request a copy of all personal data you hold about me, in a structured, commonly used, machine-readable format. This request covers: (1) account information, (2) usage history and transaction records, (3) content I have created or uploaded, (4) derived data and profiles.\n\nPlease provide the export within {statutoryDeadline} as required by law.\n\nAccount: {accountIdentifier}\nDate of request: {today}\n\nSincerely,\n{userName}",
+      "jurisdictions": {
+        "EU": { "regulationCitation": "GDPR Article 20", "statutoryDeadline": "one month", "regulator": "Local DPA" },
+        "US-CA": { "regulationCitation": "CCPA/CPRA §1798.130(a)(2)", "statutoryDeadline": "45 days", "regulator": "California AG" },
+        "US-CO": { "regulationCitation": "CPA §6-1-1306(1)(e)", "statutoryDeadline": "45 days", "regulator": "Colorado AG" }
+      }
+    },
+    "successSignals": [
+      { "kind": "export-received", "description": "User confirms the export download is complete and openable in a standard tool.", "within": "30-days" },
+      { "kind": "commitment-deferred", "description": "User defers new commitment until export is verified — friction check that the new service accepts the exported data format." }
+    ],
+    "failureFallback": { "nextIntervention": "intervention/file-ftc-complaint" },
+    "regulatoryBasis": ["regulation/eu-gdpr-consent", "regulation/us-ca-ccpa", "regulation/us-colorado-privacy-act", "regulation/eu-dma"]
+  }
+}

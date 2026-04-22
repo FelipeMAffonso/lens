@@ -1,0 +1,36 @@
+{
+  "slug": "dark-pattern/friend-spam",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Friend spam",
+  "summary": "The product requests access to the user's contacts, email, or social graph under the pretense of personalization or 'find your friends', then uses it to send unsolicited invitations in the user's name.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Brignull's canonical dark-patterns taxonomy lists friend spam (a.k.a. 'social pyramid') as a deceptive pattern where the product solicits contacts and sends invitations in the user's name without meaningful consent.", "sourceUrl": "https://www.deceptive.design/types/friend-spam", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "LinkedIn $13M class-action settlement (2015, Perkins v. LinkedIn) for sending 'Add Connections' emails using members' contacts and names in ways users did not authorize.", "sourceUrl": "https://www.latimes.com/business/la-fi-linkedin-lawsuit-20151002-story.html", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "US CAN-SPAM Act (15 USC §7701) requires truthful sender identification and unsubscribe mechanisms for commercial email; impersonated-sender emails violate this.", "sourceUrl": "https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["onboarding", "signup", "permission-prompt", "account-creation", "growth-flow"] },
+  "body": {
+    "canonicalName": "Friend spam",
+    "brignullId": "friend-spam",
+    "description": "During signup or onboarding, the product asks for access to the user's address book, Gmail/Outlook contacts, Facebook friends, or phone contacts — often framed as 'Find friends already using [product]'. Once granted, the product sends unsolicited emails/messages to those contacts, typically using the user's name in the From: field or message body to increase open rates. The user often does not realize invitations were sent until contacts complain.",
+    "severity": "deceptive",
+    "illegalInJurisdictions": ["US-federal (CAN-SPAM Act, if commercial)", "EU-member-states (GDPR + ePrivacy)"],
+    "detectionHeuristics": [
+      { "kind": "permission-request", "trigger": "contacts-gmail-facebook-scope", "description": "OAuth scope request including contacts.read, gmail.readonly, or Facebook friends list during signup." },
+      { "kind": "text-pattern", "patterns": ["find your friends", "connect with people you know", "we'll never post without asking", "invite your contacts"], "caseSensitive": false },
+      { "kind": "dom-structure", "selector": "form[data-intent='invite-all'], button[data-action='send-invites-all']", "description": "One-click bulk-invite that doesn't require per-contact confirmation." },
+      { "kind": "flow-asymmetry", "trigger": "skip-button-obscured", "description": "The 'skip' or 'no thanks' option is rendered as low-contrast text while 'Connect contacts' is a high-contrast button." }
+    ],
+    "llmVerifyPrompt": "Inspect the onboarding flow on this page. Check: (1) does the flow request contacts/email/social-graph access, (2) is the invite behavior disclosed clearly before access is granted, (3) does the user see each contact before an invitation is sent, (4) is the skip path equally prominent. Flag verdict: consent-quality-high, consent-quality-low, or deceptive-friend-spam.",
+    "remediation": "Overlay a Lens warning advising against granting contact access unless per-contact consent is required before sending. Cite LinkedIn $13M settlement precedent (E2). Offer one-click navigation to the skip option.",
+    "regulatoryLinks": ["regulation/eu-gdpr-consent", "regulation/us-ca-ccpa"],
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/file-ftc-complaint"]
+  }
+}
