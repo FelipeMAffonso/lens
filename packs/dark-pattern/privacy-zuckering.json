@@ -1,0 +1,35 @@
+{
+  "slug": "dark-pattern/privacy-zuckering",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Privacy Zuckering",
+  "summary": "The user is tricked into publicly sharing or consenting to data processing beyond what they intended, via confusing settings, pre-checked sharing options, or obfuscated consent flows.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Brignull's canonical dark-patterns taxonomy lists privacy zuckering under deceptive design: tricking users into sharing more information than intended.", "sourceUrl": "https://www.deceptive.design/types/privacy-zuckering", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "GDPR Article 7 (conditions for consent) and EDPB Guidelines 05/2020 require consent to be freely given, specific, informed, and unambiguous — pre-checked boxes and bundled consent invalid.", "sourceUrl": "https://edpb.europa.eu/sites/default/files/files/file1/edpb_guidelines_202005_consent_en.pdf", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "CNIL €60M fine against Meta (2023) for deceptive cookie-consent flows that made refusing cookies substantially harder than accepting.", "sourceUrl": "https://www.cnil.fr/en/cookies-cnil-fines-facebook-60-million-euros", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["signup", "consent-banner", "privacy-settings", "account-creation", "cookie-banner"] },
+  "body": {
+    "canonicalName": "Privacy Zuckering",
+    "brignullId": "privacy-zuckering",
+    "description": "The user believes they are protecting their privacy, but the interface guides them toward broader data disclosure than intended. Common forms: cookie banners with one-click 'Accept All' but multi-step 'Manage Preferences'; pre-checked consents for analytics/marketing; settings pages where 'private' requires opt-in per category; and signup flows that bundle service-necessary consent with optional marketing consent.",
+    "severity": "illegal-in-jurisdiction",
+    "illegalInJurisdictions": ["EU-member-states", "US-California (CPRA)", "Brazil (LGPD)"],
+    "detectionHeuristics": [
+      { "kind": "button-asymmetry", "trigger": "accept-button-more-prominent-than-reject", "description": "Cookie consent banner where 'Accept' is a high-contrast button and 'Reject'/'Manage' is low-contrast text. ECtHR and CNIL consider this invalid consent." },
+      { "kind": "dom-structure", "selector": "input[type='checkbox'][checked]", "description": "Pre-checked opt-in boxes for marketing/analytics — prohibited under GDPR Article 7 (E2)." },
+      { "kind": "flow-length", "trigger": "reject-requires-more-clicks-than-accept", "description": "Refusing consent takes ≥3 clicks while accepting takes 1 click. Regulator test for meaningful choice." }
+    ],
+    "llmVerifyPrompt": "Inspect the consent/privacy surface on this page. Compare the friction of accepting vs rejecting data sharing. Check for pre-checked boxes on marketing/analytics categories. Check whether service-necessary and optional consents are bundled. Flag: (a) asymmetric button prominence, (b) pre-checked boxes, (c) bundled consent, (d) >2× click delta between accept and reject.",
+    "remediation": "Overlay a Lens warning citing GDPR Article 7 (E2) or CPRA. Link to 'Manage Preferences' flow with all categories set to reject. If in EU, offer a one-click 'File complaint with DPA' action.",
+    "regulatoryLinks": ["regulation/eu-gdpr-consent", "regulation/us-ca-ccpa", "regulation/eu-digital-services-act"],
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/file-ftc-complaint"]
+  }
+}

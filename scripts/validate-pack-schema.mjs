@@ -133,7 +133,7 @@ for (const pack of allPacks) {
   };
   if (pack.body?.regulatoryLinks) checkLinks(pack.body.regulatoryLinks, "body.regulatoryLinks");
   if (pack.body?.interventionLinks) checkLinks(pack.body.interventionLinks, "body.interventionLinks");
-  if (pack.body?.illegalInJurisdictions) checkLinks(pack.body.illegalInJurisdictions, "body.illegalInJurisdictions");
+  // Note: illegalInJurisdictions contains jurisdiction NAMES (strings), not pack slugs. Do not cross-check.
 
   // Per-type required body fields
   if (pack.type === "category") {

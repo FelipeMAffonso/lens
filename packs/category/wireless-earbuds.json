@@ -55,6 +55,44 @@
       "ifixitCategoryId": "earbuds",
       "typicalPartsAvailability": "very-low",
       "notes": "Almost no earbuds are serviceable. Battery-replacement programs exist for AirPods at ~$49 but most brands are replace-don't-repair."
-    }
+    },
+    "representativeSkus": [
+      {
+        "sku": "apple-airpods-pro-2-usbc", "name": "AirPods Pro 2 (USB-C)", "brand": "Apple", "model": "MTJV3AM/A", "priceUsd": 249, "currency": "USD",
+        "url": "https://www.apple.com/shop/buy-airpods/airpods-pro",
+        "specs": { "battery_earbuds_hours": 6, "anc_effectiveness": 0.9, "fit_security": 0.85, "mic_quality": 0.88, "ingress_protection": "IP54", "codec_support": "AAC" },
+        "tier": "premium"
+      },
+      {
+        "sku": "sony-wf-1000xm5", "name": "WF-1000XM5", "brand": "Sony", "model": "WF-1000XM5", "priceUsd": 299, "currency": "USD",
+        "url": "https://electronics.sony.com/audio/headphones/truly-wireless/p/wf1000xm5-b",
+        "specs": { "battery_earbuds_hours": 8, "anc_effectiveness": 0.93, "fit_security": 0.8, "mic_quality": 0.85, "ingress_protection": "IPX4", "codec_support": "LDAC" },
+        "tier": "premium"
+      },
+      {
+        "sku": "bose-qc-ultra-earbuds", "name": "QuietComfort Ultra Earbuds", "brand": "Bose", "model": "QCUE", "priceUsd": 299, "currency": "USD",
+        "url": "https://www.bose.com/p/earbuds/bose-quietcomfort-ultra-earbuds",
+        "specs": { "battery_earbuds_hours": 6, "anc_effectiveness": 0.94, "fit_security": 0.78, "mic_quality": 0.82, "ingress_protection": "IPX4", "codec_support": "aptX Adaptive" },
+        "tier": "premium"
+      },
+      {
+        "sku": "samsung-galaxy-buds-3-pro", "name": "Galaxy Buds3 Pro", "brand": "Samsung", "model": "SM-R630N", "priceUsd": 249, "currency": "USD",
+        "url": "https://www.samsung.com/us/mobile/audio/galaxy-buds/galaxy-buds3-pro/",
+        "specs": { "battery_earbuds_hours": 7, "anc_effectiveness": 0.88, "fit_security": 0.8, "mic_quality": 0.85, "ingress_protection": "IP57", "codec_support": "LC3" },
+        "tier": "premium"
+      },
+      {
+        "sku": "jabra-elite-8-active", "name": "Elite 8 Active", "brand": "Jabra", "model": "Elite 8 Active", "priceUsd": 199, "currency": "USD",
+        "url": "https://www.jabra.com/bluetooth-headsets/jabra-elite-8-active",
+        "specs": { "battery_earbuds_hours": 8, "anc_effectiveness": 0.82, "fit_security": 0.95, "mic_quality": 0.8, "ingress_protection": "IP68", "codec_support": "aptX" },
+        "tier": "mid", "notes": "IP68 + MIL-STD-810H rated — strong for workouts."
+      },
+      {
+        "sku": "anker-soundcore-liberty-4-nc", "name": "Soundcore Liberty 4 NC", "brand": "Anker", "model": "A3947", "priceUsd": 99, "currency": "USD",
+        "url": "https://www.soundcore.com/products/soundcore-liberty-4-nc",
+        "specs": { "battery_earbuds_hours": 10, "anc_effectiveness": 0.75, "fit_security": 0.72, "mic_quality": 0.7, "ingress_protection": "IPX4", "codec_support": "LDAC" },
+        "tier": "budget"
+      }
+    ]
   }
 }

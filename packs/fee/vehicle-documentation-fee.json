@@ -1,0 +1,40 @@
+{
+  "slug": "fee/vehicle-documentation-fee",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Dealer documentation fee",
+  "summary": "A fee dealerships add to the sale price of a new or used vehicle to cover the cost of preparing paperwork. Often labeled 'doc fee', 'dealer prep', or 'processing fee'.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC 2024 Combating Auto Retail Scams (CARS) Rule (16 CFR Part 463) requires upfront disclosure of all charges in vehicle advertising and prohibits misrepresenting any material fact about add-on charges. Effective July 2024 (currently enjoined pending court review).", "sourceUrl": "https://www.ftc.gov/legal-library/browse/rules/motor-vehicle-dealers-trade-regulation-rule", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "State-by-state survey of documentation fee caps: California caps at $85, New York at $175, Oregon at $150; many states (Texas, Florida, Alabama) have no cap and allow fees $500-$899.", "sourceUrl": "https://www.edmunds.com/car-buying/what-fees-should-you-pay.html", "retrieved": "2026-04-22", "primary": false },
+    { "ref": "E3", "claim": "FTC June 2024 consent decree with AutoNation including a $2.8M settlement over undisclosed doc fees and add-on charges in vehicle transactions.", "sourceUrl": "https://www.ftc.gov/news-events/news/press-releases/2024", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "categoryContext": ["used-cars", "new-cars", "auto-dealerships"], "pageTypes": ["dealer-offer", "out-the-door-quote", "sales-contract"] },
+  "body": {
+    "canonicalName": "Dealer documentation fee",
+    "description": "A fee assessed by auto dealers on virtually every new or used vehicle sale, nominally to cover the cost of preparing DMV paperwork. Actual clerical cost is $30-$80; charged amounts range from $85 (California statutory cap) to $899+ in unregulated states. The fee is largely pure profit and is frequently undisclosed in the advertised price.",
+    "typicalRange": { "min": 85, "max": 899, "unit": "USD", "frequency": "per-transaction" },
+    "identificationSignals": [
+      { "kind": "text-pattern", "patterns": ["documentation fee", "doc fee", "dealer prep fee", "processing fee", "dealer handling fee", "administrative fee"], "caseSensitive": false },
+      { "kind": "invoice-line-item", "selector": "purchase-contract[fee-line]", "patterns": ["\\$\\d{2,3}[.]?\\d{0,2}\\s*(?:doc|documentation|processing)"] },
+      { "kind": "price-delta", "selector": "advertised-price-vs-out-the-door", "description": "Delta between advertised vehicle price and final contract price ≥3% is suspicious." }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "US-federal", "regulationSlug": null, "requirement": "FTC CARS Rule (E1) requires upfront disclosure of add-on fees in advertising and prohibits misrepresentation — currently enjoined." },
+      { "jurisdiction": "California", "regulationSlug": null, "requirement": "CA Vehicle Code §11713.1 caps doc fee at $85 for licensed dealers." },
+      { "jurisdiction": "New York", "regulationSlug": null, "requirement": "NY Vehicle & Traffic Law §415(7) caps doc fee at $175." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "sometimes (on luxury brands and slow-moving inventory)",
+      "typicalSuccessRate": 0.35,
+      "script": "You can ask the dealer to waive or reduce the doc fee as part of negotiation. In states with caps (CA, NY), refuse any amount above the statutory cap. In uncapped states, compare quotes across dealers — if one dealer's doc fee is $500 above another, that is pure negotiation margin. Be prepared to walk to a competing dealer."
+    },
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/file-ftc-complaint"]
+  }
+}

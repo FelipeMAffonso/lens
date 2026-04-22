@@ -1,0 +1,44 @@
+{
+  "slug": "regulation/us-colorado-privacy-act",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "Colorado Privacy Act (CPA)",
+  "summary": "Colorado state data-protection law (effective July 1, 2023) granting consumers rights to access, correct, delete, and opt out of the sale of personal data and targeted advertising.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Colorado Privacy Act, Colo. Rev. Stat. §§ 6-1-1301 to 6-1-1313 — full statutory text.", "sourceUrl": "https://leg.colorado.gov/bills/sb21-190", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "Colorado Attorney General's CPA Rules (4 CCR 904-3) — implementing regulations including Universal Opt-Out Mechanism requirements effective July 1, 2024.", "sourceUrl": "https://coag.gov/resources/colorado-privacy-act/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "Colorado AG approved the Global Privacy Control (GPC) as a recognized Universal Opt-Out Mechanism effective July 1, 2024.", "sourceUrl": "https://coag.gov/press-releases/4-10-24/", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "US-Colorado",
+    "productCategories": ["any-online-service-processing-personal-data"],
+    "businessScope": {
+      "appliesTo": ["Controllers conducting business in Colorado OR targeting CO residents that either (a) process personal data of ≥100,000 CO consumers per year, OR (b) derive revenue or receive a discount on goods/services from processing personal data of ≥25,000 CO consumers"],
+      "userResidency": "Colorado",
+      "note": "Applies to most online services with meaningful Colorado user base; explicitly excludes employment data and HIPAA-covered health data."
+    }
+  },
+  "body": {
+    "officialName": "Colorado Privacy Act",
+    "citation": "Colo. Rev. Stat. §§ 6-1-1301 to 6-1-1313; implemented by 4 CCR 904-3",
+    "status": "in-force",
+    "effectiveDate": "2023-07-01",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "The CPA grants Colorado consumers five rights: (1) access a copy of their personal data, (2) correct inaccurate personal data, (3) delete personal data, (4) data portability, (5) opt out of targeted advertising, sale of personal data, and profiling with legal/similar effects. Controllers must provide a clear privacy notice, obtain opt-in consent for sensitive data processing, honor Universal Opt-Out Mechanisms (GPC), and conduct data protection assessments for high-risk processing. Enforcement exclusively by the Colorado AG and district attorneys; no private right of action. Maximum civil penalty: $20,000 per violation under CCPA (Colorado Consumer Protection Act).",
+    "userRightsPlainLanguage": "If you live in Colorado, companies that handle your personal data must let you see a copy of it, fix mistakes in it, delete it, and export it. They must offer an easy way to opt out of targeted advertising and the sale of your data. Browser-based Global Privacy Control signals must be honored as a universal opt-out (E3). Sensitive data like precise geolocation, health, genetic, biometric, and children's data requires explicit opt-in.",
+    "enforcementSignals": [
+      { "action": "CO AG consumer guidance portal with complaint intake", "url": "https://coag.gov/office-sections/consumer-protection-section/" },
+      { "action": "CO AG approved GPC as the first recognized Universal Opt-Out Mechanism, April 2024", "url": "https://coag.gov/press-releases/4-10-24/" }
+    ],
+    "evidenceRefs": ["E1", "E2", "E3"]
+  }
+}

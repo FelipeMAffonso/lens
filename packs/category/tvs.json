@@ -53,6 +53,44 @@
       "ifixitCategoryId": "tv",
       "typicalPartsAvailability": "low",
       "notes": "Panel replacement typically costs more than a new TV. Power boards and control boards can be repaired by specialty shops."
-    }
+    },
+    "representativeSkus": [
+      {
+        "sku": "tcl-q6-55", "name": "Q6 QLED 55-inch", "brand": "TCL", "model": "55Q650G", "priceUsd": 399, "currency": "USD",
+        "url": "https://www.tcl.com/us/en/products/home-theater/tvs/55-class-q6-4k-qled",
+        "specs": { "panel_type": "QLED", "peak_brightness_nits": 500, "refresh_rate_hz": 60, "size_inches": 55, "input_lag_ms": 15 },
+        "tier": "budget"
+      },
+      {
+        "sku": "hisense-u8n-65", "name": "U8N Mini-LED 65-inch", "brand": "Hisense", "model": "65U8N", "priceUsd": 1299, "currency": "USD",
+        "url": "https://www.hisense-usa.com/televisions/65u8n-u8-series",
+        "specs": { "panel_type": "Mini-LED", "peak_brightness_nits": 3000, "refresh_rate_hz": 120, "size_inches": 65, "input_lag_ms": 10 },
+        "tier": "mid"
+      },
+      {
+        "sku": "samsung-s95d-65", "name": "S95D QD-OLED 65-inch", "brand": "Samsung", "model": "QN65S95D", "priceUsd": 3299, "currency": "USD",
+        "url": "https://www.samsung.com/us/televisions-home-theater/tvs/oled-tvs/",
+        "specs": { "panel_type": "QD-OLED", "peak_brightness_nits": 1800, "refresh_rate_hz": 120, "size_inches": 65, "input_lag_ms": 9 },
+        "tier": "premium"
+      },
+      {
+        "sku": "lg-c4-65", "name": "C4 OLED evo 65-inch", "brand": "LG", "model": "OLED65C4", "priceUsd": 2499, "currency": "USD",
+        "url": "https://www.lg.com/us/tvs/lg-oled65c4",
+        "specs": { "panel_type": "MLA-OLED", "peak_brightness_nits": 1200, "refresh_rate_hz": 120, "size_inches": 65, "input_lag_ms": 9 },
+        "tier": "premium"
+      },
+      {
+        "sku": "sony-bravia-9-75", "name": "BRAVIA 9 Mini-LED 75-inch", "brand": "Sony", "model": "K75XR90", "priceUsd": 4499, "currency": "USD",
+        "url": "https://electronics.sony.com/tv-video/bravia-tvs",
+        "specs": { "panel_type": "Mini-LED", "peak_brightness_nits": 2100, "refresh_rate_hz": 120, "size_inches": 75, "input_lag_ms": 12 },
+        "tier": "premium"
+      },
+      {
+        "sku": "vizio-v-series-55", "name": "V-Series 55-inch 4K", "brand": "Vizio", "model": "V555-J01", "priceUsd": 299, "currency": "USD",
+        "url": "https://www.vizio.com/en/v55j01",
+        "specs": { "panel_type": "LCD", "peak_brightness_nits": 250, "refresh_rate_hz": 60, "size_inches": 55, "input_lag_ms": 22 },
+        "tier": "budget"
+      }
+    ]
   }
 }

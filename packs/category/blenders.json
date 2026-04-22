@@ -44,6 +44,38 @@
       { "name": "Replacement jars and blade assemblies", "annualCostUsd": [30, 150], "frequency": "conditional" }
     ],
     "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
-    "repairability": { "ifixitCategoryId": "blender", "typicalPartsAvailability": "moderate", "notes": "Vitamix and Blendtec have strong parts markets; cheap blenders are replace-don't-repair." }
+    "repairability": { "ifixitCategoryId": "blender", "typicalPartsAvailability": "moderate", "notes": "Vitamix and Blendtec have strong parts markets; cheap blenders are replace-don't-repair." },
+    "representativeSkus": [
+      {
+        "sku": "ninja-bn701", "name": "Professional Plus Blender BN701", "brand": "Ninja", "model": "BN701", "priceUsd": 99, "currency": "USD",
+        "url": "https://www.ninjakitchen.com/shop/blenders-and-smoothie-makers/BN701",
+        "specs": { "motor_running_hp": 1.2, "jar_capacity_oz": 72, "noise_db": 90, "programmed_modes": true, "warranty_years": 1 },
+        "tier": "budget"
+      },
+      {
+        "sku": "oster-pro-1200", "name": "Pro 1200 Blender", "brand": "Oster", "model": "BLSTMB-CBG-000", "priceUsd": 79, "currency": "USD",
+        "url": "https://www.oster.com/appliances/blenders/oster-pro-1200-blender-with-professional-tritan-jar-and-food-processor-attachment-brushed-nickel.html",
+        "specs": { "motor_running_hp": 0.9, "jar_capacity_oz": 48, "noise_db": 92, "programmed_modes": true, "warranty_years": 3 },
+        "tier": "budget"
+      },
+      {
+        "sku": "breville-bbl620sil", "name": "Fresh & Furious BBL620SIL", "brand": "Breville", "model": "BBL620SIL", "priceUsd": 199, "currency": "USD",
+        "url": "https://www.breville.com/us/en/products/blenders/bbl620.html",
+        "specs": { "motor_running_hp": 1.0, "jar_capacity_oz": 50, "noise_db": 85, "programmed_modes": true, "warranty_years": 1 },
+        "tier": "mid"
+      },
+      {
+        "sku": "vitamix-a3500", "name": "Ascent A3500", "brand": "Vitamix", "model": "A3500", "priceUsd": 649, "currency": "USD",
+        "url": "https://www.vitamix.com/us/en_us/shop/a3500",
+        "specs": { "motor_running_hp": 2.2, "jar_capacity_oz": 64, "noise_db": 95, "programmed_modes": true, "warranty_years": 10 },
+        "tier": "premium"
+      },
+      {
+        "sku": "blendtec-designer-725", "name": "Designer 725", "brand": "Blendtec", "model": "Designer 725", "priceUsd": 599, "currency": "USD",
+        "url": "https://www.blendtec.com/products/designer-725",
+        "specs": { "motor_running_hp": 2.4, "jar_capacity_oz": 75, "noise_db": 96, "programmed_modes": true, "warranty_years": 8 },
+        "tier": "premium"
+      }
+    ]
   }
 }

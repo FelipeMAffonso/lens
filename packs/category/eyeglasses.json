@@ -1,0 +1,97 @@
+{
+  "slug": "category/eyeglasses",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Prescription eyeglasses",
+  "summary": "Prescription eyeglasses, frames + lenses, online and in-optical-shop, $40-$700.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC Eyeglass Rule (16 CFR Part 456) requires optometrists/ophthalmologists to give patients their prescription immediately upon completion of the eye exam, without additional charge or requirement of purchase.", "sourceUrl": "https://www.ftc.gov/legal-library/browse/rules/ophthalmic-practice-rules-eyeglass-rule", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "ANSI Z80.1-2020 is the standard for ophthalmic prescription lenses defining permissible tolerances on sphere power, cylinder power, axis, and add power.", "sourceUrl": "https://webstore.ansi.org/standards/asc-z80/ansiz80-12020", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "2024 FTC staff commentary noting common deceptive practices in eyewear: artificial tier pricing, 'premium' AR coatings indistinguishable from base.", "sourceUrl": "https://www.ftc.gov/news-events/news/press-releases/2024/04/ftc-finalizes-updates-eyeglass-rule", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["eyeglasses", "glasses", "prescription glasses", "spectacles", "readers", "prescription eyewear"],
+    "productTags": ["eyewear", "vision", "optical"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "lens_index", "unit": "refractive_index", "direction": "target", "typicalRange": [1.50, 1.74], "notes": "Higher index = thinner lens; only meaningful for Rx above ±3.00 diopter." },
+      { "name": "ar_coating", "unit": "boolean", "direction": "binary", "target": true, "notes": "Anti-reflective coating is standard; tiered 'premium AR' rarely justifies upcharge (E3)." },
+      { "name": "frame_material", "unit": "categorical", "direction": "target", "typicalRange": ["plastic", "acetate", "titanium", "stainless-steel", "TR-90"] },
+      { "name": "pd_required", "unit": "boolean", "direction": "binary", "target": true, "notes": "Pupillary distance required by lab; opticians sometimes withhold to prevent online ordering." },
+      { "name": "progressive_vs_single_vision", "unit": "categorical", "direction": "target", "typicalRange": ["single-vision", "bifocal", "progressive"] },
+      { "name": "price_total", "unit": "USD", "direction": "lower_is_better", "typicalRange": [40, 700] }
+    ],
+    "specNormalization": {
+      "lens_index": { "regex": "1\\.(\\d{2})", "unit": "refractive_index" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "premium AR coating", "reality": "AR coatings above the standard tier rarely show user-visible differences (E3). Upcharge is often 3-5×.", "verdict": "misleading", "checkPrompt": "Is the AR coating a specific branded product (Crizal Sapphire, Zeiss DuraVision) with demonstrable benefits, or a generic 'premium' tier?" },
+      { "pattern": "can't give out PD / have to measure in-store", "reality": "Pupillary distance is part of your exam-measurable data and typically provided on request (E1); some opticians withhold to push in-store lens sales.", "verdict": "misleading", "checkPrompt": "Is the optician refusing to provide PD? The FTC Eyeglass Rule (E1) guarantees access to your prescription." },
+      { "pattern": "blue-light-blocking glasses prevent eye strain", "reality": "AAO 2022 statement: no conclusive clinical evidence that blue-light filters reduce digital eye strain. Upsell pattern.", "verdict": "misleading", "checkPrompt": "Is the blue-light claim backed by peer-reviewed evidence or is it an upsell?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Ray-Ban or Oakley frames 50%+ below MSRP from non-authorized seller", "action": "flag — eyewear counterfeits commonly route through Alibaba/Wish marketplaces" }
+    ],
+    "compatibilityQuestions": [
+      "Current Rx strength? Above ±3.00 diopter, high-index lenses are worth the upcharge for cosmetics.",
+      "Progressive or single-vision? First-time progressive wearers need 1-2 weeks to adapt.",
+      "Insurance coverage (VSP, EyeMed)? Many online retailers now accept vision insurance."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Lens upgrades (high-index, photochromic)", "annualCostUsd": [60, 400], "frequency": "one-time" },
+      { "name": "AR / scratch / UV coatings", "annualCostUsd": [30, 200], "frequency": "one-time" },
+      { "name": "Annual eye exam", "annualCostUsd": [50, 250], "frequency": "annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": null,
+      "typicalPartsAvailability": "moderate",
+      "notes": "Frames can be adjusted/repaired at most optical shops. Scratched lenses are typically non-repairable."
+    },
+    "representativeSkus": [
+      {
+        "sku": "warby-parker-percey", "name": "Percey (with single-vision Rx)", "brand": "Warby Parker", "model": "Percey", "priceUsd": 95, "currency": "USD",
+        "url": "https://www.warbyparker.com/eyeglasses/women/percey",
+        "specs": { "lens_index": 1.50, "ar_coating": true, "frame_material": "acetate", "pd_required": true, "progressive_vs_single_vision": "single-vision" },
+        "tier": "budget"
+      },
+      {
+        "sku": "zenni-optical-7807421", "name": "Browline Glasses #7807421", "brand": "Zenni Optical", "model": "7807421", "priceUsd": 45, "currency": "USD",
+        "url": "https://www.zennioptical.com/p/browline-glasses-7807421",
+        "specs": { "lens_index": 1.50, "ar_coating": false, "frame_material": "plastic", "pd_required": true, "progressive_vs_single_vision": "single-vision" },
+        "tier": "budget"
+      },
+      {
+        "sku": "eyebuydirect-aventura", "name": "Aventura", "brand": "EyeBuyDirect", "model": "Aventura", "priceUsd": 65, "currency": "USD",
+        "url": "https://www.eyebuydirect.com/eyeglasses/frames/aventura-tortoise-medium-17106",
+        "specs": { "lens_index": 1.50, "ar_coating": true, "frame_material": "acetate", "pd_required": true, "progressive_vs_single_vision": "single-vision" },
+        "tier": "budget"
+      },
+      {
+        "sku": "lenscrafters-ray-ban-rb3025", "name": "Ray-Ban RB3025 Aviator Rx", "brand": "LensCrafters", "model": "RB3025-Rx", "priceUsd": 299, "currency": "USD",
+        "url": "https://www.lenscrafters.com/rayban-rb3025",
+        "specs": { "lens_index": 1.50, "ar_coating": true, "frame_material": "stainless-steel", "pd_required": true, "progressive_vs_single_vision": "single-vision" },
+        "tier": "mid"
+      },
+      {
+        "sku": "pearle-vision-progressive", "name": "Progressive Package (basic frame)", "brand": "Pearle Vision", "model": "Progressive-Basic", "priceUsd": 395, "currency": "USD",
+        "url": "https://www.pearlevision.com/",
+        "specs": { "lens_index": 1.50, "ar_coating": true, "frame_material": "acetate", "pd_required": true, "progressive_vs_single_vision": "progressive" },
+        "tier": "mid"
+      },
+      {
+        "sku": "costco-optical-progressive", "name": "Progressive Package (Kirkland frames)", "brand": "Costco Optical", "model": "Kirkland Progressive", "priceUsd": 179, "currency": "USD",
+        "url": "https://www.costco.com/optical.html",
+        "specs": { "lens_index": 1.50, "ar_coating": true, "frame_material": "acetate", "pd_required": true, "progressive_vs_single_vision": "progressive" },
+        "tier": "mid", "notes": "Consistently rated lowest TCO in Consumer Reports optical surveys."
+      }
+    ]
+  }
+}

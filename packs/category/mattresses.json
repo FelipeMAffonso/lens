@@ -54,6 +54,44 @@
       "ifixitCategoryId": null,
       "typicalPartsAvailability": "none",
       "notes": "Mattresses are not repairable consumer goods."
-    }
+    },
+    "representativeSkus": [
+      {
+        "sku": "zinus-12-green-tea-queen", "name": "12-inch Green Tea Memory Foam Queen", "brand": "Zinus", "model": "OLB-GTM-12Q", "priceUsd": 329, "currency": "USD",
+        "url": "https://www.zinus.com/products/zinus-12-inch-green-tea-memory-foam-mattress",
+        "specs": { "type": "memory-foam", "firmness": 6, "height_inches": 12, "warranty_years": 10, "trial_nights": 100, "motion_isolation": 0.75, "edge_support": 0.45 },
+        "tier": "budget"
+      },
+      {
+        "sku": "nectar-memory-foam-queen", "name": "Nectar Memory Foam Queen", "brand": "Nectar", "model": "Classic Queen", "priceUsd": 799, "currency": "USD",
+        "url": "https://www.nectarsleep.com/product/nectar-mattress/",
+        "specs": { "type": "memory-foam", "firmness": 6, "height_inches": 12, "warranty_years": 99, "trial_nights": 365, "motion_isolation": 0.85, "edge_support": 0.55 },
+        "tier": "mid", "notes": "Forever warranty marketing — contingent on legitimate defect."
+      },
+      {
+        "sku": "tuft-needle-original-queen", "name": "Tuft & Needle Original Queen", "brand": "Tuft & Needle", "model": "Original Queen", "priceUsd": 695, "currency": "USD",
+        "url": "https://www.tuftandneedle.com/mattresses/original",
+        "specs": { "type": "foam", "firmness": 6.5, "height_inches": 10, "warranty_years": 10, "trial_nights": 100, "motion_isolation": 0.78, "edge_support": 0.6 },
+        "tier": "mid"
+      },
+      {
+        "sku": "purple-restore-premier-queen", "name": "Purple RestorePremier Queen", "brand": "Purple", "model": "RestorePremier Queen", "priceUsd": 2995, "currency": "USD",
+        "url": "https://purple.com/mattresses/restorepremier",
+        "specs": { "type": "hybrid", "firmness": 6, "height_inches": 13, "warranty_years": 10, "trial_nights": 100, "motion_isolation": 0.88, "edge_support": 0.72 },
+        "tier": "premium"
+      },
+      {
+        "sku": "saatva-classic-queen", "name": "Saatva Classic Queen", "brand": "Saatva", "model": "Classic Queen", "priceUsd": 1995, "currency": "USD",
+        "url": "https://www.saatva.com/mattresses/saatva-classic",
+        "specs": { "type": "innerspring", "firmness": 6, "height_inches": 14.5, "warranty_years": 15, "trial_nights": 365, "motion_isolation": 0.7, "edge_support": 0.85 },
+        "tier": "premium"
+      },
+      {
+        "sku": "tempur-pedic-probreeze-queen", "name": "TEMPUR-ProBreeze Medium Hybrid Queen", "brand": "Tempur-Pedic", "model": "ProBreeze", "priceUsd": 4599, "currency": "USD",
+        "url": "https://www.tempurpedic.com/shop-mattresses/tempur-probreeze-medium-hybrid/",
+        "specs": { "type": "hybrid", "firmness": 5.5, "height_inches": 12.2, "warranty_years": 10, "trial_nights": 90, "motion_isolation": 0.93, "edge_support": 0.8 },
+        "tier": "premium"
+      }
+    ]
   }
 }

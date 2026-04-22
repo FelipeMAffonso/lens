@@ -1,0 +1,44 @@
+{
+  "slug": "intervention/honor-gpc-signal",
+  "type": "intervention",
+  "version": "1.0.0",
+  "name": "Honor Global Privacy Control signal",
+  "summary": "When a page ignores the browser's Global Privacy Control (GPC) signal, Lens surfaces the violation and offers the user a one-click action to file a complaint with the relevant Attorney General or Data Protection Authority.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "California AG has designated GPC as an opt-out signal that businesses MUST honor under CPRA §1798.135(b)(1); website non-compliance is a CPRA violation. CA AG has issued public enforcement notices confirming this.", "sourceUrl": "https://oag.ca.gov/privacy/ccpa", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "Colorado AG recognized GPC as a Universal Opt-Out Mechanism effective July 1, 2024 under 4 CCR 904-3.", "sourceUrl": "https://coag.gov/press-releases/4-10-24/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "GPC technical specification and browser support documentation (W3C Community Group).", "sourceUrl": "https://globalprivacycontrol.github.io/gpc-spec/", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "triggerTypes": ["gpc-signal-ignored", "privacy-zuckering-detected", "consent-banner-asymmetric"] },
+  "body": {
+    "canonicalName": "Honor Global Privacy Control signal",
+    "description": "When the user's browser is sending GPC=1 but the target site behaves as if it has opt-in consent for sale/sharing of personal data (e.g., embeds tracking pixels, sets third-party cookies, syncs IDs), Lens detects the discrepancy and offers remediation.",
+    "executionType": "escalate-regulator",
+    "consentTier": "explicit-one-time",
+    "prerequisites": [
+      { "kind": "browser-signal", "description": "User's browser must be configured to send GPC=1 (Firefox, Brave, DuckDuckGo, Privacy Badger all send by default)." },
+      { "kind": "jurisdiction", "description": "User is a resident of California, Colorado, Connecticut, Oregon, or another state recognizing GPC." }
+    ],
+    "template": {
+      "complaintSubject": "Global Privacy Control signal not honored",
+      "complaintBodyTemplate": "On {date}, I visited {url} while my browser was sending a Global Privacy Control (GPC) signal. The site {observedBehavior}. Under {jurisdiction} law ({regulationCitation}), businesses must treat GPC as a valid opt-out of sale/sharing of personal data. I am filing this complaint to request {requestedRemedy}.",
+      "defaultJurisdictions": {
+        "US-CA": { "authority": "California Attorney General", "url": "https://oag.ca.gov/contact/consumer-complaint-against-business-or-company", "citation": "CPRA §1798.135(b)(1)" },
+        "US-CO": { "authority": "Colorado Attorney General", "url": "https://coag.gov/file-complaint/", "citation": "CPA §6-1-1306 + 4 CCR 904-3" }
+      }
+    },
+    "successSignals": [
+      { "kind": "cookie-diff", "description": "Page no longer sets tracking/analytics cookies on subsequent visits from same browser session." },
+      { "kind": "pixel-absence", "description": "Facebook/Google/X pixels no longer fire on page load.", "within": "immediately-on-next-load" },
+      { "kind": "regulator-ack", "description": "Complaint receipt confirmed by CA or CO AG office.", "within": "14-days" }
+    ],
+    "failureFallback": { "nextIntervention": "intervention/file-ftc-complaint" },
+    "regulatoryBasis": ["regulation/us-ca-ccpa", "regulation/us-colorado-privacy-act"]
+  }
+}

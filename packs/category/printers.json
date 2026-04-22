@@ -52,6 +52,38 @@
       "ifixitCategoryId": "printer",
       "typicalPartsAvailability": "low",
       "notes": "Print-head clogs and roller wear are not economically repairable on consumer inkjets. Laser printers have more serviceable parts."
-    }
+    },
+    "representativeSkus": [
+      {
+        "sku": "hp-envy-inspire-7255e", "name": "Envy Inspire 7255e All-in-One", "brand": "HP", "model": "7255e", "priceUsd": 179, "currency": "USD",
+        "url": "https://www.hp.com/us-en/shop/tech-takes/envy-inspire-7255e",
+        "specs": { "type": "all-in-one", "cost_per_page_bw": 0.08, "cost_per_page_color": 0.22, "pages_per_minute": 15, "wifi_auto_updates_respect_user": false },
+        "tier": "budget", "notes": "HP+ enrollment blocks third-party ink via firmware (E2). Triggers fee/ink-subscription-entanglement pack."
+      },
+      {
+        "sku": "epson-ecotank-et-2800", "name": "EcoTank ET-2800", "brand": "Epson", "model": "ET-2800", "priceUsd": 199, "currency": "USD",
+        "url": "https://epson.com/For-Home/Printers/EcoTank/EcoTank-ET-2800-All-in-One-Cartridge-Free-Supertank-Printer/p/C11CJ66201",
+        "specs": { "type": "ecotank", "cost_per_page_bw": 0.003, "cost_per_page_color": 0.009, "pages_per_minute": 10, "wifi_auto_updates_respect_user": true },
+        "tier": "budget", "notes": "Cartridge-free supertank design; lowest cost-per-page in class."
+      },
+      {
+        "sku": "brother-hl-l2460dw", "name": "Compact Mono Laser HL-L2460DW", "brand": "Brother", "model": "HL-L2460DW", "priceUsd": 199, "currency": "USD",
+        "url": "https://www.brother-usa.com/products/hll2460dw",
+        "specs": { "type": "laser", "cost_per_page_bw": 0.028, "cost_per_page_color": null, "pages_per_minute": 36, "wifi_auto_updates_respect_user": true },
+        "tier": "mid"
+      },
+      {
+        "sku": "canon-pixma-g7020", "name": "PIXMA MegaTank G7020", "brand": "Canon", "model": "G7020", "priceUsd": 449, "currency": "USD",
+        "url": "https://www.usa.canon.com/shop/p/pixma-g7020",
+        "specs": { "type": "ecotank", "cost_per_page_bw": 0.004, "cost_per_page_color": 0.012, "pages_per_minute": 13, "wifi_auto_updates_respect_user": true },
+        "tier": "mid"
+      },
+      {
+        "sku": "brother-mfc-l3780cdw", "name": "Color Laser All-in-One MFC-L3780CDW", "brand": "Brother", "model": "MFC-L3780CDW", "priceUsd": 599, "currency": "USD",
+        "url": "https://www.brother-usa.com/products/mfcl3780cdw",
+        "specs": { "type": "laser", "cost_per_page_bw": 0.03, "cost_per_page_color": 0.11, "pages_per_minute": 27, "wifi_auto_updates_respect_user": true },
+        "tier": "premium"
+      }
+    ]
   }
 }
