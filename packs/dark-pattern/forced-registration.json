@@ -1,0 +1,36 @@
+{
+  "slug": "dark-pattern/forced-registration",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Forced registration",
+  "summary": "The user is required to create an account before they can see prices, complete a purchase, read an article, or access content — even when the service could function anonymously or as a guest checkout.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Brignull's dark-patterns taxonomy identifies 'forced enrollment' as a manipulative pattern where account creation is a gatekeeper to functionality that does not require it.", "sourceUrl": "https://www.deceptive.design/types/forced-enrolment", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "GDPR Article 6 requires a lawful basis for personal data collection; EDPB Guidelines 05/2020 prohibit conditioning service provision on consent for processing not necessary for the service.", "sourceUrl": "https://edpb.europa.eu/sites/default/files/files/file1/edpb_guidelines_202005_consent_en.pdf", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "FTC 2022 'Bringing Dark Patterns to Light' report includes registration-gating for price disclosure as a deceptive pricing practice under Section 5 FTC Act.", "sourceUrl": "https://www.ftc.gov/reports/bringing-dark-patterns-light", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["product-detail", "checkout", "content-page", "article", "pricing-page", "download-page"] },
+  "body": {
+    "canonicalName": "Forced registration",
+    "brignullId": "forced-enrolment",
+    "description": "The site blocks access to information or functionality that does not require an account: pricing visible only after signup, guest-checkout hidden or removed, article content truncated behind a signup wall, or a download that requires email submission. The pattern conditions access on data collection that is not necessary for the interaction.",
+    "severity": "manipulative",
+    "illegalInJurisdictions": ["EU-member-states (under GDPR Art 6, if consent is not freely given)"],
+    "detectionHeuristics": [
+      { "kind": "flow-gate", "trigger": "see-price-requires-signup", "description": "Product listing shows 'Sign in to see price' or requires account for PDP access." },
+      { "kind": "checkout-options", "trigger": "guest-checkout-missing", "description": "Checkout flow offers only 'Create Account' without 'Continue as Guest' option." },
+      { "kind": "content-gate", "trigger": "article-paywall-plus-signup", "description": "Content is truncated with a signup wall distinct from a paid subscription paywall — the gate is registration, not payment." },
+      { "kind": "download-gate", "trigger": "download-requires-email", "description": "Whitepaper, PDF, or spec sheet download requires lead-gen form submission." }
+    ],
+    "llmVerifyPrompt": "Inspect the page flow. Check: (1) can the user see pricing/specs/content without creating an account? (2) does checkout offer a guest option? (3) is the registration necessary for the stated service (e.g., saving orders), or gratuitous (seeing a price)? Flag verdict: necessary, convenience, or forced-registration.",
+    "remediation": "Overlay Lens warning. If EU user, cite GDPR Article 6 (E2) and offer one-click path to DPA complaint. For US, recommend using a masked email service (e.g., Apple Hide My Email, Firefox Relay) to reduce identification friction. Highlight whether a guest-checkout option was hidden rather than absent.",
+    "regulatoryLinks": ["regulation/eu-gdpr-consent", "regulation/us-ca-ccpa"],
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/export-and-walkaway"]
+  }
+}

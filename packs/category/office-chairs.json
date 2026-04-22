@@ -45,6 +45,44 @@
       { "name": "Replacement casters / gas cylinders", "annualCostUsd": [20, 80], "frequency": "every few years" }
     ],
     "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
-    "repairability": { "ifixitCategoryId": "furniture", "typicalPartsAvailability": "high", "notes": "Herman Miller parts available for 12+ years. Budget chairs often have no parts market." }
+    "repairability": { "ifixitCategoryId": "furniture", "typicalPartsAvailability": "high", "notes": "Herman Miller parts available for 12+ years. Budget chairs often have no parts market." },
+    "representativeSkus": [
+      {
+        "sku": "ikea-markus", "name": "Markus High-back", "brand": "IKEA", "model": "Markus", "priceUsd": 229, "currency": "USD",
+        "url": "https://www.ikea.com/us/en/p/markus-office-chair-vissle-dark-gray-90289172/",
+        "specs": { "lumbar_support": "fixed", "armrests": "fixed", "recline_mechanism": "tilt-only", "bifma_certified": false, "warranty_years": 10 },
+        "tier": "budget"
+      },
+      {
+        "sku": "staples-hyken", "name": "Hyken Mesh Task", "brand": "Staples", "model": "Hyken", "priceUsd": 249, "currency": "USD",
+        "url": "https://www.staples.com/staples-hyken-mesh-task-chair/product_990119",
+        "specs": { "lumbar_support": "fixed", "armrests": "2D", "recline_mechanism": "synchro-tilt", "bifma_certified": true, "warranty_years": 7 },
+        "tier": "budget"
+      },
+      {
+        "sku": "autonomous-ergochair-pro", "name": "ErgoChair Pro", "brand": "Autonomous", "model": "ErgoChair Pro", "priceUsd": 499, "currency": "USD",
+        "url": "https://www.autonomous.ai/office-chairs/ergonomic-chair",
+        "specs": { "lumbar_support": "adjustable height", "armrests": "3D", "recline_mechanism": "multi-position lock", "bifma_certified": true, "warranty_years": 2 },
+        "tier": "mid"
+      },
+      {
+        "sku": "steelcase-series-1", "name": "Series 1", "brand": "Steelcase", "model": "Series 1", "priceUsd": 529, "currency": "USD",
+        "url": "https://www.steelcase.com/products/office-chairs/series-1/",
+        "specs": { "lumbar_support": "adjustable height", "armrests": "4D", "recline_mechanism": "dynamic counter-balance", "bifma_certified": true, "warranty_years": 12 },
+        "tier": "mid"
+      },
+      {
+        "sku": "herman-miller-aeron-b", "name": "Aeron Size B Fully Loaded", "brand": "Herman Miller", "model": "Aeron B", "priceUsd": 1745, "currency": "USD",
+        "url": "https://www.hermanmiller.com/products/seating/office-chairs/aeron-chairs/",
+        "specs": { "lumbar_support": "adjustable depth + height", "armrests": "4D", "recline_mechanism": "dynamic counter-balance", "bifma_certified": true, "warranty_years": 12 },
+        "tier": "premium"
+      },
+      {
+        "sku": "haworth-fern", "name": "Fern", "brand": "Haworth", "model": "Fern", "priceUsd": 1215, "currency": "USD",
+        "url": "https://www.haworth.com/na/en/products/seating/task/fern.html",
+        "specs": { "lumbar_support": "adjustable depth + height", "armrests": "4D", "recline_mechanism": "dynamic counter-balance", "bifma_certified": true, "warranty_years": 15 },
+        "tier": "premium"
+      }
+    ]
   }
 }

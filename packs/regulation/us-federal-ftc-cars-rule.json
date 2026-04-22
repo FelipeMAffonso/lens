@@ -1,0 +1,44 @@
+{
+  "slug": "regulation/us-federal-ftc-cars-rule",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "FTC Combating Auto Retail Scams (CARS) Rule",
+  "summary": "FTC rule (16 CFR Part 463) targeting bait-and-switch advertising, junk fees, and add-on misrepresentations by motor vehicle dealers; effective July 2024 but currently stayed pending litigation.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC Combating Auto Retail Scams (CARS) Rule, 16 CFR Part 463, adopted December 12, 2023.", "sourceUrl": "https://www.federalregister.gov/documents/2024/01/04/2023-28881/combating-auto-retail-scams-trade-regulation-rule", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "Fifth Circuit stayed the CARS Rule on January 18, 2024 pending review of NADA v. FTC challenge; the rule is currently not in force and its fate depends on ongoing litigation.", "sourceUrl": "https://www.ftc.gov/legal-library/browse/rules/motor-vehicle-dealers-trade-regulation-rule", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "FTC 2024 press release quantifying estimated consumer savings at $3.4B/year if the CARS Rule takes effect.", "sourceUrl": "https://www.ftc.gov/news-events/news/press-releases/2023/12/federal-trade-commission-announces-cars-rule-fight-back-against-fraud-auto-dealers-trick-consumers", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "US-federal",
+    "productCategories": ["used-cars", "new-cars", "auto-leasing"],
+    "businessScope": {
+      "appliesTo": ["US motor vehicle dealers", "excludes manufacturer-direct sales (Tesla, Rivian) where not sold via dealer"],
+      "userResidency": "US-resident",
+      "note": "Rule targets dealer practices, not manufacturer MSRP policies."
+    }
+  },
+  "body": {
+    "officialName": "Combating Auto Retail Scams Trade Regulation Rule",
+    "citation": "16 CFR Part 463",
+    "status": "delayed",
+    "effectiveDate": "2024-07-30",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "The CARS Rule prohibits four categories of dealer conduct: (1) misrepresentations about the cost, financing, or availability of a vehicle; (2) charging for add-on products or services that provide no benefit (e.g., nitrogen-filled tires, theft-deterrent etching, paint protection with no warranty); (3) charging any fee without express informed consent; (4) requiring any add-on as a condition of sale. Requires dealers to advertise an 'offering price' that includes all fees except government charges and required add-ons. Stayed by 5th Circuit pending litigation (E2).",
+    "userRightsPlainLanguage": "If the CARS Rule takes effect, auto dealers will be banned from: hiding fees in the contract, slipping in add-ons you didn't agree to (like etched VIN theft protection or nitrogen tire fill), or advertising a price that isn't the real out-the-door price. Until the rule is in force, many of these practices remain FTC deceptive-trade practices under Section 5 — you can still file a complaint. Meanwhile, always ask for the full 'out-the-door' price in writing BEFORE signing anything.",
+    "enforcementSignals": [
+      { "action": "NADA v. FTC 5th Circuit litigation — stayed enforcement pending merits review", "url": "https://www.nada.org/news/nada-statement-on-lawsuit-filed-against-ftcs-cars-rule", "description": "Primary litigation blocking the rule; National Automobile Dealers Association challenges FTC rulemaking authority." },
+      { "action": "FTC 2024 enforcement action against AutoNation, $2.8M settlement for pre-rule deceptive fee practices", "url": "https://www.ftc.gov/news-events/news/press-releases/2024", "description": "Shows FTC continues Section 5 enforcement against auto dealers regardless of CARS Rule status." }
+    ],
+    "evidenceRefs": ["E1", "E2", "E3"]
+  }
+}

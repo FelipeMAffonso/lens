@@ -1,0 +1,99 @@
+{
+  "slug": "category/carry-on-luggage",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Carry-on luggage",
+  "summary": "Wheeled and softshell carry-on luggage, $50-$800, sized for US and international carrier overhead bins.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "IATA recommended carry-on size is 55×35×20 cm (21.7×13.8×7.9 in); US major carriers (Delta, United, American) allow up to 22×14×9 in. Southwest allows 24×16×10 in.", "sourceUrl": "https://www.iata.org/en/programs/passenger/cabin-baggage/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "DOT Bureau of Transportation Statistics reports US airlines collected $6.7B in bag fees in 2023; checked-bag fees range $35-$40 per segment on legacy carriers.", "sourceUrl": "https://www.bts.gov/topics/airlines-and-airports", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "Consumer Reports 2024 carry-on luggage testing: wheel failure and zipper failure account for 80%+ of out-of-warranty failures; TSA lock reliability varies significantly by brand.", "sourceUrl": "https://www.consumerreports.org/cro/luggage/buying-guide/index.htm", "retrieved": "2026-04-22", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["carry-on", "carry on luggage", "cabin bag", "hand luggage", "rolling luggage", "spinner luggage"],
+    "productTags": ["luggage", "travel"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "dimensions_compliant_us_legacy", "unit": "boolean", "direction": "binary", "target": true, "notes": "Fits Delta/United/American 22×14×9 in limit (E1)." },
+      { "name": "dimensions_compliant_international", "unit": "boolean", "direction": "binary", "target": true, "notes": "Fits IATA 55×35×20 cm limit for Europe/Asia carriers (E1)." },
+      { "name": "weight_lbs_empty", "unit": "lbs", "direction": "lower_is_better", "typicalRange": [5, 12], "notes": "Many international carriers cap total carry-on at 7 kg (15.4 lbs); every empty pound eats payload." },
+      { "name": "wheel_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "Dual-spinner vs single-spinner; sealed bearings matter (E3)." },
+      { "name": "zipper_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "YKK or RIRI zippers score higher; coil vs tooth; 80% of failures are zipper-related (E3)." },
+      { "name": "shell_material", "unit": "categorical", "direction": "target", "typicalRange": ["ballistic-nylon", "polycarbonate", "polypropylene", "aluminum", "ABS"], "notes": "Polycarbonate and aluminum are most durable; ABS is cheapest but crack-prone." },
+      { "name": "warranty_years", "unit": "years", "direction": "higher_is_better", "typicalRange": [2, 99], "notes": "Briggs & Riley, Travelpro Platinum Elite offer lifetime." },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [50, 800] }
+    ],
+    "specNormalization": {
+      "weight_lbs_empty": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:lbs?|pounds?)", "unit": "lbs" },
+      "warranty_years": { "regex": "(\\d+)[- ]?year", "unit": "years" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "fits any overhead bin", "reality": "International carriers (especially Asia and LCCs) enforce 55×35×20 cm or smaller (E1). A bag sized for US domestic may not fit EU LCC sizers. Size claims must specify jurisdiction.", "verdict": "misleading", "checkPrompt": "Does the bag fit 55×35×20 cm (IATA) OR 22×14×9 in (US legacy)? Some bags only pass one." },
+      { "pattern": "lifetime warranty", "reality": "Lifetime warranties from Samsonite, American Tourister, Travelpro (base line) cover manufacturing defect only — airline-caused damage is often excluded and not economically repairable. Briggs & Riley's policy is broader (covers airline damage).", "verdict": "misleading", "checkPrompt": "Does the lifetime warranty cover airline damage or only manufacturing defects?" },
+      { "pattern": "TSA-approved lock", "reality": "TSA-approved simply means TSA has a master key; it does not imply security. Combination dials on these locks can be cracked in <30 seconds.", "verdict": "misleading", "checkPrompt": "TSA lock is convenience, not security. Is that disclosed?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Rimowa / Tumi at 60%+ below MSRP from non-authorized marketplace", "action": "flag — these brands are top eyewear-tier counterfeit targets" }
+    ],
+    "compatibilityQuestions": [
+      "Primary airline? Spirit/Frontier/Asian LCCs require stricter sizing.",
+      "Trip length? 3-day trips fit in carry-on, 7-day may require checked."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Gate-check penalty if bag fails sizer", "annualCostUsd": [35, 120], "frequency": "per-incident" },
+      { "name": "Replacement wheels/zippers (if DIY repair available)", "annualCostUsd": [15, 60], "frequency": "conditional" },
+      { "name": "Luggage insurance / travel insurance riders", "annualCostUsd": [30, 150], "frequency": "annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": "luggage",
+      "typicalPartsAvailability": "variable",
+      "notes": "Briggs & Riley has US factory repair. Travelpro offers parts kits. Most consumer-tier brands are not economically repairable."
+    },
+    "representativeSkus": [
+      {
+        "sku": "amazon-basics-hardside-21", "name": "Hardside Spinner 21-inch", "brand": "Amazon Basics", "model": "21-inch Hardside", "priceUsd": 89, "currency": "USD",
+        "url": "https://www.amazon.com/Basics-Hardside-Spinner-Luggage/dp/B073MCNVZR",
+        "specs": { "dimensions_compliant_us_legacy": true, "dimensions_compliant_international": false, "weight_lbs_empty": 7.2, "wheel_quality": 0.55, "zipper_quality": 0.5, "shell_material": "ABS", "warranty_years": 3 },
+        "tier": "budget"
+      },
+      {
+        "sku": "away-carry-on", "name": "The Carry-On", "brand": "Away", "model": "Carry-On", "priceUsd": 275, "currency": "USD",
+        "url": "https://www.awaytravel.com/suitcases/carry-on",
+        "specs": { "dimensions_compliant_us_legacy": true, "dimensions_compliant_international": true, "weight_lbs_empty": 7.6, "wheel_quality": 0.82, "zipper_quality": 0.78, "shell_material": "polycarbonate", "warranty_years": 99 },
+        "tier": "mid", "notes": "Lifetime warranty; 100-day trial."
+      },
+      {
+        "sku": "travelpro-platinum-elite-21", "name": "Platinum Elite 21-Inch", "brand": "Travelpro", "model": "Platinum Elite", "priceUsd": 379, "currency": "USD",
+        "url": "https://www.travelpro.com/platinum-elite/",
+        "specs": { "dimensions_compliant_us_legacy": true, "dimensions_compliant_international": true, "weight_lbs_empty": 8.5, "wheel_quality": 0.85, "zipper_quality": 0.88, "shell_material": "ballistic-nylon", "warranty_years": 99 },
+        "tier": "mid", "notes": "Flight-crew favorite; repair-friendly."
+      },
+      {
+        "sku": "briggs-riley-baseline-domestic-carry-on", "name": "Baseline Domestic Carry-On", "brand": "Briggs & Riley", "model": "U121CXSP", "priceUsd": 599, "currency": "USD",
+        "url": "https://www.briggs-riley.com/collections/baseline",
+        "specs": { "dimensions_compliant_us_legacy": true, "dimensions_compliant_international": false, "weight_lbs_empty": 9.2, "wheel_quality": 0.92, "zipper_quality": 0.93, "shell_material": "ballistic-nylon", "warranty_years": 99 },
+        "tier": "premium", "notes": "Simple-as-That lifetime warranty — covers airline damage, unique in industry."
+      },
+      {
+        "sku": "rimowa-essential-cabin", "name": "Essential Cabin", "brand": "Rimowa", "model": "Essential Cabin", "priceUsd": 875, "currency": "USD",
+        "url": "https://www.rimowa.com/us/en/luggage/collections/essential/cabin.html",
+        "specs": { "dimensions_compliant_us_legacy": true, "dimensions_compliant_international": true, "weight_lbs_empty": 7.7, "wheel_quality": 0.95, "zipper_quality": 0.95, "shell_material": "polycarbonate", "warranty_years": 5 },
+        "tier": "premium"
+      },
+      {
+        "sku": "monos-carry-on", "name": "Carry-On", "brand": "Monos", "model": "Carry-On", "priceUsd": 295, "currency": "USD",
+        "url": "https://monos.com/products/carry-on",
+        "specs": { "dimensions_compliant_us_legacy": true, "dimensions_compliant_international": true, "weight_lbs_empty": 7.4, "wheel_quality": 0.83, "zipper_quality": 0.82, "shell_material": "polycarbonate", "warranty_years": 99 },
+        "tier": "mid"
+      }
+    ]
+  }
+}

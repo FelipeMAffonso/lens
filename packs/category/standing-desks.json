@@ -47,6 +47,38 @@
       { "name": "Shipping + assembly (DIY vs pro install)", "annualCostUsd": [0, 300], "frequency": "one-time" }
     ],
     "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
-    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "variable", "notes": "Uplift and Fully have strong parts support. Budget brands have limited parts." }
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "variable", "notes": "Uplift and Fully have strong parts support. Budget brands have limited parts." },
+    "representativeSkus": [
+      {
+        "sku": "flexispot-e7", "name": "E7 Pro 55x28 Standing Desk", "brand": "FlexiSpot", "model": "E7", "priceUsd": 479, "currency": "USD",
+        "url": "https://www.flexispot.com/standing-desks/e7-pro-plus-standing-desk.html",
+        "specs": { "weight_capacity_lbs": 355, "stability_score": 0.72, "lift_speed_inches_per_second": 1.5, "noise_db": 50, "warranty_years": 15 },
+        "tier": "mid"
+      },
+      {
+        "sku": "vari-electric-standing-desk-48", "name": "Electric Standing Desk 48x30", "brand": "Vari", "model": "ESD-48", "priceUsd": 695, "currency": "USD",
+        "url": "https://www.vari.com/electric-standing-desk-48x30/ESD6-01/",
+        "specs": { "weight_capacity_lbs": 250, "stability_score": 0.78, "lift_speed_inches_per_second": 1.3, "noise_db": 48, "warranty_years": 5 },
+        "tier": "mid"
+      },
+      {
+        "sku": "uplift-v2-standard-60x30", "name": "V2 Standard 60x30", "brand": "Uplift", "model": "V2 Standard", "priceUsd": 799, "currency": "USD",
+        "url": "https://www.upliftdesk.com/uplift-v2-standing-desk/",
+        "specs": { "weight_capacity_lbs": 355, "stability_score": 0.85, "lift_speed_inches_per_second": 1.6, "noise_db": 50, "warranty_years": 15 },
+        "tier": "mid"
+      },
+      {
+        "sku": "uplift-v2-commercial-72x30", "name": "V2 Commercial 72x30", "brand": "Uplift", "model": "V2 Commercial", "priceUsd": 999, "currency": "USD",
+        "url": "https://www.upliftdesk.com/uplift-v2-commercial-standing-desk/",
+        "specs": { "weight_capacity_lbs": 535, "stability_score": 0.9, "lift_speed_inches_per_second": 1.6, "noise_db": 48, "warranty_years": 15 },
+        "tier": "premium", "notes": "BIFMA X5.5 certified."
+      },
+      {
+        "sku": "jarvis-bamboo-60x30", "name": "Jarvis Bamboo 60x30", "brand": "Fully (Herman Miller)", "model": "Jarvis Bamboo", "priceUsd": 969, "currency": "USD",
+        "url": "https://www.fully.com/standing-desks/jarvis/jarvis-bamboo-standing-desk.html",
+        "specs": { "weight_capacity_lbs": 350, "stability_score": 0.85, "lift_speed_inches_per_second": 1.5, "noise_db": 50, "warranty_years": 15 },
+        "tier": "premium"
+      }
+    ]
   }
 }

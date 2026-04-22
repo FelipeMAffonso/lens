@@ -1,0 +1,39 @@
+{
+  "slug": "fee/airline-baggage-fee",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Airline baggage fee",
+  "summary": "Fee charged by an airline for checked or oversized/overweight carry-on baggage, ranging $30-$200 per segment depending on carrier, route, and timing of purchase.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "DOT regulation 14 CFR §399.85 requires airlines to disclose baggage fees at the point of booking and at the same time as the fare; the DOT 2024 Ancillary Fee Rule expands this to require the disclosure 'up front, clearly, and conspicuously' alongside the base fare.", "sourceUrl": "https://www.transportation.gov/briefing-room/biden-harris-administration-announces-final-rules-require-automatic-refunds-and", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "DOT Bureau of Transportation Statistics: US airlines collected $6.7B in baggage fees in 2023; average per-passenger fee collected: $14.50 across all travelers.", "sourceUrl": "https://www.bts.gov/topics/airlines-and-airports/quarterly-air-travel-statistics", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "Major US carrier checked-bag fees (2025): American $35 first/first-two, Delta $35 first, United $35 first, Southwest FREE first-two, JetBlue $35-$50 first.", "sourceUrl": "https://www.aa.com/i18n/travel-info/baggage/checked-baggage-policy.jsp", "retrieved": "2026-04-22", "primary": false }
+  ],
+  "applicability": { "categoryContext": ["airline-tickets"], "pageTypes": ["booking-flow", "check-in", "boarding-pass"] },
+  "body": {
+    "canonicalName": "Airline baggage fee",
+    "description": "A per-segment fee charged for each piece of checked baggage beyond a free allowance (often zero on US domestic basic-economy fares). Also applies to carry-on bags on ultra-low-cost carriers (Spirit, Frontier, Breeze). Fees commonly rise sharply for at-airport payment vs. advance online purchase; weight overages add $100-$200.",
+    "typicalRange": { "min": 30, "max": 200, "unit": "USD", "frequency": "per-segment" },
+    "identificationSignals": [
+      { "kind": "text-pattern", "patterns": ["baggage fee", "checked bag", "carry-on fee", "bag fee"], "caseSensitive": false },
+      { "kind": "line-item", "selector": "booking-summary[fee-line]", "patterns": ["\\$\\d{2,3}\\s*(?:per bag|per segment)"] },
+      { "kind": "fare-class", "selector": "fare-type=basic-economy", "description": "Basic-economy fares on legacy carriers typically include zero free checked bags." }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "US-federal", "regulationSlug": null, "requirement": "DOT 14 CFR §399.85 + 2024 DOT Ancillary Fee Rule requires upfront, clear, and conspicuous disclosure alongside base fare (E1)." },
+      { "jurisdiction": "EU", "regulationSlug": null, "requirement": "EU Regulation 1008/2008 Article 23 requires all-inclusive price display including unavoidable ancillary charges." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "sometimes (via co-branded credit cards or elite status)",
+      "typicalSuccessRate": 0.3,
+      "script": "Baggage fees can be avoided by: (1) holding the airline's co-branded credit card (most give first-bag-free automatically), (2) earning elite status, (3) booking a fare class that includes bags (not basic economy), (4) flying Southwest which still has two free checked bags. Buying the fee as part of the booking flow is always cheaper than paying at the airport."
+    },
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "slug": "category/gas-grills",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Gas grills",
+  "summary": "Propane and natural gas outdoor grills, 2-6 burners, $200-$4000 range.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "ANSI Z21.58 / CSA 1.6 is the US/Canada safety standard for outdoor cooking gas appliances. Non-certified grills may not meet leak/flameout requirements.", "sourceUrl": "https://webstore.ansi.org/standards/csa/ansiz21582022", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "BTU-per-hour is the heat-input rating, not cooking power. Real cooking performance depends on cooking-area coverage, flame distribution, and hood heat retention. Higher BTU with sparse burners produces cold spots (SCA heat-distribution protocol).", "sourceUrl": "https://www.consumerreports.org/grills-outdoor/gas-grill-buying-guide-a9263293728/", "retrieved": "2026-04-22", "primary": false },
+    { "ref": "E3", "claim": "Weber 10-year warranty on stainless-steel cookboxes and aluminum bodies has been industry-cited benchmark; Char-Broil base tier is 1-5 years by part.", "sourceUrl": "https://www.weber.com/US/en/customer-service/warranty-information/", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["gas grill", "propane grill", "bbq", "outdoor grill", "natural gas grill"],
+    "productTags": ["grill", "outdoor", "bbq"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "ansi_certified", "unit": "boolean", "direction": "binary", "target": true, "notes": "ANSI Z21.58 / CSA 1.6 certification (E1)." },
+      { "name": "btu_per_sq_inch", "unit": "BTU_per_sqin", "direction": "higher_is_better", "typicalRange": [70, 120], "notes": "Heat density. <70 is underpowered; >100 is high-output. Raw BTU without area context is marketing (E2)." },
+      { "name": "primary_cooking_area_sqin", "unit": "sq_in", "direction": "higher_is_better", "typicalRange": [300, 900] },
+      { "name": "cookbox_material", "unit": "categorical", "direction": "target", "typicalRange": ["painted-steel", "porcelain-enameled-steel", "304-stainless", "cast-aluminum"], "notes": "304 stainless and cast aluminum resist rust longest." },
+      { "name": "grate_material", "unit": "categorical", "direction": "target", "typicalRange": ["porcelain-coated-cast-iron", "cast-iron", "stainless-steel", "porcelain-steel"], "notes": "Porcelain-coated cast iron gives best sear + longevity balance." },
+      { "name": "warranty_cookbox_years", "unit": "years", "direction": "higher_is_better", "typicalRange": [1, 25] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [200, 4000] }
+    ],
+    "specNormalization": {
+      "btu_total": { "regex": "(\\d+[,]?\\d*)\\s*(?:BTU|BTU/h|BTUs?)", "unit": "BTU/h" },
+      "primary_cooking_area_sqin": { "regex": "(\\d+)\\s*(?:sq\\.?\\s*in|square inches)", "unit": "sq_in" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "60,000 BTU pro-grade power", "reality": "Raw BTU without cooking-area context is meaningless (E2). 60,000 BTU over 900 sq in = 67 BTU/sq in (low); 60,000 BTU over 500 sq in = 120 BTU/sq in (high). Always compute BTU/sq in.", "verdict": "misleading", "checkPrompt": "What is the BTU figure divided by primary-cooking-area sq in? Below 70 is underpowered." },
+      { "pattern": "stainless-steel construction", "reality": "'Stainless steel' without a grade (430 vs 304 vs 316) is marketing. 430 rusts visibly within 2 years in coastal climates; 304 is the minimum for real longevity (E3).", "verdict": "misleading", "checkPrompt": "What grade of stainless — 430, 304, or 316?" },
+      { "pattern": "lifetime warranty", "reality": "Lifetime coverage usually applies only to the cookbox; burners, grates, and ignition often have separate 1-3 year warranties (E3). Replacement parts costs over 10 years typically exceed the original purchase price on budget grills.", "verdict": "misleading", "checkPrompt": "Does the 'lifetime' warranty cover burners, grates, and ignition — or only the cookbox?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Propane or natural gas line? Natural-gas conversion kits aren't always available.",
+      "Covered patio or open yard? Cast iron rusts faster without a cover.",
+      "Coastal climate? Requires 304+ stainless or regular cover use."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Propane tanks + refills", "annualCostUsd": [60, 180], "frequency": "ongoing" },
+      { "name": "Weatherproof cover", "annualCostUsd": [40, 120], "frequency": "annual" },
+      { "name": "Replacement burners/flavorizer bars", "annualCostUsd": [30, 200], "frequency": "every-3-5-years" },
+      { "name": "Regulator + hose replacement", "annualCostUsd": [20, 60], "frequency": "every-5-years" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": null,
+      "typicalPartsAvailability": "high-for-major-brands low-for-cheap",
+      "notes": "Weber parts inventory is excellent (20+ year availability). Char-Broil, Broil King, Napoleon have good parts. Generic Amazon grills are replace-don't-repair."
+    },
+    "representativeSkus": [
+      {
+        "sku": "char-broil-performance-4burner", "name": "Performance 4-Burner Cart Style", "brand": "Char-Broil", "model": "463377319", "priceUsd": 249, "currency": "USD",
+        "url": "https://www.charbroil.com/products/performance-4-burner-cart-style-liquid-propane-gas-grill-463377319",
+        "specs": { "ansi_certified": true, "btu_per_sq_inch": 82, "primary_cooking_area_sqin": 425, "cookbox_material": "painted-steel", "grate_material": "porcelain-coated-cast-iron", "warranty_cookbox_years": 5 },
+        "tier": "budget"
+      },
+      {
+        "sku": "weber-spirit-ii-e-310", "name": "Spirit II E-310", "brand": "Weber", "model": "Spirit II E-310", "priceUsd": 599, "currency": "USD",
+        "url": "https://www.weber.com/US/en/grills/gas-grills/spirit-ii-series/",
+        "specs": { "ansi_certified": true, "btu_per_sq_inch": 95, "primary_cooking_area_sqin": 424, "cookbox_material": "porcelain-enameled-steel", "grate_material": "porcelain-coated-cast-iron", "warranty_cookbox_years": 10 },
+        "tier": "mid", "notes": "10-year warranty on all parts — industry-leading."
+      },
+      {
+        "sku": "weber-genesis-e-325s", "name": "Genesis E-325s", "brand": "Weber", "model": "Genesis E-325s", "priceUsd": 999, "currency": "USD",
+        "url": "https://www.weber.com/US/en/grills/gas-grills/genesis-series/",
+        "specs": { "ansi_certified": true, "btu_per_sq_inch": 100, "primary_cooking_area_sqin": 513, "cookbox_material": "cast-aluminum", "grate_material": "porcelain-coated-cast-iron", "warranty_cookbox_years": 10 },
+        "tier": "premium"
+      },
+      {
+        "sku": "napoleon-prestige-500", "name": "Prestige 500", "brand": "Napoleon", "model": "Prestige 500", "priceUsd": 1649, "currency": "USD",
+        "url": "https://www.napoleon.com/en/us/grills/natural-gas/prestige-500-natural-gas-grill-stainless-steel",
+        "specs": { "ansi_certified": true, "btu_per_sq_inch": 110, "primary_cooking_area_sqin": 500, "cookbox_material": "304-stainless", "grate_material": "stainless-steel", "warranty_cookbox_years": 25 },
+        "tier": "premium"
+      },
+      {
+        "sku": "weber-summit-s-670", "name": "Summit S-670", "brand": "Weber", "model": "Summit S-670", "priceUsd": 3199, "currency": "USD",
+        "url": "https://www.weber.com/US/en/grills/gas-grills/summit-s-670-lp/",
+        "specs": { "ansi_certified": true, "btu_per_sq_inch": 115, "primary_cooking_area_sqin": 624, "cookbox_material": "304-stainless", "grate_material": "stainless-steel", "warranty_cookbox_years": 10 },
+        "tier": "premium"
+      }
+    ]
+  }
+}

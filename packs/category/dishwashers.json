@@ -47,6 +47,44 @@
       { "name": "Extended warranty (usually not worth it)", "annualCostUsd": [100, 250], "frequency": "one-time" }
     ],
     "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
-    "repairability": { "ifixitCategoryId": "dishwasher", "typicalPartsAvailability": "high", "notes": "Parts readily available; most repairs under $300 are economically justified." }
+    "repairability": { "ifixitCategoryId": "dishwasher", "typicalPartsAvailability": "high", "notes": "Parts readily available; most repairs under $300 are economically justified." },
+    "representativeSkus": [
+      {
+        "sku": "ge-gdf511pgrbb", "name": "GDF511PGRBB 24-inch", "brand": "GE", "model": "GDF511PGRBB", "priceUsd": 549, "currency": "USD",
+        "url": "https://www.geappliances.com/appliance/GE-Dishwasher-GDF511PGRBB",
+        "specs": { "noise_dba": 59, "cycle_time_minutes": 120, "energy_star_certified": true, "third_rack": false, "annual_energy_kwh": 269, "capacity_place_settings": 14 },
+        "tier": "budget"
+      },
+      {
+        "sku": "whirlpool-wdt750sakz", "name": "WDT750SAKZ Top-Control", "brand": "Whirlpool", "model": "WDT750SAKZ", "priceUsd": 849, "currency": "USD",
+        "url": "https://www.whirlpool.com/kitchen/dishwashers/dishwasher/p.wdt750sakz.html",
+        "specs": { "noise_dba": 47, "cycle_time_minutes": 150, "energy_star_certified": true, "third_rack": true, "annual_energy_kwh": 239, "capacity_place_settings": 15 },
+        "tier": "mid"
+      },
+      {
+        "sku": "bosch-300-series-shem63w55n", "name": "300 Series SHEM63W55N", "brand": "Bosch", "model": "SHEM63W55N", "priceUsd": 949, "currency": "USD",
+        "url": "https://www.bosch-home.com/us/productsgroups/dishwashers",
+        "specs": { "noise_dba": 44, "cycle_time_minutes": 180, "energy_star_certified": true, "third_rack": true, "annual_energy_kwh": 235, "capacity_place_settings": 16 },
+        "tier": "mid"
+      },
+      {
+        "sku": "bosch-500-series-she65p55uc", "name": "500 Series SHE65P55UC", "brand": "Bosch", "model": "SHE65P55UC", "priceUsd": 1199, "currency": "USD",
+        "url": "https://www.bosch-home.com/us/productsgroups/dishwashers",
+        "specs": { "noise_dba": 42, "cycle_time_minutes": 180, "energy_star_certified": true, "third_rack": true, "annual_energy_kwh": 232, "capacity_place_settings": 16 },
+        "tier": "premium"
+      },
+      {
+        "sku": "miele-g-7316-scu", "name": "G 7316 SCU AutoDos", "brand": "Miele", "model": "G 7316 SCU", "priceUsd": 1999, "currency": "USD",
+        "url": "https://www.mieleusa.com/domestic/dishwashers-1770.htm",
+        "specs": { "noise_dba": 42, "cycle_time_minutes": 205, "energy_star_certified": true, "third_rack": true, "annual_energy_kwh": 226, "capacity_place_settings": 16 },
+        "tier": "premium", "notes": "AutoDos with PowerDisk dispenses detergent automatically for 20+ cycles."
+      },
+      {
+        "sku": "lg-ldts5552s", "name": "LDTS5552S Top-Control", "brand": "LG", "model": "LDTS5552S", "priceUsd": 799, "currency": "USD",
+        "url": "https://www.lg.com/us/dishwashers/lg-ldts5552s-dishwashers",
+        "specs": { "noise_dba": 44, "cycle_time_minutes": 165, "energy_star_certified": true, "third_rack": true, "annual_energy_kwh": 258, "capacity_place_settings": 15 },
+        "tier": "mid"
+      }
+    ]
   }
 }
