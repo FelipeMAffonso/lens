@@ -31,7 +31,7 @@
 | F16 | Public disagreement ticker | ✅ | `BLOCKS/F16-ticker.md` | `ab19963` |
 | F17 | Observability (logs + traces) | ✅ | `BLOCKS/F17-observability.md` | `8ab4ab3` |
 | F18 | Authenticated rate limiting | ✅ | `BLOCKS/F18-rate-limit.md` | `35a9ca9` |
-| F19 | Secrets + env parity | ⬜ | 🔬 | |
+| F19 | Secrets + env parity | ✅ | `BLOCKS/F19-secrets-env-parity.md` | `750fffe` |
 | F20 | Testing infrastructure | ✅ | `BLOCKS/F20-testing-infra.md` | `d6569a5` |
 
 ## Part B — Workflows by stage
@@ -222,6 +222,7 @@
 - 2026-04-21: F20 ✅ — vitest workspace, 68 tests passing, Playwright web scaffolded, CI unit-tests job. Commit `d6569a5`.
 - 2026-04-21: F1 ✅ — auth magic-link + anon LIVE. D1+KV+R2 provisioned on Cloudflare (via wrangler), JWT_SECRET set, migration 0001_auth.sql applied, 33 new tests (101 total green), backend endpoints + vanilla-TS frontend (session.ts, signin-modal.ts, callback.ts) + cross-site SameSite=None cookies. Live smoke confirmed. Commit `c27013f`.
 - 2026-04-21: F3 ✅ — workflow engine LIVE. Kahn's sort for parallel-batch DAG, typed event bus (12 events), per-node retry + timeout + abort-signal cancellation, D1 run log (migration 0002). Audit pipeline ported to 6-node diamond DAG. /workflows endpoint + ?legacy=1 fallback. 117/117 tests (16 new). Smoke: audit returns ULID 01KPSN... Commit `2a96393`.
+- 2026-04-22: F19 ✅ — secrets+env parity sweep: 3 new .dev.vars.example (cross-model, mcp, apps/web/.env.example), DEEPGRAM_API_KEY+LENS_COOKIE_DOMAIN added to API template, docs/secrets.md canonical reference, README install expanded. env.test.ts static drift-prevention test (5 tests) — every src env reference now provably documented. 301/301 tests green. Commit `750fffe`.
 
 ---
 
