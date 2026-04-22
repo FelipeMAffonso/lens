@@ -4,8 +4,27 @@ import { txt } from "./common.js";
 export const chatgptAdapter: HostAdapter = {
   id: "chatgpt",
   match: (url) => url.hostname === "chatgpt.com" || url.hostname === "chat.openai.com",
-  detectResponses: (root) =>
-    [...root.querySelectorAll<HTMLElement>('[data-message-author-role="assistant"]')],
+  detectResponses: (root) => {
+    // Primary selector per ChatGPT's current DOM.
+    const primary = [...root.querySelectorAll<HTMLElement>('[data-message-author-role="assistant"]')];
+    if (primary.length > 0) return primary;
+    // Judge P1-3 fallback: ChatGPT occasionally restructures assistant
+    // markup. article[data-turn="assistant"] is a stable alt; .markdown.prose
+    // under an assistant-authored turn is another. Warn once so the stale
+    // selector is observable in devtools.
+    const alt = [
+      ...root.querySelectorAll<HTMLElement>('article[data-turn="assistant"]'),
+      ...root.querySelectorAll<HTMLElement>('article[data-author-role="assistant"]'),
+    ];
+    if (alt.length > 0) {
+      if (!(globalThis as { __lensChatgptStale?: boolean }).__lensChatgptStale) {
+        console.warn("[Lens] chatgpt selector stale — using fallback");
+        (globalThis as { __lensChatgptStale?: boolean }).__lensChatgptStale = true;
+      }
+      return alt;
+    }
+    return [];
+  },
   extractText: (el) => txt(el),
   responseAnchor: (el) => el,
   extractUserPrompt: (el) => {

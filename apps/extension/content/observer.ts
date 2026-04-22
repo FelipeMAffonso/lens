@@ -21,5 +21,21 @@ export function watchForResponses(adapter: HostAdapter): MutationObserver {
     }
   });
   mo.observe(document.documentElement, { childList: true, subtree: true });
+
+  // Judge P1-5: SPA route changes. ChatGPT + Claude + Gemini are Next/React
+  // SPAs — the MutationObserver catches most re-renders but `history.pushState`
+  // can swap the tree without a top-level childList notification. Re-run the
+  // full-document pass on popstate + custom navigation events.
+  const reattach = (): void => {
+    for (const el of adapter.detectResponses(document)) attachPill(el, adapter);
+  };
+  window.addEventListener("popstate", reattach);
+  // Monkey-patch pushState so we catch SPA-level nav without library hooks.
+  const origPush = history.pushState.bind(history);
+  history.pushState = function (...args: Parameters<typeof origPush>): void {
+    origPush(...args);
+    setTimeout(reattach, 100);
+  };
+
   return mo;
 }

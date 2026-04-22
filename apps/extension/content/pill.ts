@@ -61,9 +61,11 @@ export function attachPill(responseEl: HTMLElement, adapter: HostAdapter): void 
     responseEl.style.position = "relative";
   }
 
+  // Judge P1-4: ChatGPT's copy/regenerate/thumbs toolbar pins at bottom:8px
+  // right:8px. Raise our pill to bottom:44px so we don't collide visually.
   const host = document.createElement("span");
   host.style.cssText =
-    "position:absolute;bottom:8px;right:8px;z-index:2147483646;line-height:0;";
+    "position:absolute;bottom:44px;right:8px;z-index:2147483646;line-height:0;";
   host.setAttribute("data-lens", "pill-host");
   const shadow = host.attachShadow({ mode: "closed" });
   shadow.innerHTML = PILL_TEMPLATE;

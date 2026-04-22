@@ -49,6 +49,15 @@ To confirm, send a short excerpt (~200 characters) to Lens's API?
 
 Per-host setting stored in `chrome.storage.local` (Tier 1 — never leaves device). User can revisit in extension settings.
 
+### Clarification — Active-mode pill clicks bypass Stage-2 consent (V-EXT-INLINE-a judge P0-1)
+
+The per-host consent gate in §2 Stage 2 applies to **Passive mode** — the content script's dark-pattern excerpt POST. In **Active mode** (user explicitly clicks the ◉ Lens pill on an AI response), the click itself is the consent primitive: the user is announcing intent to audit this specific response. We send the response text to `/audit` without a prior per-host modal because:
+- The click is scoped, specific, and user-initiated.
+- The audit payload is a single visible assistant message the user already read.
+- A modal on every click would create friction that kills the ambient feel.
+
+The user can still disable the extension per-host via `chrome://extensions` or by dismissing the sidebar. Consent fatigue vs. consent for intentional actions is a deliberate design choice.
+
 ### What the user sees if confirmed
 
 A small pinned badge near the matched region — not a modal, never blocks flow:
