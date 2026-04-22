@@ -15,6 +15,12 @@ export const AuditInputSchema = z.discriminatedUnion("kind", [
     imageBase64: z.string().min(1),
     userPrompt: z.string().max(10_000).optional(),
   }),
+  z.object({
+    kind: z.literal("query"),
+    source: HostAISchema.optional(),
+    userPrompt: z.string().min(1).max(10_000),
+    category: z.string().max(200).optional(),
+  }),
 ]);
 
 export const CriterionSchema = z.object({

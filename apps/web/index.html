@@ -3,36 +3,62 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Lens — audit any AI shopping recommendation</title>
+    <title>Lens — the consumer's independent shopping agent</title>
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
     <main class="container">
       <header>
         <h1>Lens</h1>
-        <p class="tagline">Paste any AI shopping recommendation. See what's actually optimal.</p>
+        <p class="tagline">
+          The consumer's independent agent across every point of every purchase.
+          Paste an AI shopping recommendation, or just describe what you want.
+        </p>
+        <div class="pack-stats" id="pack-stats">loading packs…</div>
       </header>
 
+      <nav class="mode-switch">
+        <button class="mode-btn active" data-mode="query">
+          <span class="badge">Job 1</span>
+          I want to buy…
+        </button>
+        <button class="mode-btn" data-mode="text">
+          <span class="badge">Job 2</span>
+          Audit an AI's answer
+        </button>
+      </nav>
+
       <section class="paste-box">
-        <label for="source">Source</label>
-        <select id="source">
-          <option value="chatgpt">ChatGPT</option>
-          <option value="claude">Claude</option>
-          <option value="gemini">Gemini</option>
-          <option value="rufus">Amazon Rufus</option>
-          <option value="unknown">Other</option>
-        </select>
+        <div class="mode-section" id="query-section">
+          <label for="query-prompt">What are you shopping for?</label>
+          <textarea
+            id="query-prompt"
+            rows="3"
+            placeholder="e.g. espresso machine under $400, pressure + build quality + steam matter most"
+          ></textarea>
+        </div>
 
-        <label for="user-prompt">Your original prompt (optional)</label>
-        <input id="user-prompt" type="text" placeholder="e.g. espresso machine under $400, pressure + build + steam" />
+        <div class="mode-section hidden" id="text-section">
+          <label for="source">Source AI</label>
+          <select id="source">
+            <option value="chatgpt">ChatGPT</option>
+            <option value="claude">Claude</option>
+            <option value="gemini">Gemini</option>
+            <option value="rufus">Amazon Rufus</option>
+            <option value="unknown">Other</option>
+          </select>
 
-        <label for="ai-output">The AI's answer</label>
-        <textarea id="ai-output" rows="10" placeholder="Paste the AI's recommendation here…"></textarea>
+          <label for="user-prompt">Your original prompt (optional)</label>
+          <input id="user-prompt" type="text" placeholder="what you asked the AI for" />
 
-        <label class="screenshot">
-          <input type="file" id="screenshot" accept="image/png,image/jpeg" />
-          …or drop a screenshot
-        </label>
+          <label for="ai-output">The AI's answer (paste here)</label>
+          <textarea id="ai-output" rows="8" placeholder="Paste the AI's full recommendation…"></textarea>
+
+          <label class="screenshot">
+            <input type="file" id="screenshot" accept="image/png,image/jpeg" />
+            …or drop a screenshot
+          </label>
+        </div>
 
         <button id="audit-btn">Audit</button>
       </section>
@@ -43,9 +69,17 @@
       </section>
 
       <section id="result" class="result" hidden>
-        <h2>Audit result</h2>
         <div id="result-body"></div>
       </section>
+
+      <footer>
+        <p>
+          <strong>Open source</strong> under MIT.
+          <a href="https://github.com/FelipeMAffonso/lens" target="_blank">Repo</a> ·
+          <a href="/src/styles.css">CSS</a> ·
+          Built with Claude Opus 4.7 for the Built with Opus 4.7 hackathon.
+        </p>
+      </footer>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

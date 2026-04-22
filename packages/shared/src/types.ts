@@ -1,10 +1,11 @@
 // Core domain types for Lens.
 // Everything the frontend, extension, API Worker, and cross-model agent share.
 
-/** The raw input the user gives Lens: either pasted text, or a screenshot. */
+/** The raw input the user gives Lens: either pasted text, a screenshot, or a plain user query (Job 1 primary mode — no AI in the loop). */
 export type AuditInput =
   | { kind: "text"; source: HostAI; raw: string; userPrompt?: string | undefined }
-  | { kind: "image"; source: HostAI; imageBase64: string; userPrompt?: string | undefined };
+  | { kind: "image"; source: HostAI; imageBase64: string; userPrompt?: string | undefined }
+  | { kind: "query"; source?: HostAI | undefined; userPrompt: string; category?: string | undefined };
 
 /** Which AI assistant produced the output being audited. */
 export type HostAI = "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";

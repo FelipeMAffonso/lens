@@ -39,6 +39,12 @@ export async function extractIntentAndRecommendation(
   input: AuditInput,
   env: Env,
 ): Promise<{ intent: UserIntent; aiRecommendation: AIRecommendation }> {
+  // Job 1 primary mode (kind === "query"): no AI in the loop. Derive intent
+  // only from the user prompt; skip the AI-recommendation extraction entirely.
+  if (input.kind === "query") {
+    return extractQueryOnly(input, env);
+  }
+
   const userContent =
     input.kind === "text"
       ? [
@@ -143,4 +149,71 @@ export async function extractIntentAndRecommendation(
 function stripFences(s: string): string {
   const m = s.match(/```(?:json)?\s*([\s\S]*?)```/);
   return (m && m[1] ? m[1] : s).trim();
+}
+
+/**
+ * Job 1 primary mode: extract a UserIntent from a plain natural-language query
+ * with no AI assistant output to audit. Returns a synthetic aiRecommendation
+ * marked host="unknown" with empty claims — downstream stages render accordingly.
+ */
+const QUERY_SYSTEM = `You parse a shopping intent from a plain natural-language user query. Return ONLY the "intent" object (the same schema used in the paste audit, no aiRecommendation). Derive criteria weights from ORDER and EMPHASIS in the user's language when not explicit. Normalize weights to sum to 1. Return a single JSON object {"intent": {...}} — no prose, no markdown fences.`;
+
+async function extractQueryOnly(
+  input: Extract<AuditInput, { kind: "query" }>,
+  env: Env,
+): Promise<{ intent: UserIntent; aiRecommendation: AIRecommendation }> {
+  const categoryHint = input.category ? ` Category hint: ${input.category}.` : "";
+
+  // Two-pass: first pass to identify category, second to apply pack criteria template.
+  const firstRes = await opusExtendedThinking(env, {
+    system: QUERY_SYSTEM,
+    user: `USER QUERY: ${input.userPrompt}${categoryHint}`,
+    maxOutputTokens: 2500,
+    effort: "medium",
+  });
+  const firstJson = stripFences(firstRes.text);
+  let firstParsed: { intent?: { category?: string } };
+  try { firstParsed = JSON.parse(firstJson); } catch { firstParsed = {}; }
+
+  const categoryGuess = input.category ?? firstParsed.intent?.category;
+  const categoryPack = categoryGuess ? findCategoryPack(categoryGuess) : null;
+  console.log("[extract:query] category_guess=%s pack_hit=%s", categoryGuess, categoryPack?.slug ?? "none");
+
+  const text = categoryPack
+    ? (
+        await opusExtendedThinking(env, {
+          system: QUERY_SYSTEM + "\n\n" + categoryCriteriaPrompt(categoryPack),
+          user: `USER QUERY: ${input.userPrompt}${categoryHint}`,
+          maxOutputTokens: 2500,
+          effort: "medium",
+        })
+      ).text
+    : firstRes.text;
+
+  const json = stripFences(text);
+  let parsed: { intent?: Partial<UserIntent> };
+  try { parsed = JSON.parse(json); } catch {
+    throw new Error(`extractQueryOnly returned non-JSON: ${json.slice(0, 400)}`);
+  }
+
+  const intent: UserIntent = {
+    category: parsed.intent?.category ?? "product",
+    criteria:
+      parsed.intent?.criteria && parsed.intent.criteria.length > 0
+        ? parsed.intent.criteria
+        : [{ name: "overall_quality", weight: 1, direction: "higher_is_better" }],
+    rawCriteriaText: parsed.intent?.rawCriteriaText ?? input.userPrompt,
+    ...(parsed.intent?.budget ? { budget: parsed.intent.budget } : {}),
+  };
+  const total = intent.criteria.reduce((s, c) => s + (c.weight ?? 0), 0) || 1;
+  intent.criteria = intent.criteria.map((c) => ({ ...c, weight: (c.weight ?? 0) / total }));
+
+  // Synthetic aiRecommendation — Job 1 has no AI to audit.
+  const aiRecommendation: AIRecommendation = {
+    host: input.source ?? "unknown",
+    pickedProduct: { name: "(no AI recommendation — user query only)" },
+    claims: [],
+    reasoningTrace: "",
+  };
+  return { intent, aiRecommendation };
 }

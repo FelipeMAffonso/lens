@@ -13,23 +13,57 @@ Eleven consumer welfare workflows ship in this week's demo. Forty-one more live 
 
 A peer-reviewed study of 18 frontier models across 382,000 shopping trials (Affonso et al., submitted to Nature, 2026) found AI shopping assistants recommend a non-optimal product 21% of the time and confabulate the reasons in 86% of cases. Lens is the welfare fix: a tool that audits any AI shopping answer in under 20 seconds with live product data.
 
-## How it works
+## Two jobs, one tool
 
-Four steps in parallel, all running on a Cloudflare Worker calling Claude Opus 4.7:
+**Job 1 — "I want to buy X" (primary mode).** User types a shopping query. Lens derives weighted criteria from a **Knowledge Pack for that category** (52 packs live), searches real products, and ranks transparently with user-adjustable sliders. End-to-end in ~6 seconds. No AI assistant in the loop.
 
-1. **Extract** — extended thinking decomposes the assistant's reasoning trace into user criteria, the product it picked, and the attribute claims it cited.
-2. **Search** — Opus 4.7's web search tool pulls the top 10-20 products matching the user's criteria from live catalog pages.
-3. **Verify + rank** — 1M context holds every spec sheet alongside every cited claim. Lens flags every contradiction, derives a utility function from the user's own words, and ranks the candidates. User can tweak weights; ranking re-computes live.
-4. **Cross-check** — a Claude Managed Agent runs the same question through three other frontier models in parallel, returns a disagreement map.
+**Job 2 — "Audit this AI answer" (killer demo).** User pastes a ChatGPT / Claude / Gemini / Rufus recommendation. Lens does Job 1 *plus* extracts the AI's cited claims, verifies each against a catalog, flags confabulations using category-specific pattern packs, and runs the same question through other frontier models. End-to-end in ~18 seconds.
+
+## Architecture at a glance
+
+- **52 Knowledge Packs** across 5 types (`packs/`): 20 categories, 16 dark patterns (complete Brignull canonical set), 8 regulations (FTC, state, EU), 5 fee taxonomies, 3 interventions. Each pack is versioned, cryptographically attributable to its evidence sources, and retires cleanly when the underlying regulation/pattern changes. See `docs/KNOWLEDGE_ARCHITECTURE.md`.
+- **Four pipeline stages**, all on a Cloudflare Worker calling Claude Opus 4.7:
+  1. **Extract** — two-pass: first pass detects category, looks up the Category Pack, second pass re-runs with the pack's criteria template injected so the output aligns to pack semantics.
+  2. **Search** — live web search via Opus 4.7's `web_search_20260209` tool; fixture-mode fallback for latency-sensitive demo.
+  3. **Verify** — 1M context loads every candidate spec sheet alongside every claim. Category-specific confabulation patterns from the pack are injected into the system prompt. Verdicts carry pack evidence references (E1, E3…).
+  4. **Rank** — deterministic `U = Σ wᵢ · sᵢ`, fully inspectable. Web UI exposes live sliders.
+  5. **Cross-check** — parallel fan-out to GPT-4o + Gemini + Llama via `crossModel.ts` (Day 3: migrating to Claude Managed Agent for the $5k special prize).
+- **Four pack-maintenance agent loops** keep packs current (`scripts/`, `docs/PACK_AGENTS.md`):
+  1. **Validator** — LLM-as-judge checks every evidence entry against its cited source.
+  2. **Enricher** — per-pack Opus agent uses `web_search` (4 queries) to propose additions.
+  3. **Regulation watcher** — weekly check of every regulation's in-force status.
+  4. **Product-page scraper** (roadmap) — samples live retailer pages for new patterns.
+
+## Live endpoints
+
+- **Audit API:** `https://lens-api.webmarinelli.workers.dev`
+  - `GET /health`
+  - `GET /packs/stats` — registry stats (pack counts, categories indexed, regulations by status)
+  - `GET /packs/:slug` — full pack JSON
+  - `POST /audit` — Job 1 or Job 2 depending on input `kind` (`query`, `text`, or `image`)
+  - `POST /audit/stream` — SSE variant with per-stage events
 
 ## Install (developer, load-unpacked)
 
 ```bash
-pnpm install
-pnpm -w build
-# Load apps/extension/dist as an unpacked Chrome extension
-# Deploy the Worker:
-cd workers/api && pnpm wrangler deploy
+npm install                                 # npm workspaces, not pnpm
+node scripts/bundle-packs.mjs               # bundle packs/ -> workers/api/src/packs/all.generated.ts
+cd workers/api && npx wrangler deploy       # deploy the Worker
+cd apps/web && npm run dev                  # local web dashboard
+# Load apps/extension as unpacked in chrome://extensions
+```
+
+## Running the pack-maintenance agents
+
+```bash
+# Validate every pack's evidence against its cited source
+node scripts/validate-packs.mjs
+
+# Enrich a specific pack via Opus 4.7 web search (proposes version bump + changes)
+node scripts/enrich-pack.mjs packs/category/espresso-machines.json
+
+# Check every regulation pack for status changes
+node scripts/check-regulation-status.mjs
 ```
 
 ## Repo layout
