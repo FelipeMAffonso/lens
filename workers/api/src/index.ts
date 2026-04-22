@@ -49,6 +49,10 @@ import {
 import "./price-refund/workflow.js"; // register price.poll workflow
 import { handleVerify as handleProvenanceVerify } from "./provenance/handler.js";
 import { handleCompatCheck, handleCompatInfo } from "./compat/handler.js";
+import {
+  handleGet as handleSourceWeightingGet,
+  handlePut as handleSourceWeightingPut,
+} from "./source-weighting/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -384,6 +388,10 @@ app.post("/provenance/verify", (c) => handleProvenanceVerify(c as never));
 // S4-W23 — compatibility check.
 app.post("/compat/check", (c) => handleCompatCheck(c as never));
 app.get("/compat/info", (c) => handleCompatInfo(c as never));
+
+// S2-W13 — vendor-vs-independent source weighting.
+app.get("/source-weighting", (c) => handleSourceWeightingGet(c as never));
+app.put("/source-weighting", (c) => handleSourceWeightingPut(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these
