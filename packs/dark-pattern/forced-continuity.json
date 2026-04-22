@@ -1,0 +1,55 @@
+{
+  "slug": "dark-pattern/forced-continuity",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Forced continuity",
+  "summary": "Free trial or introductory offer silently converts to paid subscription with no clear notice or explicit consent at the moment of conversion.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Brignull's canonical taxonomy lists 'forced continuity' as automatic conversion from free trial to paid subscription without explicit consent.", "sourceUrl": "https://www.deceptive.design/types/forced-continuity", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "The federal FTC Click-to-Cancel Rule (16 CFR Part 425), which would have required explicit consent to continue after a free trial, was vacated by the 8th Circuit on July 8, 2025. State laws including CA SB-313 remain in force.", "sourceUrl": "https://briefings.brownrudnick.com/post/102kr1z/us-appeals-court-blocks-ftcs-click-to-cancel-subscriptions-rule-what-your-bus", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "pageTypes": ["signup", "free-trial-signup", "subscription-product"]
+  },
+  "body": {
+    "canonicalName": "Forced continuity",
+    "brignullId": "forced-continuity",
+    "description": "A free trial or discounted introductory period silently transitions to a paid recurring subscription. The user was not given an explicit opt-in at the moment of conversion (E1). Many jurisdictions require explicit consent at the conversion moment; federal US requirement is currently vacated (E2) but state-level requirements apply.",
+    "severity": "deceptive",
+    "illegalInJurisdictions": ["regulation/us-ca-sb-313-click-to-cancel"],
+    "detectionHeuristics": [
+      {
+        "kind": "text-match",
+        "patterns": [
+          "free trial",
+          "first month free",
+          "30 days free",
+          "(\\d+) days free",
+          "start free"
+        ],
+        "secondaryRequired": [
+          "auto-renew",
+          "automatically charged",
+          "unless you cancel",
+          "cancel anytime"
+        ],
+        "caseSensitive": false
+      },
+      {
+        "kind": "field-presence",
+        "trigger": "payment-method-required-at-signup-even-for-free-trial",
+        "description": "Free trial flows that require credit card upfront are disproportionately associated with forced continuity."
+      }
+    ],
+    "llmVerifyPrompt": "You are evaluating a signup or free-trial flow for forced continuity. The user is signing up for a trial; check whether (a) a payment method is required at signup, (b) the trial auto-converts to paid, (c) the conversion moment has an explicit prompt that requires affirmative consent, or only a notification. Return: {hasForcedContinuity: boolean, trialLengthDays: number, autoChargeAmountUsd: number, requiresExplicitConversionConsent: boolean}.",
+    "remediation": "1. Warn the user that this trial will auto-charge. 2. Offer to schedule a cancellation reminder 2-3 days before the trial ends. 3. Draft a pre-emptive cancellation note for the user to send if they want to try the service without the auto-charge risk.",
+    "regulatoryLinks": ["regulation/us-ca-sb-313-click-to-cancel", "regulation/us-federal-ftc-click-to-cancel-vacated"],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

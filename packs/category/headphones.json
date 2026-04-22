@@ -1,0 +1,60 @@
+{
+  "slug": "category/headphones",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Over-ear headphones",
+  "summary": "Over-ear and circumaural headphones, wired and wireless, $100-$600 range, with emphasis on ANC-enabled models.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Battery-life claims for wireless headphones are commonly stated with ANC off at 50% volume; ANC on reduces stated battery by 20-30%.", "sourceUrl": "https://www.rtings.com/headphones/tests/battery/battery-life", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "Active Noise Cancellation effectiveness varies most in low-frequency (engine/fan noise 50-200Hz); marketing claims of 'up to 30dB reduction' typically apply only in this band.", "sourceUrl": "https://www.rtings.com/headphones/tests/noise-isolation/active-noise-cancellation", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E3", "claim": "'Industry-leading ANC' is a marketing claim, not a certifiable metric; third-party comparisons (RTINGS, Audio Science Review) consistently show Bose QuietComfort and Sony WH-1000XM series trading leads within a 2-3 dB envelope.", "sourceUrl": "https://www.rtings.com/headphones/reviews/best/active-noise-cancelling", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["headphones", "over-ear headphones", "anc headphones", "noise cancelling headphones", "wireless headphones"],
+    "productTags": ["headphones", "audio"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "anc_effectiveness", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.0, 1.0], "notes": "RTINGS low-frequency ANC score normalized. Meaningful differences begin at 0.7+; below 0.5 is 'isolation only' territory (E2)." },
+      { "name": "battery_hours_anc_on", "unit": "hours", "direction": "higher_is_better", "typicalRange": [15, 50], "notes": "ANC-on is the realistic battery figure for the primary use case. Stated 'up to N hours' is usually ANC-off (E1)." },
+      { "name": "comfort", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.4, 1.0] },
+      { "name": "mic_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "weight_g", "unit": "grams", "direction": "lower_is_better", "typicalRange": [200, 400] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [100, 600] },
+      { "name": "codec_support", "unit": "categorical", "direction": "target", "target": "LDAC", "typicalRange": ["SBC", "AAC", "aptX", "aptX Adaptive", "LDAC", "LE Audio"] }
+    ],
+    "specNormalization": {
+      "battery_hours_anc_on": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:hours|hrs|hr|h)\\s*(?:with|w/)?\\s*ANC", "unit": "hours" },
+      "weight_g": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:g|grams?|oz)", "unit": "grams", "unitMap": { "g": 1, "grams": 1, "oz": 28.35 } }
+    },
+    "confabulationPatterns": [
+      { "pattern": "up to 40 hours of battery", "reality": "This figure assumes ANC off (E1). With ANC on — the primary use case for ANC headphones — battery is typically 25-30 hours.", "verdict": "misleading", "checkPrompt": "Does the cited battery figure specify ANC on/off? If ANC off, the ANC-on figure is ~25-30% less." },
+      { "pattern": "industry-leading noise cancellation", "reality": "No certifiable 'leading' exists; Bose QuietComfort and Sony WH-1000XM trade within 2-3 dB envelope (E3).", "verdict": "misleading", "checkPrompt": "Is 'industry-leading' used as a comparative claim? No such certification exists." },
+      { "pattern": "comfortable for all-day wear", "reality": "Comfort is individual-specific (head size, glasses, ear shape). Claims of 'all-day comfort' on 300g+ headphones are routinely contradicted by fatigue reports after 2-3 hours.", "verdict": "misleading", "checkPrompt": "Is the cited weight above 280g? If so, 'all-day comfort' claims are aspirational, not verifiable." }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Sony WH-1000XM5 listed below $250 from non-authorized marketplace seller", "action": "flag as likely counterfeit — authorized price floor is $298" },
+      { "signal": "AirPods Max listed below $350", "action": "flag as likely counterfeit or refurbished sold as new" }
+    ],
+    "compatibilityQuestions": [
+      "Do you primarily use iOS (AAC codec) or Android (LDAC/aptX)? Codec compatibility affects wireless audio quality.",
+      "Do you wear glasses? Thick earpads compress less well on glasses arms and cause pressure over time."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Replacement earpads (every 1-2 years for daily users)", "annualCostUsd": [25, 60], "frequency": "bi-annual" },
+      { "name": "Carrying case (if not included)", "annualCostUsd": [20, 50], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": "headphones",
+      "typicalPartsAvailability": "limited",
+      "notes": "Most wireless headphones are glued and not user-serviceable. Battery replacement is a manufacturer-only service for most Bose/Sony/Apple models."
+    }
+  }
+}

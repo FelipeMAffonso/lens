@@ -1,0 +1,62 @@
+{
+  "slug": "category/espresso-machines",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Espresso machines",
+  "summary": "Semi-automatic and automatic espresso machines for home use, $100-$1500 range.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "SCA (Specialty Coffee Association) espresso extraction standard is 9 bar ± 1 bar with 195-205°F water temperature.", "sourceUrl": "https://sca.coffee/research/protocols-best-practices", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Consumer-grade pumps are typically rated to 15 bar nominal pressure; over-pressure valves regulate actual brew pressure toward 9 bar.", "sourceUrl": "https://www.clivecoffee.com/blogs/learn/15-vs-9-bar-espresso-machines", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E3", "claim": "'Stainless steel' marketing claim frequently refers only to accent panels or boiler; primary housing may be plastic or plated metal.", "sourceUrl": "https://wholelattelove.com/blogs/articles/espresso-machine-materials-guide", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["espresso machine", "espresso", "espresso maker", "coffee espresso", "cappuccino machine"],
+    "productTags": ["espresso", "coffee-equipment", "kitchen-appliance"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "pressure", "unit": "bar", "direction": "higher_is_better", "typicalRange": [9, 20], "notes": "SCA standard is 9 bar (E1). 15-20 bar marketing claims are pump nominal, not brew pressure. Higher nominal pressure is not a quality proxy once ≥9 bar is met." },
+      { "name": "build_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "Composite: housing material (stainless > painted metal > plastic), boiler metal (brass/copper > aluminum > stainless liner), switch/valve quality, PID temperature control." },
+      { "name": "steam_power", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "Professional-style wand with 3-4 hole tip scores higher than panarello or automatic frother. Dedicated steam boiler scores higher than single-boiler with temp-switching." },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [100, 1500] },
+      { "name": "ease_of_use", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "maintenance_burden", "unit": "score_0_1", "direction": "lower_is_better", "typicalRange": [0.2, 0.9] }
+    ],
+    "specNormalization": {
+      "pressure": { "regex": "(\\d+(?:\\.\\d+)?)\\s*bar", "unitMap": { "bar": 1.0, "PSI": 0.0689 } },
+      "water_tank_oz": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:oz|ounce|mL|ml|L|liter)", "unit": "oz" },
+      "warranty_years": { "regex": "(\\d+)[- ]?year", "unit": "years" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "stainless-steel build", "reality": "Primary housing is often plastic with stainless steel accent panels or only the boiler (E3). Check full teardown or product photos.", "verdict": "misleading", "checkPrompt": "For the recommended product, is the primary housing material stainless steel, or is only the boiler/accent stainless with the main body being plastic or painted metal?" },
+      { "pattern": "15-bar professional pressure", "reality": "15 bar is the pump nominal rating; actual brew pressure should be ~9 bar (E1). Any machine with 9+ bar meets the SCA standard; 15-bar is marketing copy, not a quality differentiator.", "verdict": "misleading", "checkPrompt": "Is the cited 15-bar figure compared against alternatives in a way that suggests it is superior? Any machine ≥9 bar meets the standard." },
+      { "pattern": "cafe-quality espresso", "reality": "Requires: PID temperature stability, 3-way solenoid valve, at least 58mm portafilter, pressurized or unpressurized basket matching user skill, and grinder-side consistency. A consumer machine alone cannot guarantee this claim.", "verdict": "misleading", "checkPrompt": "Does the recommended machine have PID, a 3-way solenoid, and a 58mm portafilter? If not, 'cafe-quality' is overstated." }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Price more than 40% below MSRP from a non-authorized seller", "action": "flag as potential grey-market or counterfeit" },
+      { "signal": "Product images lifted directly from manufacturer site without unique seller photos", "action": "flag for seller verification" }
+    ],
+    "compatibilityQuestions": [
+      "Do you have a grinder capable of espresso-fine grind, or are you buying this alongside a grinder?",
+      "What's your water source? Hard water shortens the lifespan of non-descaling machines significantly."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Espresso grinder (if not owned)", "annualCostUsd": [150, 800], "frequency": "one-time" },
+      { "name": "Descaling cleaner", "annualCostUsd": [15, 30], "frequency": "quarterly" },
+      { "name": "Water softener filters (for hard-water households)", "annualCostUsd": [30, 60], "frequency": "bi-annual" },
+      { "name": "Beans", "annualCostUsd": [180, 720], "frequency": "ongoing" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": "espresso-machine",
+      "typicalPartsAvailability": "moderate",
+      "notes": "Breville, Gaggia, Rancilio have strong parts markets. Low-end De'Longhi models are often replace-don't-repair."
+    }
+  }
+}

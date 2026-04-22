@@ -1,0 +1,50 @@
+{
+  "slug": "dark-pattern/roach-motel",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Roach motel",
+  "summary": "Easy to sign up, deliberately hard to cancel. The UX of exit is intentionally more difficult than the UX of entry.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Brignull's canonical dark-patterns taxonomy lists 'roach motel' as deliberate entry-exit asymmetry.", "sourceUrl": "https://www.deceptive.design/types/roach-motel", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "California SB-313 and other state click-to-cancel laws require that cancellation be available through the same channel as signup with no more steps. The federal FTC Click-to-Cancel Rule was vacated by the 8th Circuit on July 8, 2025.", "sourceUrl": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=17602.&lawCode=BPC", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "pageTypes": ["account-settings", "subscription-management", "signup"]
+  },
+  "body": {
+    "canonicalName": "Roach motel",
+    "brignullId": "roach-motel",
+    "description": "The user can sign up for a subscription, membership, or service in a few clicks, but cancellation requires navigating to a hidden page, calling during business hours only, speaking to a retention agent, or sending certified mail. Asymmetry of effort between entry and exit is the signature (E1). Prohibited by several US state click-to-cancel laws including CA SB-313 (E2).",
+    "severity": "deceptive",
+    "illegalInJurisdictions": ["regulation/us-ca-sb-313-click-to-cancel"],
+    "detectionHeuristics": [
+      {
+        "kind": "page-structure",
+        "trigger": "signup-form-clicks-lt-3-AND-cancel-path-has-phone-only-or-more-than-5-steps",
+        "description": "Compare signup click depth (typically 2-3 clicks) to cancellation click depth (often 5+ if available online at all)."
+      },
+      {
+        "kind": "text-match",
+        "patterns": [
+          "to cancel.*call",
+          "contact.*retention",
+          "must call",
+          "please call.*cancel",
+          "certified mail.*cancel",
+          "cancellation.*business hours"
+        ],
+        "caseSensitive": false
+      }
+    ],
+    "llmVerifyPrompt": "You are evaluating a subscription service's cancellation flow. Given the signup flow's click-to-completion count (typically 2-3 clicks) and the cancellation flow's path, determine whether the cancellation flow is 'click-to-cancel' (matches signup channel) or exhibits the 'roach motel' pattern (requires phone call, in-person cancellation, certified mail, or significantly more steps). Return: {hasRoachMotel: boolean, signupSteps: number, cancelSteps: number or 'phone-only', jurisdictionViolated: string or null}.",
+    "remediation": "1. Surface the cancellation-flow asymmetry to the user. 2. If the user is in a jurisdiction with a click-to-cancel law, draft a complaint letter. 3. Walk the user through the cancellation steps in plain language.",
+    "regulatoryLinks": ["regulation/us-ca-sb-313-click-to-cancel", "regulation/us-federal-ftc-click-to-cancel-vacated"],
+    "interventionLinks": ["intervention/surface-and-warn", "intervention/draft-magnuson-moss-return"]
+  }
+}

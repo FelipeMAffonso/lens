@@ -1,0 +1,50 @@
+{
+  "slug": "dark-pattern/hidden-costs",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Hidden costs",
+  "summary": "Costs that are revealed only at or near the final step of checkout, after the user has invested time in the purchase flow.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Harry Brignull's canonical dark-patterns taxonomy lists 'hidden costs' as one of the original 12 deceptive patterns.", "sourceUrl": "https://www.deceptive.design/types/hidden-costs", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "FTC/ICPEN/GPEN 2024 review of 642 websites and mobile apps found 76% used at least one dark pattern, with hidden costs and forced subscriptions among the most prevalent.", "sourceUrl": "https://www.ftc.gov/news-events/news/press-releases/2024/07/ftc-icpen-gpen-announce-results-review-use-dark-patterns-affecting-subscription-services-privacy", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "pageTypes": ["checkout", "cart", "product"],
+    "urlPatterns": []
+  },
+  "body": {
+    "canonicalName": "Hidden costs",
+    "brignullId": "hidden-costs",
+    "description": "The user reaches the last step of the checkout only to discover extra unavoidable charges (shipping, handling, processing, mandatory insurance, service fees) that were not disclosed on the product page. Named and cataloged by Brignull (E1) and highlighted by the FTC/ICPEN 2024 global review (E2).",
+    "severity": "deceptive",
+    "illegalInJurisdictions": ["regulation/us-federal-ftc-junk-fees"],
+    "detectionHeuristics": [
+      {
+        "kind": "dom-event",
+        "trigger": "price-increased-at-checkout-step",
+        "description": "On checkout pages, compare the cart subtotal to the product-page listed price. Flag when cart-shown total exceeds listed price by more than taxes + shipping."
+      },
+      {
+        "kind": "text-match",
+        "patterns": ["service fee", "processing fee", "convenience fee", "handling charge", "resort fee"],
+        "location": "checkout-only",
+        "description": "Fee text appearing only after payment details are entered."
+      },
+      {
+        "kind": "dom",
+        "selector": "[data-fee], .fee-line-item, .additional-charge",
+        "description": "Generic fee-line-item selectors common in e-commerce templates."
+      }
+    ],
+    "llmVerifyPrompt": "You are auditing a checkout flow for hidden-cost dark patterns. Given the product-page price the user saw when they added to cart, and the cart/checkout page total they see now, identify any unavoidable fees (not optional add-ons) that were added without being disclosed on the product page. For each, return: {feeName, feeAmountUsd, discloseLocation: 'product-page' | 'cart' | 'checkout' | 'post-payment', wasUnavoidable: boolean}.",
+    "remediation": "1. Recompute the true total including all unavoidable fees. 2. Warn the user that this vendor uses the hidden-costs pattern. 3. If the jurisdiction falls under the FTC Junk Fees Rule (US live-event tickets or short-term lodging), flag as potentially non-compliant.",
+    "regulatoryLinks": ["regulation/us-federal-ftc-junk-fees"],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

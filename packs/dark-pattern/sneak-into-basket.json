@@ -1,0 +1,49 @@
+{
+  "slug": "dark-pattern/sneak-into-basket",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Sneak into basket",
+  "summary": "Items the user did not select are added to the cart automatically, often with a pre-checked checkbox that must be unchecked to remove.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Brignull's canonical taxonomy lists 'sneak into basket' as surreptitious cart additions.", "sourceUrl": "https://www.deceptive.design/types/sneak-into-basket", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "pageTypes": ["cart", "checkout", "product"]
+  },
+  "body": {
+    "canonicalName": "Sneak into basket",
+    "brignullId": "sneak-into-basket",
+    "description": "An item the user did not explicitly add appears in the cart. Typically uses a pre-checked 'add extended warranty' or 'add protection plan' checkbox on the product page, or an auto-added 'recommended' accessory in the cart (E1).",
+    "severity": "deceptive",
+    "illegalInJurisdictions": [],
+    "detectionHeuristics": [
+      {
+        "kind": "dom",
+        "selector": "input[type='checkbox'][checked], input[type='checkbox'][data-default='checked']",
+        "context": "cart, checkout, product-bundle-offer",
+        "description": "Pre-checked checkboxes at the moment of cart addition."
+      },
+      {
+        "kind": "cart-delta",
+        "trigger": "cart-line-items-increase-without-user-click",
+        "description": "Cart count rises between product-add events without corresponding user add-to-cart clicks."
+      },
+      {
+        "kind": "text-match",
+        "patterns": ["add protection plan", "extended warranty", "shipping insurance", "priority processing"],
+        "caseSensitive": false,
+        "context": "pre-checked-checkbox"
+      }
+    ],
+    "llmVerifyPrompt": "You are evaluating a cart page. Compare the cart contents to the products the user clicked to add. For each cart line item, classify as 'user-added', 'sneak-into-basket' (added without explicit click), or 'optional-accessory' (user opted in). For sneak-into-basket items, return the item name and dollar amount.",
+    "remediation": "1. Highlight the surreptitious cart addition. 2. One-click to remove. 3. Warn the user that this vendor uses sneak-into-basket.",
+    "regulatoryLinks": [],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "slug": "category/robot-vacuums",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Robot vacuums",
+  "summary": "Autonomous robotic vacuum cleaners, $200-$1600 range, with and without mopping and self-empty base stations.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Suction is measured in Pascals (Pa); 2000 Pa is adequate for hard floors, 4000+ Pa is needed for medium-pile carpet, 6000+ Pa for thick carpet and pet hair.", "sourceUrl": "https://www.rtings.com/vacuum/tests/performance", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "Mopping feature on most robot vacuums is a wet cloth dragged behind the vacuum; it does not scrub. True scrubbing requires vibrating or rotating mop heads, present only on ~20% of mop-capable models.", "sourceUrl": "https://www.wirecutter.com/reviews/best-robot-mop/", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E3", "claim": "LIDAR/VSLAM navigation accuracy is substantially higher than gyroscope-based random-pattern navigation; LIDAR models cover a room in 30-40% less time.", "sourceUrl": "https://www.vacuumwars.com/robot-vacuum-navigation-types/", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["robot vacuum", "robot vacuums", "robovac", "roomba", "autonomous vacuum"],
+    "productTags": ["vacuum", "smart-home"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "suction_pa", "unit": "Pa", "direction": "higher_is_better", "typicalRange": [1500, 10000], "notes": "Hard floor: 2000+. Medium carpet: 4000+. Thick carpet/pet hair: 6000+ (E1)." },
+      { "name": "navigation_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "LIDAR/VSLAM (0.85+) substantially outperforms gyroscope (0.4-0.6) (E3)." },
+      { "name": "mopping", "unit": "categorical", "direction": "target", "target": "vibrating_or_rotating", "typicalRange": ["none", "wet_cloth_drag", "vibrating", "rotating_pads"], "notes": "Only vibrating or rotating mops meaningfully scrub (E2); cloth-drag is damp wiping." },
+      { "name": "auto_empty", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "battery_minutes", "unit": "minutes", "direction": "higher_is_better", "typicalRange": [60, 300] },
+      { "name": "noise_db", "unit": "dB", "direction": "lower_is_better", "typicalRange": [55, 75] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [200, 1600] }
+    ],
+    "specNormalization": {
+      "suction_pa": { "regex": "(\\d+)\\s*(?:Pa|pascal)", "unit": "Pa" },
+      "battery_minutes": { "regex": "(\\d+)\\s*(?:minutes|mins|min)", "unit": "minutes" },
+      "noise_db": { "regex": "(\\d+)\\s*dB", "unit": "dB" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "professional mopping", "reality": "Most 'mop' features are damp cloth drag (E2) — useful for quick wipes but not scrubbing. 'Professional' level requires vibrating or rotating pads.", "verdict": "misleading", "checkPrompt": "Does the mopping mechanism vibrate or rotate, or is it a static wet pad dragged?" },
+      { "pattern": "never-get-stuck navigation", "reality": "All robot vacuums get stuck on cables, high-pile rugs, and raised thresholds. Marketing claims of 'obstacle avoidance' are typically 60-80% effective, not 100%.", "verdict": "misleading", "checkPrompt": "Does the product claim obstacle avoidance? If so, check independent review stuck-rate data." },
+      { "pattern": "powerful suction", "reality": "Without a Pa figure, this claim is meaningless. Always demand the numeric value (E1).", "verdict": "unverifiable", "checkPrompt": "Is a Pa figure cited? If not, flag the claim as unverifiable." }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Roborock S8 Pro Ultra listed below $1200", "action": "flag as possible grey-market import" }
+    ],
+    "compatibilityQuestions": [
+      "Do you have pets? Hair tangles in many lower-end models.",
+      "What's the carpet pile depth in your highest-traffic room? Influences suction requirement."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Replacement filters (HEPA)", "annualCostUsd": [20, 60], "frequency": "quarterly" },
+      { "name": "Replacement brushes", "annualCostUsd": [30, 80], "frequency": "annual" },
+      { "name": "Disposable dust bags (for auto-empty models)", "annualCostUsd": [40, 120], "frequency": "monthly" },
+      { "name": "Replacement mop pads (if applicable)", "annualCostUsd": [25, 60], "frequency": "quarterly" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": "robot-vacuum",
+      "typicalPartsAvailability": "variable",
+      "notes": "Roborock and iRobot have better parts markets. Cheap brands on Amazon are replace-don't-repair."
+    }
+  }
+}

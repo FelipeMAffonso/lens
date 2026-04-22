@@ -1,0 +1,42 @@
+{
+  "slug": "regulation/us-federal-ftc-click-to-cancel-vacated",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "FTC Click-to-Cancel Rule (vacated July 2025)",
+  "summary": "Former federal rule requiring subscription cancellation to be as easy as signup. Vacated by the 8th Circuit Court of Appeals on July 8, 2025.",
+  "status": "retired",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": "2025-07-08",
+  "retirementReason": "Vacated by the U.S. Court of Appeals for the Eighth Circuit on July 8, 2025, finding the rule 'arbitrary, capricious, and an abuse of discretion' under the Administrative Procedure Act.",
+  "evidence": [
+    { "ref": "E1", "claim": "FTC finalized the Click-to-Cancel Rule (Negative Option Rule amendment) on October 16, 2024.", "sourceUrl": "https://www.ftc.gov/news-events/news/press-releases/2024/10/federal-trade-commission-announces-final-click-cancel-rule-making-it-easier-consumers-end-recurring", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Compliance deadline was delayed from May 14 to July 14, 2025.", "sourceUrl": "https://www.lw.com/en/insights/ftc-delays-enforcement-of-click-to-cancel-rule-until-july-14-2025", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E3", "claim": "On July 8, 2025, the U.S. Court of Appeals for the Eighth Circuit vacated the rule, finding it 'arbitrary, capricious, and an abuse of discretion' under the APA.", "sourceUrl": "https://briefings.brownrudnick.com/post/102kr1z/us-appeals-court-blocks-ftcs-click-to-cancel-subscriptions-rule-what-your-bus", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "us-federal",
+    "productCategories": [],
+    "businessScope": {
+      "appliesTo": [],
+      "note": "Rule is vacated; included in registry for historical audit and to clarify what federal-level rights DO NOT currently exist (state laws still apply where enacted)."
+    }
+  },
+  "body": {
+    "officialName": "Rule Concerning Recurring Subscriptions and Other Negative Option Programs (Click-to-Cancel Rule)",
+    "citation": "16 CFR Part 425 (vacated)",
+    "status": "vacated",
+    "effectiveDate": "2025-07-14",
+    "vacatedDate": "2025-07-08",
+    "vacatedBy": "U.S. Court of Appeals for the Eighth Circuit",
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "The rule would have required sellers to: (a) obtain affirmative consent before charging for a negative-option subscription, (b) provide a cancellation mechanism as easy as signup, (c) prohibit misrepresentations in marketing of negative-option programs. Vacated by 8th Circuit on July 8, 2025 (E3).",
+    "userRightsPlainLanguage": "This federal rule would have made it easier to cancel subscriptions in the US, but it was blocked by a federal court and is NOT currently in effect. State-level protections (like California SB-313) still apply to residents of those states. If you're in a state without a click-to-cancel law, you do not currently have federal-level protection.",
+    "enforcementSignals": [
+      { "action": "check-state-laws", "url": "varies-by-state", "description": "CA, NY, VT, IL and other states have click-to-cancel laws at the state level." }
+    ],
+    "evidenceRefs": ["E1", "E2", "E3"]
+  }
+}

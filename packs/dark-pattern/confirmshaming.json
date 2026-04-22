@@ -1,0 +1,52 @@
+{
+  "slug": "dark-pattern/confirmshaming",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Confirmshaming",
+  "summary": "Using guilt-inducing language on the opt-out choice to steer the user toward the opt-in.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Brignull's canonical dark-patterns taxonomy lists 'confirmshaming' (sometimes called 'manipulinks') as a manipulation pattern.", "sourceUrl": "https://www.deceptive.design/types/confirmshaming", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "The FTC's 2023 report 'Bringing Dark Patterns to Light' lists emotionally-loaded framing of choice architecture as an example of deceptive design.", "sourceUrl": "https://www.ftc.gov/system/files/ftc_gov/pdf/P214800%20Dark%20Patterns%20Report%209.14.2022%20-%20FINAL.pdf", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "pageTypes": ["signup", "checkout", "modal", "newsletter-signup", "subscription-cancel"]
+  },
+  "body": {
+    "canonicalName": "Confirmshaming",
+    "brignullId": "confirmshaming",
+    "description": "The opt-out button uses emotionally-loaded, self-disparaging, or guilt-inducing language to discourage users from choosing it. Examples: 'No thanks, I don't want to save money', 'I don't care about my family's safety', 'I hate good deals'.",
+    "severity": "manipulative",
+    "illegalInJurisdictions": [],
+    "detectionHeuristics": [
+      {
+        "kind": "text-match",
+        "patterns": [
+          "no thanks, I don.?t want",
+          "I.?m fine paying full price",
+          "I don.?t care about",
+          "I hate",
+          "leave me in the dark",
+          "I prefer.*boring",
+          "I.?d rather.*suffer"
+        ],
+        "location": "button-or-link-text",
+        "caseSensitive": false
+      },
+      {
+        "kind": "dom",
+        "selector": "button, a[role='button']",
+        "description": "Scan the text content of buttons/links; run text-match above on the inner text."
+      }
+    ],
+    "llmVerifyPrompt": "You are evaluating a modal or button-choice UI for confirmshaming. The opt-in option offers something to the user; the opt-out option is phrased in a way that disparages the user or their choice. For each button or link, classify as 'neutral' or 'confirmshaming' and explain briefly.",
+    "remediation": "Flag the modal or choice UI. Highlight the confirmshaming text. Recommend the user make the choice based on the underlying value proposition, not the emotional framing.",
+    "regulatoryLinks": [],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

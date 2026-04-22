@@ -1,0 +1,59 @@
+{
+  "slug": "category/coffee-makers",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Drip coffee makers",
+  "summary": "Automatic drip coffee makers, $50-$500 range. Includes SCA-certified, non-certified, and pod systems.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "SCA (Specialty Coffee Association) Home Brewer Program certifies brew temperature 197.6-204.8°F, total contact time 4-8 minutes, and uniform water distribution across the coffee bed.", "sourceUrl": "https://sca.coffee/certified-home-brewer", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "'12-cup' carafes use 5 oz 'cups' not 8 oz — a 12-cup carafe holds 60 oz, or roughly 7.5 US standard cups.", "sourceUrl": "https://www.seriouseats.com/coffee-makers-explained", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E3", "claim": "Pod systems (Keurig, Nespresso) have significantly higher per-cup operating cost than drip or espresso machines with whole-bean input; annual pod cost commonly exceeds the machine's purchase price.", "sourceUrl": "https://www.consumerreports.org/coffee-makers/single-serve-coffee-makers", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["coffee maker", "coffee makers", "drip coffee", "coffee machine", "pod coffee maker", "keurig", "nespresso"],
+    "productTags": ["coffee", "kitchen-appliance"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "brew_temperature_f", "unit": "degrees_F", "direction": "target", "target": 200, "typicalRange": [185, 210], "notes": "SCA standard is 197.6-204.8°F (E1). Below 195°F is under-extracted; above 210°F is scalded." },
+      { "name": "brew_time_minutes", "unit": "minutes", "direction": "target", "target": 6, "typicalRange": [3, 12], "notes": "SCA standard is 4-8 minutes total contact time (E1)." },
+      { "name": "capacity_cups", "unit": "5oz_cups", "direction": "higher_is_better", "typicalRange": [4, 14], "notes": "Industry 'cups' are 5 oz, not 8 oz (E2). Convert to actual ounces for serving-size comparison." },
+      { "name": "sca_certified", "unit": "boolean", "direction": "binary", "target": true, "notes": "SCA Home Brewer certification is the most rigorous consumer-facing quality mark." },
+      { "name": "build_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "ease_of_cleaning", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [50, 500] }
+    ],
+    "specNormalization": {
+      "brew_temperature_f": { "regex": "(\\d+(?:\\.\\d+)?)\\s*°?\\s*F", "unit": "degrees_F" },
+      "brew_time_minutes": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:minutes|mins|min|m)\\b", "unit": "minutes" },
+      "capacity_cups": { "regex": "(\\d+)[- ]?cup", "unit": "5oz_cups" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "12-cup capacity", "reality": "Industry 'cup' is 5 oz; a 12-cup carafe holds ~7.5 US standard 8-oz cups (E2). Users buying for two people rarely need more than an 8-industry-cup model.", "verdict": "misleading", "checkPrompt": "Is the 'cup' unit specified? If not, assume 5 oz industry-standard." },
+      { "pattern": "gourmet-quality coffee", "reality": "Quality depends far more on the bean freshness, grind, and water quality than on the drip machine (within SCA-certified models). Non-SCA 'gourmet' claims are marketing.", "verdict": "misleading", "checkPrompt": "Does the machine hold SCA Home Brewer certification? If not, 'gourmet' is unverifiable." },
+      { "pattern": "saves money on coffee", "reality": "For pod systems (Keurig, Nespresso), annual pod costs frequently exceed the machine's purchase price (E3). Drip or French press with whole beans is 60-80% cheaper per cup." }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Do you want whole-bean input (drip + grinder), pre-ground (drip only), or pod? Each has very different annual costs."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Pods (Keurig K-Cups, Nespresso capsules)", "annualCostUsd": [180, 720], "frequency": "weekly" },
+      { "name": "Paper filters", "annualCostUsd": [15, 30], "frequency": "ongoing" },
+      { "name": "Descaling tablets / vinegar cycle", "annualCostUsd": [10, 30], "frequency": "quarterly" },
+      { "name": "Water filter (brita + pitcher)", "annualCostUsd": [30, 60], "frequency": "bi-annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": "coffee-maker",
+      "typicalPartsAvailability": "low",
+      "notes": "Technivorm, Ratio, and Breville have decent parts markets. Most Cuisinart, Hamilton Beach, and Mr. Coffee models are not practically repairable."
+    }
+  }
+}

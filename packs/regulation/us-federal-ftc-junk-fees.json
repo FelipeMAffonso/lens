@@ -1,0 +1,43 @@
+{
+  "slug": "regulation/us-federal-ftc-junk-fees",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "FTC Trade Regulation Rule on Unfair or Deceptive Fees (Junk Fees Rule)",
+  "summary": "Federal rule requiring clear disclosure of total price including all mandatory fees for live-event tickets and short-term lodging.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC finalized the Junk Fees Rule on December 17, 2024, effective May 12, 2025.", "sourceUrl": "https://www.ftc.gov/news-events/news/press-releases/2024/12/federal-trade-commission-announces-bipartisan-rule-banning-junk-ticket-hotel-fees", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "The final Rule is significantly narrower than the original proposal; it applies only to live-event tickets and short-term lodging.", "sourceUrl": "https://www.sidley.com/en/insights/newsupdates/2024/12/ftc-announces-final-junk-fees-rule-that-is-significantly-narrower-than-proposed-rule", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E3", "claim": "All non-optional fees must be included in the Total Price. Government taxes, shipping, and optional ancillary services do NOT need to be included in the Total Price.", "sourceUrl": "https://www.ftc.gov/system/files/ftc_gov/pdf/r207011_udf_rule_2024_final_0.pdf", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E4", "claim": "FTC estimates the rule will save consumers ~53 million hours per year, equivalent to ~$11 billion over the next decade.", "sourceUrl": "https://www.ftc.gov/news-events/news/press-releases/2024/12/federal-trade-commission-announces-bipartisan-rule-banning-junk-ticket-hotel-fees", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "us-federal",
+    "productCategories": ["live-event-tickets", "short-term-lodging"],
+    "businessScope": {
+      "appliesTo": ["live-event-tickets", "short-term-lodging"]
+    }
+  },
+  "body": {
+    "officialName": "Trade Regulation Rule on Unfair or Deceptive Fees",
+    "citation": "16 CFR Part 464",
+    "status": "in-force",
+    "effectiveDate": "2025-05-12",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "Prohibits (1) hidden fees — failing to clearly and conspicuously disclose mandatory fees in the Total Price — and (2) misleading fees — misrepresenting the nature or amount of fees. Scope is LIMITED to live-event tickets and short-term lodging (E2).",
+    "userRightsPlainLanguage": "When you buy a live-event ticket or book short-term lodging in the US, the price you see up front must include all mandatory fees. Government taxes, shipping, and OPTIONAL add-ons can be shown separately. If a ticket site or hotel surprises you with a mandatory 'service fee' or 'resort fee' only at checkout, they are violating this rule.",
+    "enforcementSignals": [
+      { "action": "file-ftc-complaint", "url": "https://reportfraud.ftc.gov/", "description": "File a report with the FTC for deceptive pricing." },
+      { "action": "state-ag-complaint", "url": "varies-by-state", "description": "State Attorneys General also enforce deceptive-pricing laws." }
+    ],
+    "evidenceRefs": ["E1", "E2", "E3", "E4"]
+  }
+}

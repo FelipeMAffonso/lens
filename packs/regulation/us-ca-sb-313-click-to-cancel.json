@@ -1,0 +1,42 @@
+{
+  "slug": "regulation/us-ca-sb-313-click-to-cancel",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "California SB-313 — Automatic Renewal Cancellation",
+  "summary": "California law requiring subscription cancellation to be available through the same channel as signup.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "California Business and Professions Code §17602 (as amended by SB-313) requires that any subscription signed up for online must be cancellable online, and any signed up for in person must be cancellable in person, by phone, by mail, or by email.", "sourceUrl": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=17602.&lawCode=BPC", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "The federal FTC Click-to-Cancel Rule was vacated by the 8th Circuit Court of Appeals on July 8, 2025, on administrative-procedure grounds. State laws including CA SB-313 are unaffected.", "sourceUrl": "https://briefings.brownrudnick.com/post/102kr1z/us-appeals-court-blocks-ftcs-click-to-cancel-subscriptions-rule-what-your-bus", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "us-state/ca",
+    "productCategories": [],
+    "businessScope": {
+      "appliesTo": ["subscription-services", "auto-renewing-contracts"],
+      "userResidency": "california"
+    }
+  },
+  "body": {
+    "officialName": "California Business and Professions Code §17602 (Automatic Renewal Law, as amended by SB-313)",
+    "citation": "Cal. Bus. & Prof. Code §17602",
+    "status": "in-force",
+    "effectiveDate": "2018-07-01",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "Requires businesses offering auto-renewing subscriptions to California consumers to: (a) provide clear and conspicuous disclosure of auto-renewal terms before the charge occurs, (b) obtain affirmative consent, and (c) provide a cancellation method that is at least as accessible as the signup method. Online signup MUST permit online cancellation (E1).",
+    "userRightsPlainLanguage": "If you're a California resident and you signed up for a subscription online, the company MUST let you cancel online — not just by phone or mail. If they make you call to cancel, that's illegal in California. This is state law and was not affected when the federal FTC Click-to-Cancel Rule was vacated in July 2025 (E2).",
+    "enforcementSignals": [
+      { "action": "state-ag-complaint", "url": "https://oag.ca.gov/consumers/general", "description": "File a complaint with the California Attorney General." },
+      { "action": "private-right-of-action", "url": "consult-attorney", "description": "California law permits private civil actions; consult a consumer attorney for class-action eligibility." }
+    ],
+    "evidenceRefs": ["E1", "E2"]
+  }
+}

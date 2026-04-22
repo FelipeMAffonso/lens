@@ -1,0 +1,64 @@
+{
+  "slug": "category/laptops",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Laptops",
+  "summary": "Personal computing laptops, $500-$4000 range, spanning Windows, macOS, and Linux-compatible hardware.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Manufacturer-stated battery life typically assumes 150-nit brightness and light tasks; real-world coding or browsing use is 60-75% of stated figure.", "sourceUrl": "https://www.notebookcheck.net/Mobile-Computing.31.0.html", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "'MIL-STD-810' compliance does not certify drop survival; it means the manufacturer self-tested against selected procedures, not that independent certification occurred.", "sourceUrl": "https://www.trentonsystems.com/blog/mil-std-810-what-does-it-really-mean", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E3", "claim": "Soldered RAM (non-upgradeable) is common in modern ultraportables; manufacturers frequently obscure this in marketing pages.", "sourceUrl": "https://www.ifixit.com/Right-to-Repair/Laptops", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["laptop", "notebook", "laptops", "portable computer", "ultrabook"],
+    "productTags": ["laptop", "computer", "electronics"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "cpu_performance", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.2, 1.0], "notes": "Normalize across Geekbench 6 or Cinebench R23 scores; separate single-core and multi-core. For coding/browsing, single-core matters more than marketing claims." },
+      { "name": "ram_gb", "unit": "GB", "direction": "higher_is_better", "typicalRange": [8, 64], "notes": "Soldered RAM cannot be upgraded later (E3). Note whether RAM is socketed or LPDDR." },
+      { "name": "storage_gb", "unit": "GB", "direction": "higher_is_better", "typicalRange": [256, 4000] },
+      { "name": "battery_life_hours", "unit": "hours", "direction": "higher_is_better", "typicalRange": [4, 22], "notes": "Expect 60-75% of manufacturer claim in real use (E1)." },
+      { "name": "weight_lbs", "unit": "lbs", "direction": "lower_is_better", "typicalRange": [2.0, 6.5] },
+      { "name": "keyboard_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "display_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [500, 4000] }
+    ],
+    "specNormalization": {
+      "ram_gb": { "regex": "(\\d+)\\s*(?:GB|gigabyte)", "unit": "GB" },
+      "storage_gb": { "regex": "(\\d+)\\s*(?:GB|TB)", "unit": "GB", "unitMap": { "GB": 1, "TB": 1024 } },
+      "battery_life_hours": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:hours|hour|hrs|hr)", "unit": "hours" },
+      "weight_lbs": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:lbs|lb|pound|kg)", "unit": "lbs", "unitMap": { "lbs": 1, "lb": 1, "pound": 1, "kg": 2.20462 } }
+    },
+    "confabulationPatterns": [
+      { "pattern": "16GB RAM", "reality": "Base configurations of many ThinkPad E-series, HP Pavilion, and Dell Inspiron ship with 8GB as default; 16GB is an upgrade SKU. Verify the specific SKU.", "verdict": "false", "checkPrompt": "For the specific SKU/model cited, is the base configuration RAM 8GB, 16GB, or other?" },
+      { "pattern": "all-day battery life", "reality": "Manufacturer 'all-day' claims assume 150-nit light-task benchmarks (E1). Real-world coding workload is ~60-75% of claim. Any laptop with stated 10+ hours delivers 7+ in practice; 8-hour stated claims deliver ~5.", "verdict": "misleading", "checkPrompt": "Does the cited battery claim account for real-world workload, or is it the manufacturer's best-case figure?" },
+      { "pattern": "MIL-STD-810 rugged", "reality": "MIL-STD-810 is a manufacturer self-test against selected procedures, not third-party certification (E2).", "verdict": "misleading", "checkPrompt": "Is the MIL-STD-810 claim framed as a third-party certification? If so, flag." },
+      { "pattern": "user-upgradable RAM/storage", "reality": "Modern ultraportables commonly solder RAM to the mainboard; storage may be M.2 but RAM is often fixed (E3).", "verdict": "false", "checkPrompt": "For the cited model, is the RAM soldered or socketed? Is storage M.2 user-replaceable?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "New laptop listed 30%+ below MSRP from a seller without business verification", "action": "flag as possible refurbished-sold-as-new" }
+    ],
+    "compatibilityQuestions": [
+      "What OS do you need — Windows, macOS, or Linux? Linux compatibility varies sharply across models.",
+      "Do you have external USB-C / Thunderbolt peripherals that need specific port versions (USB-C 3.2, TB4, etc.)?"
+    ],
+    "typicalHiddenCosts": [
+      { "name": "External dock (for ports)", "annualCostUsd": [80, 300], "frequency": "one-time" },
+      { "name": "Extended warranty / AppleCare", "annualCostUsd": [100, 300], "frequency": "one-time" },
+      { "name": "Software subscriptions that replaced perpetual licenses (Office 365, Adobe CC)", "annualCostUsd": [60, 720], "frequency": "annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": "laptop",
+      "typicalPartsAvailability": "variable",
+      "notes": "Framework, ThinkPad, older MacBook Pro score high. Modern MacBook Air, M-series soldered configs score low. Dell XPS, HP Spectre variable by generation."
+    }
+  }
+}
