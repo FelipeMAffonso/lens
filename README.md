@@ -36,6 +36,7 @@ A peer-reviewed study of 18 frontier models across 382,000 shopping trials (Affo
 
 ## Live endpoints
 
+- **Web dashboard:** https://lens-b1h.pages.dev
 - **Audit API:** `https://lens-api.webmarinelli.workers.dev`
   - `GET /health`
   - `GET /packs/stats` — registry stats (pack counts, categories indexed, regulations by status)

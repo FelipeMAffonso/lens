@@ -1,6 +1,9 @@
-// Content script. Runs in the page context of ChatGPT / Claude / Gemini / Amazon.
-// On demand (when the popup button is clicked), extract the last assistant message and
-// send it to the Lens API.
+// Content script. Runs on ChatGPT / Claude / Gemini / Rufus / Amazon / general retailers.
+// Two jobs:
+//   1. Extract last-assistant-message text for the /audit popup flow (on AI chat sites).
+//   2. Passive dark-pattern detection on any page load (lightweight CSS/DOM heuristics).
+
+import { scanDocument, renderBadges, type HeuristicHit } from "./darkPatterns.js";
 
 type HostAI = "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
 
@@ -16,11 +19,10 @@ function detectHost(): HostAI {
 function extractLastAssistantText(host: HostAI): string {
   switch (host) {
     case "chatgpt":
-      // ChatGPT uses data-message-author-role="assistant"
-      return [...document.querySelectorAll('[data-message-author-role="assistant"]')]
-        .at(-1)?.textContent?.trim() ?? "";
+      return (
+        [...document.querySelectorAll('[data-message-author-role="assistant"]')].at(-1)?.textContent?.trim() ?? ""
+      );
     case "claude":
-      // Claude.ai messages — selectors are unstable; fall back to last element with a font-claude-message class
       return (
         [...document.querySelectorAll<HTMLElement>(".font-claude-message,.font-claude-response")]
           .at(-1)?.innerText?.trim() ?? ""
@@ -31,19 +33,46 @@ function extractLastAssistantText(host: HostAI): string {
           .at(-1)?.innerText?.trim() ?? ""
       );
     case "rufus":
-      // Rufus panel lives inside Amazon
-      return (
-        document.querySelector<HTMLElement>('[data-feature-name="rufus"]')?.innerText?.trim() ?? ""
-      );
+      return document.querySelector<HTMLElement>('[data-feature-name="rufus"]')?.innerText?.trim() ?? "";
     default:
       return "";
   }
 }
 
+// Passive dark-pattern scan on initial page load + after 1.5s + on DOM changes.
+function runPassiveScan(): void {
+  try {
+    const hits = scanDocument();
+    if (hits.length > 0) {
+      console.log("[Lens] detected", hits.length, "dark pattern hits:", hits);
+      renderBadges(hits);
+      // Notify background for telemetry (opt-in).
+      chrome.runtime.sendMessage({ type: "LENS_SCAN_HITS", hits });
+    }
+  } catch (e) {
+    console.error("[Lens] scan error:", e);
+  }
+}
+
+// Run on initial load
+if (document.readyState === "complete" || document.readyState === "interactive") {
+  setTimeout(runPassiveScan, 500);
+} else {
+  document.addEventListener("DOMContentLoaded", () => setTimeout(runPassiveScan, 500));
+}
+
+// Run again after SPA-style navigation / late content renders
+setTimeout(runPassiveScan, 2500);
+
+// Message handler for the popup to request AI-chat extraction
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg?.type === "LENS_EXTRACT") {
     const host = detectHost();
     const raw = extractLastAssistantText(host);
     sendResponse({ host, raw });
+  }
+  if (msg?.type === "LENS_RESCAN") {
+    runPassiveScan();
+    sendResponse({ ok: true });
   }
 });
