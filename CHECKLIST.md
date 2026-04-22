@@ -83,7 +83,7 @@
 | S4-W21 | Price history + sale legitimacy | ✅ | `BLOCKS/S4-W21-price-history.md` | `d977ce3` |
 | S4-W22 | Dark-pattern checkout scan (wire /passive-scan) | ✅ | `BLOCKS/S4-W22-passive-scan.md` | `59bd662` |
 | S4-W23 | Compatibility check | ⬜ | 🔬 | |
-| S4-W24 | True-total-cost reveal | ⬜ | 🔬 | |
+| S4-W24 | True-total-cost reveal | ✅ | `BLOCKS/S4-W24-true-total-cost.md` | `4d7a693` |
 | S4-W25 | Data-disclosure audit | ⬜ | 🔬 | |
 | S4-W26 | Breach history | ⬜ | 🔬 | |
 | S4-W27 | Scam / fraud detection | ⬜ | 🔬 | |
@@ -227,6 +227,7 @@
 - 2026-04-22: S4-W21 ✅ — /price-history fake-sale detector LIVE. Deterministic URL-hashed 90-day fixture series (stable across runs), population-stddev + median over the series, 5-verdict detector (genuine-sale / fake-sale / modest-dip / no-sale / insufficient-data). Keepa client scaffold + KV 24h cache. 7 new modules, 31 new tests. 386/386 green. Live smoke: genuine-sale on Breville ASIN at 11.4% below 90-day median; fake-sale flagged on synthetic ASIN where 30% banner hides ~3% real discount. Commit `d977ce3`.
 - 2026-04-22: F2 ✅ — persistence layer closed. Migration 0005 adds the 5 tables BLOCKS/F2 specified (audits, preferences, watchers, interventions, welfare_deltas); 10 new src/db modules (client + schemas + 5 repos + in-memory D1 shim for hermetic tests); 12 new HTTP endpoints (GET /history/audits, /history/welfare-delta[/rows], /preferences, /watchers, /interventions + PUT /preferences + POST /watchers + PATCH /watchers/:id/active + POST /interventions + POST /interventions/:id/sent + DELETE /preferences/:id). 41 new tests (427/427 green). Live smoke: PUT+GET preference roundtrips via `x-lens-anon-id` header. Commit `604235e`.
 - 2026-04-22: S3-W15 ✅ — per-host DOM parsers + universal structured extractors. 6 host adapters (amazon/bestbuy/walmart/target/homedepot/shopify) + 3 universal strategies (JSON-LD / OpenGraph / microdata) + orchestrator with priority merge + source-tagged output. extract.ts#extractFromUrl now skips the Opus round-trip when the structured parse is confident (name + price). 51 new tests (478/478 green). Deployed b35a159a. Commit `3749c44`.
+- 2026-04-22: S4-W24 ✅ — /total-cost reveal. 50-state+DC tax table + USPS first-3-digit ZIP bucketing, per-host shipping policy (Amazon Prime / $35-threshold free for BBY/Walmart/Target / $45 for HD / Costco free / Shopify-generic 5% cap), category-pack-driven hiddenCosts (one-time vs ongoing frequency classification, 3-year projection). Extension-readable productName + category overrides. 29 new tests (507/507 green). Live smoke: Breville Bambino at $349.99 in Bay Area → upfront $375.36, year1 $1,367.86, year3 $2,402.86. Commit `4d7a693`.
 
 ---
 
