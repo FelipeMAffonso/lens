@@ -1,0 +1,33 @@
+{
+  "name": "Lens — your independent AI shopping agent",
+  "short_name": "Lens",
+  "description": "Audit any AI shopping recommendation. Transparent spec-optimal math. No affiliate links. Ever.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fafbfc",
+  "theme_color": "#DA7756",
+  "orientation": "portrait",
+  "lang": "en",
+  "categories": ["shopping", "productivity", "utilities"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [{ "name": "image", "accept": ["image/png", "image/jpeg", "image/webp"] }]
+    }
+  },
+  "shortcuts": [
+    { "name": "Audit an AI answer", "short_name": "Audit", "description": "Paste any AI response and audit it.", "url": "/?mode=text" },
+    { "name": "Find spec-optimal", "short_name": "Find", "description": "Describe what you want to buy.", "url": "/?mode=query" }
+  ]
+}

@@ -1,0 +1,12 @@
+Placeholder for PWA icons. Generate with:
+  - icon-192.png (192x192)
+  - icon-512.png (512x512)
+  - icon-maskable-512.png (512x512 with safe-zone padding)
+
+Quick generation: any 1024x1024 PNG of the ◉ brand mark run through sharp:
+  npx sharp-cli -i brand.png -o icon-512.png resize 512 512
+  npx sharp-cli -i brand.png -o icon-192.png resize 192 192
+  npx sharp-cli -i brand.png -o icon-maskable-512.png resize 512 512 --padding 102
+
+For now the manifest references these paths; 404s are non-fatal for PWA install.
+Real icons land in a polish block (P1 design system).

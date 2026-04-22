@@ -730,6 +730,11 @@ void loadPackStats();
 import { runCallbackIfPresent } from "./auth/callback.js";
 import { openSignInModal } from "./auth/signin-modal.js";
 import { refreshSession, subscribe, signout } from "./auth/session.js";
+// ---- F9 PWA wiring ----
+import { registerServiceWorker, renderIOSInstallHintIfNeeded, maybeShowInstallPrompt } from "./pwa/install.js";
+registerServiceWorker();
+renderIOSInstallHintIfNeeded();
+(window as unknown as { __lensMaybeInstall?: () => void }).__lensMaybeInstall = () => void maybeShowInstallPrompt();
 
 void runCallbackIfPresent();
 void refreshSession();

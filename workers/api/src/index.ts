@@ -9,6 +9,8 @@ import "./workflow/specs/recall-watch.js"; // register cron-targeted workflow
 import { getWorkflow, workflowStats } from "./workflow/registry.js";
 import { dispatchCron } from "./cron/dispatcher.js";
 import { CRON_JOBS } from "./cron/jobs.js";
+import { handleWebhook } from "./webhooks/handler.js";
+import { listWebhooks } from "./webhooks/registry.js";
 import {
   handleRequest as authHandleRequest,
   handleSignout as authHandleSignout,
@@ -128,6 +130,10 @@ app.get("/cron/jobs", (c) =>
     })),
   }),
 );
+
+// F5 — webhook surface.
+app.post("/webhook/:id", (c) => handleWebhook(c as never));
+app.get("/webhooks", (c) => c.json({ hooks: listWebhooks() }));
 
 // F17 — trace endpoints. Backed by workflow_runs in D1.
 // More-specific route (`/trace/recent`) MUST come before the param route so
