@@ -50,9 +50,27 @@ export interface UserIntent {
     weight: number;                 // 0..1, normalized to sum 1 across criteria
     direction: "higher_is_better" | "lower_is_better" | "target" | "binary";
     target?: string | number;       // for "target" or "binary"
+    /** S1-W8 Layer-2: Opus's self-reported confidence 0..1 in this criterion.
+     *  < 0.6 triggers clarification. User-edited sliders set this to 1.0. */
+    confidence?: number;
   }>;
   budget?: { min?: number; max?: number; currency: string };
   rawCriteriaText: string;          // original user words, for tooltip explainability
+}
+
+/** S1-W8 — a single binary trade-off question posed to the user to disambiguate a low-confidence criterion. */
+export interface ClarifyQuestion {
+  id: string;                       // ULID
+  targetCriterion: string;          // which criterion this disambiguates
+  prompt: string;                   // user-facing sentence
+  optionA: { label: string; impliedWeightShift: Record<string, number> };
+  optionB: { label: string; impliedWeightShift: Record<string, number> };
+}
+
+/** S1-W8 — the user's choice on one ClarifyQuestion. */
+export interface ClarifyAnswer {
+  questionId: string;
+  chose: "A" | "B";
 }
 
 /** Parsed summary of the AI assistant's recommendation. */
@@ -93,6 +111,7 @@ export interface AuditResult {
     verify: number;
     rank: number;
     crossModel: number;
+    enrich?: number;  // B2 parallel-enrichments wall-clock (judge P1-4)
     total: number;
   };
   createdAt: string;                // ISO timestamp

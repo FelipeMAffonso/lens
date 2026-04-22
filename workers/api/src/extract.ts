@@ -13,7 +13,7 @@ Return a single JSON object (no prose, no markdown fences) with exactly these to
   "intent": {
     "category": "<short noun phrase, e.g. 'espresso machine' or 'laptop'>",
     "criteria": [
-      { "name": "<criterion>", "weight": <0..1>, "direction": "higher_is_better"|"lower_is_better"|"target"|"binary", "target": <optional value> }
+      { "name": "<criterion>", "weight": <0..1>, "direction": "higher_is_better"|"lower_is_better"|"target"|"binary", "target": <optional value>, "confidence": <0..1, your self-assessed confidence that this criterion was explicit in the user's words> }
     ],
     "budget": { "max": <number>, "currency": "USD" },
     "rawCriteriaText": "<user's own words, verbatim>"
@@ -394,11 +394,11 @@ function parseExtractJson(
   //   [{name: "wireless charger", weight: 0.33, direction: "higher_is_better"}, ...]
   // Spreading a bare string with {...c, weight: X} produces a character-indexed
   // object — a bug the user caught on the live Anker audit. Normalize here.
-  const normalizeCriterion = (c: unknown): { name: string; weight: number; direction: "higher_is_better" | "lower_is_better" | "target" | "binary"; target?: string | number } | null => {
+  const normalizeCriterion = (c: unknown): { name: string; weight: number; direction: "higher_is_better" | "lower_is_better" | "target" | "binary"; target?: string | number; confidence?: number } | null => {
     if (typeof c === "string") {
       const name = c.trim();
       return name.length > 0
-        ? { name, weight: 1, direction: "higher_is_better" as const }
+        ? { name, weight: 1, direction: "higher_is_better" as const, confidence: 0.5 }
         : null;
     }
     if (!c || typeof c !== "object") return null;
@@ -418,7 +418,16 @@ function parseExtractJson(
         ? rawDir
         : "higher_is_better";
     const target = typeof obj.target === "number" || typeof obj.target === "string" ? obj.target : undefined;
-    return target !== undefined ? { name, weight, direction: dir, target } : { name, weight, direction: dir };
+    const rawConfidence = obj.confidence;
+    const confidence =
+      typeof rawConfidence === "number" && Number.isFinite(rawConfidence)
+        ? Math.max(0, Math.min(1, rawConfidence))
+        : typeof rawConfidence === "string"
+          ? Math.max(0, Math.min(1, Number.parseFloat(rawConfidence) || 1))
+          : 1;
+    const base: { name: string; weight: number; direction: typeof dir; target?: string | number; confidence: number } = { name, weight, direction: dir, confidence };
+    if (target !== undefined) base.target = target;
+    return base;
   };
   const rawCriteria = Array.isArray(parsed.intent?.criteria) ? parsed.intent.criteria : [];
   const normalized = rawCriteria.map(normalizeCriterion).filter(
@@ -456,7 +465,7 @@ function parseExtractJson(
  * with no AI assistant output to audit. Returns a synthetic aiRecommendation
  * marked host="unknown" with empty claims — downstream stages render accordingly.
  */
-const QUERY_SYSTEM = `You parse a shopping intent from a plain natural-language user query. Return ONLY the "intent" object (the same schema used in the paste audit, no aiRecommendation). Derive criteria weights from ORDER and EMPHASIS in the user's language when not explicit. Normalize weights to sum to 1. Return a single JSON object {"intent": {...}} — no prose, no markdown fences.`;
+const QUERY_SYSTEM = `You parse a shopping intent from a plain natural-language user query. Return ONLY the "intent" object (the same schema used in the paste audit, no aiRecommendation). Derive criteria weights from ORDER and EMPHASIS in the user's language when not explicit. Normalize weights to sum to 1. For every criterion, include "confidence": <0..1> — your self-assessed confidence the criterion reflects the user's explicit words (1.0 = user said this word; 0.4-0.5 = inferred from vague adjective). Return a single JSON object {"intent": {...}} — no prose, no markdown fences.`;
 
 async function extractQueryOnly(
   input: Extract<AuditInput, { kind: "query" }>,

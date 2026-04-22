@@ -23,6 +23,7 @@ import { verifyClaims } from "../../verify.js";
 import { rankCandidates } from "../../rank.js";
 import { runEnrichments } from "../../enrich.js";
 import { registerWorkflow } from "../registry.js";
+import { scrubTrackingParams } from "../../url-scrub.js";
 import type { Env } from "../../index.js";
 
 type ExtractOut = Awaited<ReturnType<typeof extractIntentAndRecommendation>>;
@@ -238,13 +239,34 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
         const tCrossModel = ((await ctx.readState<number>(tsKey("crossModel"))) ?? tExtract);
         const tVerify = ((await ctx.readState<number>(tsKey("verify"))) ?? tSearch);
         const tRank = ((await ctx.readState<number>(tsKey("rank"))) ?? tSearch);
+        // Judge P1-4: surface enrich wall-clock alongside the other stages.
+        const tEnrich = await ctx.readState<number>(tsKey("enrich"));
         const tNow = Date.now();
+
+        // Judge P0-2: defense-in-depth scrub at the assemble boundary. extract.ts
+        // already scrubs URL-mode input.url before populating sourceUrl + pickedProduct.url,
+        // but if any future extractor path (photo mode, Opus-fallback JSON) populates
+        // these fields with an unscrubbed URL, this catches the regression before the
+        // AuditResult leaves the worker.
+        const scrubbedAiRec = (() => {
+          const r = extract.aiRecommendation;
+          const pickedUrl = r.pickedProduct?.url ? scrubTrackingParams(r.pickedProduct.url) : undefined;
+          const src = r.sourceUrl ? scrubTrackingParams(r.sourceUrl) : undefined;
+          return {
+            ...r,
+            pickedProduct: {
+              ...r.pickedProduct,
+              ...(pickedUrl ? { url: pickedUrl } : { url: undefined }),
+            },
+            ...(src ? { sourceUrl: src } : { sourceUrl: undefined }),
+          };
+        })();
 
         const result: AuditResult = {
           id: ctx.runId,
-          host: extract.aiRecommendation.host ?? "unknown",
+          host: scrubbedAiRec.host ?? "unknown",
           intent: extract.intent,
-          aiRecommendation: extract.aiRecommendation,
+          aiRecommendation: scrubbedAiRec,
           candidates: ranked,
           specOptimal:
             ranked[0] ??
@@ -268,6 +290,7 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
             crossModel: tCrossModel - tExtract,
             verify: tVerify - tSearch,
             rank: tRank - tSearch,
+            ...(tEnrich ? { enrich: tEnrich - Math.max(tVerify, tRank) } : {}),
             total: tNow - t0,
           },
           createdAt: new Date().toISOString(),

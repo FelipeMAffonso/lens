@@ -163,10 +163,14 @@ No prose outside the JSON. No markdown fences.`;
     .filter(Boolean)
     .join("\n");
 
-  // Wall-clock timeout — raised to 60s since web_search with max_uses=3 often
-  // takes 30-45s on real queries. 25s was aborting too aggressively.
+  // Judge P0-1: Cloudflare Workers cap a single fetch subrequest at ~30s wall-clock
+  // regardless of our AbortController. Setting this to 60s was inert — the runtime
+  // would kill the subrequest at ~30s before our abort fired. Back to a 27s cap so
+  // WE abort first (gracefully → seeds fallback) instead of the runtime killing
+  // the subrequest (5xx to user). When web_search legitimately needs longer, the
+  // proper path is a Durable Object or Workflow, not a client-side timeout.
   const controller = new AbortController();
-  const timeoutMs = 60_000;
+  const timeoutMs = 27_000;
   const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
 
   let res: { content: Array<{ type: string; text?: string }> };
