@@ -38,6 +38,33 @@ On every single loop turn, before you consider what to execute:
   4. Build passes (`npm run typecheck --workspaces`).
   5. If the block touches deployed surfaces: deploy succeeds (`wrangler deploy` or `wrangler pages deploy`) and a smoke test hits a real endpoint.
   6. A commit exists referencing the block ID.
+  7. **An Opus 4.7 LLM-as-judge pass has run on the shipped feature and every P0+P1 finding has been applied in-block.** (See "LLM-as-judge gate" below.)
+
+### LLM-as-judge gate (mandatory per block)
+
+After the code lands + tests pass + deploy succeeds, **before** marking ✅ and moving on, run an Opus 4.7 critic pass. The gate exists because 50+ ✅-marked blocks that pass tests but miss edge cases, UX gaps, or drift from Apple-product-bar collectively read as shallow. The judge pass is cheap (1-2 Opus calls per block) and catches class-of-bug issues tests can't.
+
+**How to run it:**
+
+```ts
+Agent({
+  description: "Opus 4.7 critic for <block-id>",
+  subagent_type: "general-purpose",
+  model: "opus",
+  prompt: `You are an Opus 4.7 critic for Lens hackathon code. The just-shipped feature is <block-id>: <one-line summary>. Files touched: <list>. Tests added: <count>. Read the block's file, the code changed in the last commit (git show HEAD), and the relevant docs (VISION_COMPLETE.md, AMBIENT_MODEL.md, LOOP_DISCIPLINE.md, docs/VISION.md). Find flaws: missing edge cases, UX gaps, integration holes, deviation from Apple-product bar, drift from the block's acceptance criteria, security holes, affiliate/ranking-bias regressions. Propose concrete fixes. Return a numbered punch list, ≤300 words, sorted P0 → P3.`
+})
+```
+
+**Severity rubric (what the judge should pin):**
+
+- **P0** — correctness/security/affiliate-leak/regressions → fix in-block, same commit.
+- **P1** — missing edge case, UX gap the acceptance criteria didn't catch → fix in-block.
+- **P2** — defensible deferrals, incremental polish → open a follow-up block file.
+- **P3** — nice-to-have, later-phase → record in block file under `## Judge notes`.
+
+**Apply P0 + P1 before marking ✅.** Re-test + re-deploy if code changed. Append the judge's punch list (verbatim) to the block file under `## Judge pass <date>`.
+
+**Why:** the user mandated this on 2026-04-22 ("for every single little feature that you ship, you also MUST send opus 4.7 agents to llm-as-judge and find flaws and improve the full feature"). A block that skipped the judge pass is a block that drifted.
 
 ### Git
 - Commit message format: `lens(<block-id>): <one-line summary>` + co-author footer.
