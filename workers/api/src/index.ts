@@ -47,6 +47,7 @@ import {
   handleWindows as handlePriceRefundWindows,
 } from "./price-refund/handler.js";
 import "./price-refund/workflow.js"; // register price.poll workflow
+import { handleVerify as handleProvenanceVerify } from "./provenance/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -375,6 +376,9 @@ app.post("/subs/:id/cancel-draft", (c) => handleSubsCancelDraft(c as never));
 app.get("/price-refund/windows", (c) => handlePriceRefundWindows(c as never));
 app.post("/price-refund/scan", (c) => handlePriceRefundScan(c as never));
 app.post("/price-refund/:purchaseId/file", (c) => handlePriceRefundFile(c as never));
+
+// S3-W16 — source provenance verification.
+app.post("/provenance/verify", (c) => handleProvenanceVerify(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these
