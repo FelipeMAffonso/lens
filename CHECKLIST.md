@@ -17,12 +17,12 @@
 | F2 | Persistence: D1 + KV + R2 | ⬜ | `BLOCKS/F2-persistence.md` | |
 | F3 | Workflow engine (DAG + bus + DO) | ✅ | `BLOCKS/F3-workflow-engine.md` | `2a96393` |
 | F4 | Cron + scheduler primitives | ✅ | `BLOCKS/F4-cron.md` | `8ab4ab3` |
-| F5 | Event bus + webhook surface | ⬜ | 🔬 | |
+| F5 | Event bus + webhook surface | ✅ | `BLOCKS/F5-events-webhooks.md` | `7939873` |
 | F6 | Extension inline sidebar infra | ✅ | `BLOCKS/F6-extension-sidebar.md` | `653e7ce` |
 | F7 | Extension overlay + badge system | ⬜ | 🔬 | |
 | F8 | Extension content-script router | ⬜ | 🔬 | |
-| F9 | PWA web + mobile layout | ⬜ | 🔬 | |
-| F10 | Mobile share-sheet ingestion | ⬜ | 🔬 | |
+| F9 | PWA web + mobile layout | ✅ | `BLOCKS/F9-pwa.md` | `7939873` |
+| F10 | Mobile share-sheet ingestion | 🟡 | `BLOCKS/F9-pwa.md` | `7939873` (manifest share_target shipped; /share route pending) |
 | F11 | Voice input | ⬜ | 🔬 | |
 | F12 | Email inbox ingestion (Gmail OAuth) | ⬜ | 🔬 | |
 | F13 | Plaid bank connection (stretch) | ⬜ | 🔬 | |
