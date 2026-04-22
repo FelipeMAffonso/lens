@@ -74,3 +74,9 @@ LENS_PRICE_MODE=auto
 # When unset, /breach-history falls back to Lens's curated fixture dataset
 # (15+ documented consumer-retail breaches of the last decade).
 HIBP_API_KEY=
+
+# ─── S7-W41 — repairability (iFixit) ────────────────────────────────────────
+# Optional. When set, /repairability/lookup hits iFixit's Guide API to
+# synthesize a score when no fixture matches. 24h KV cache. When unset,
+# the fixture dataset (40 hand-curated products) is the only source.
+IFIXIT_API_KEY=

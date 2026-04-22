@@ -86,6 +86,7 @@ import {
 import { handleCompare } from "./compare/handler.js";
 import { handleDiscover as handleAccessoryDiscover } from "./accessories/handler.js";
 import { handleClarify, handleClarifyApply } from "./clarify/handler.js";
+import { handleRepairabilityLookup } from "./repairability/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -106,6 +107,8 @@ export interface Env {
   LENS_PRICE_MODE?: "keepa" | "fixture" | "auto" | "none";
   // S4-W26 — breach history (HIBP paid domain endpoint)
   HIBP_API_KEY?: string;
+  // S7-W41 — optional live iFixit API client
+  IFIXIT_API_KEY?: string;
   /**
    * "real" (default) = live Opus 4.7 web search; "fixture" = short-circuit to a hardcoded
    * catalog for the category. Fixture mode exists to unblock demo latency and for CI-style
@@ -474,6 +477,9 @@ app.post("/accessories/discover", (c) => handleAccessoryDiscover(c as never));
 // S1-W8 — Layer-2 adaptive preference clarification. Public (no auth).
 app.post("/clarify", (c) => handleClarify(c as never));
 app.post("/clarify/apply", (c) => handleClarifyApply(c as never));
+
+// S7-W41 — Repairability lookup. Public; iFixit-powered with fixture fallback.
+app.post("/repairability/lookup", (c) => handleRepairabilityLookup(c as never));
 
 // CJ-W48 — gift-buying shared-link flow.
 app.post("/gift/requests", (c) => handleGiftCreate(c as never));

@@ -35,6 +35,7 @@ The primary Worker. Source-of-truth for auth, workflow engine, packs, voice tran
 | `DEEPGRAM_API_KEY` | optional | F11 server-side voice transcription via Deepgram Nova-3. | `src/voice/transcribe.ts` | `/voice/transcribe` returns a stub transcript so the UI remains functional in demos. |
 | `KEEPA_API_KEY` | optional | S4-W21 real Amazon price history via Keepa. | `src/price-history/keepa.ts` | Worker falls back to the URL-hashed fixture series. |
 | `HIBP_API_KEY` | optional | S4-W26 seller breach history via HIBP's paid domain endpoint. | `src/breach/hibp.ts` | Worker falls back to curated fixture dataset of notable breaches. |
+| `IFIXIT_API_KEY` | optional | S7-W41 live repairability lookup via iFixit Guide API + 24h KV cache. | `src/repairability/ifixit.ts` | Worker falls back to the 40-entry fixture dataset in `src/repairability/fixtures.ts`. |
 
 Generate `JWT_SECRET` with:
 ```bash

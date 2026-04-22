@@ -18,6 +18,9 @@ export const POLICIES: RateLimitPolicy[] = [
   // Unauthed calls without a cap let a botnet burn the Anthropic bill. Tight
   // window + low anon limit; generous user limit.
   { route: "clarify", windowSeconds: 3600, anonLimit: 20, userLimit: 200 },
+  // S7-W41 judge P1-5: pure CPU today, but ifixit.ts makes outbound fetch
+  // when IFIXIT_API_KEY is set. A botnet would burn iFixit quota + KV writes.
+  { route: "repairability", windowSeconds: 3600, anonLimit: 60, userLimit: 600 },
 ];
 
 export function findPolicy(route: string): RateLimitPolicy | undefined {
