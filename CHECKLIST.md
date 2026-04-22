@@ -32,7 +32,7 @@
 | F17 | Observability (logs + traces) | ⬜ | 🔬 | |
 | F18 | Authenticated rate limiting | ⬜ | 🔬 | |
 | F19 | Secrets + env parity | ⬜ | 🔬 | |
-| F20 | Testing infrastructure | ⬜ | 🔬 | |
+| F20 | Testing infrastructure | ✅ | `BLOCKS/F20-testing-infra.md` | `d6569a5` |
 
 ## Part B — Workflows by stage
 
@@ -217,6 +217,9 @@
 
 - 2026-04-21: F0 ✅ — winner calibration documented. Reference: BLOCKS/F0-WINNER-CALIBRATION.md.
 - 2026-04-21: diagnosis committed (GAP_ANALYSIS.md + BLOCK_PLAN.md).
+- 2026-04-21: S3-W17 ✅ — review-authenticity heuristic scanner + /review-scan endpoint. Commit `e2aa8aa`.
+- 2026-04-21: ci fix ✅ — npm install + pack-maintenance secret-env. Commit `7441c04`.
+- 2026-04-21: F20 ✅ — vitest workspace, 68 tests passing, Playwright web scaffolded, CI unit-tests job. Commit `d6569a5`.
 
 ---
 
