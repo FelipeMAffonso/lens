@@ -41,6 +41,12 @@ import {
   handleCancelDraft as handleSubsCancelDraft,
 } from "./subs/handler.js";
 import "./subs/workflow.js"; // register subs.discover workflow
+import {
+  handleScan as handlePriceRefundScan,
+  handleFile as handlePriceRefundFile,
+  handleWindows as handlePriceRefundWindows,
+} from "./price-refund/handler.js";
+import "./price-refund/workflow.js"; // register price.poll workflow
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -364,6 +370,11 @@ app.get("/subs/upcoming", (c) => handleSubsUpcoming(c as never));
 app.patch("/subs/:id", (c) => handleSubsPatch(c as never));
 app.delete("/subs/:id", (c) => handleSubsDelete(c as never));
 app.post("/subs/:id/cancel-draft", (c) => handleSubsCancelDraft(c as never));
+
+// S6-W34 — price-drop refund watcher.
+app.get("/price-refund/windows", (c) => handlePriceRefundWindows(c as never));
+app.post("/price-refund/scan", (c) => handlePriceRefundScan(c as never));
+app.post("/price-refund/:purchaseId/file", (c) => handlePriceRefundFile(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these
