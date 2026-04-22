@@ -73,7 +73,7 @@
 | S3-W16 | Source provenance | ✅ | `BLOCKS/S3-W16-source-provenance.md` | `6d65b7e` |
 | S3-W17 | Review authenticity (add LLM layer) | 🟡 | 🔬 | |
 | S3-W18 | Counterfeit / grey-market | ✅ | `BLOCKS/S3-W18-counterfeit-check.md` | `2fff3d1` |
-| S3-W19 | Sponsorship scanner | ⬜ | 🔬 | |
+| S3-W19 | Sponsorship scanner | ✅ | `BLOCKS/S3-W19-sponsorship-scanner.md` | `468529b` |
 | S3-W20 | Claim verification (reuse) | ✅ | 🔬 | |
 
 ### Stage 4 — Decision & purchase
@@ -239,6 +239,7 @@
 - 2026-04-22: S4-W27 ✅ — /scam/assess LIVE. Five deterministic signals (no LLM): domain-age fixture WHOIS, typosquat via Levenshtein vs 40+ brand allowlist WITH hyphen-token splitting (catches "amaz0n-deals" → "amaz0n" → distance-1 to "amazon"), HTTPS presence, verified-retailer trust-signal (-15 bonus), price-too-low vs category floors. 3-band verdict (safe < 20, caution < 55, scam ≥ 55). 32 new tests (811/811 green, +34). Live smoke: amaz0n-deals.com → scam/80 (typosquat+new-domain both fail); target.com → safe/0 (32y old + verified). Stage-4 track: 7 of 8 ✅. Commit `0a99bb6`.
 - 2026-04-22: S4-W25 ✅ — /privacy-audit closes Stage-4 at 8 of 8. Opus 4.7 structured JSON extraction of {dataCollected, sharedWithThirdParties, retention, deletion, consentDarkPatterns, regulatoryFrameworks} + graceful heuristic fallback (15 data-type + 6 third-party + 8 regulatory-framework + 6 dark-pattern regex rules). Transparency score 0-100 with 3 bands, robust JSON parser mirrors S4-W22 Stage-2 shape. 33 new tests (844/844 green, +33). Live smoke on apple.com/legal/privacy → source:"opus", band:"high", score:90, 7 data categories + 2 frameworks extracted faithfully. Commit `32df2a8`.
 - 2026-04-22: S3-W18 ✅ — /counterfeit/check LIVE. 6 deterministic signals: seller-age (fail < 90d), feedback-volume (warn < 10), **feedback-distribution-bimodal** (fail when ≥20% 1-star AND ≥60% 5-star — the classic "planted 5s + defrauded 1s, sparse middle" shape), price-too-low (floor/3), unauthorized-retailer-claim, grey-market-indicator. Category floor table rebased across counterfeit + scam modules to realistic mid-range minimums. 17 new tests (863/863 green, +17). Live smoke: fake-Bambino scenario (42d seller + 13 feedback bimodal + $99 espresso) → likely-counterfeit / risk 95. Stage-3 track: 6 of 7 ✅. Commit `2fff3d1`.
+- 2026-04-22: S3-W19 ✅ — /sponsorship/scan closes Stage-3 at 7 of 7. Reuses S3-W16 affiliate-indicator detection + layers a 12-pattern disclosure detector (ftc-affiliate / sponsored-post / paid-partnership / in-partnership-with). Verdict matrix: clear / disclosed-partnership / undisclosed-partnership (FTC 16 CFR Part 255 violation when affiliates present without disclosure). Both fetched-HTML and articleContext-only modes. 22 new tests (884/884 green, +22). Stage-3 evaluation track complete. Commit `468529b`.
 
 ---
 
