@@ -143,6 +143,7 @@ const result = query({
 - **Do not** skip hooks (`--no-verify`) or signing.
 - **Do not** log user emails, API keys, or raw session tokens.
 - **Do not** post to production services (Resend email, push notifications, SMS) without a `LENS_ENV=production` gate and an explicit user authorization.
+- **Do not** add affiliate links, tracking pixels, `ref=`, `tag=`, `utm_*`, or any monetized-redirect parameter to any retailer URL Lens produces. Ever. Lens's ranking is pure deterministic math on user-stated preferences, and the revenue posture is "none that biases ranking." Enforcement: a commit introducing such params is a project-violation commit and must be reverted. See `VISION_COMPLETE.md` §13 #8.
 
 ## The Apple-product bar (added 2026-04-21)
 
