@@ -137,6 +137,69 @@ describe("rankCandidates", () => {
     expect(ranked[0]!.name).toBe("B");
   });
 
+  it("(judge P1 #4) rejects whitespace-only criterion names", async () => {
+    const intent = {
+      category: "x",
+      criteria: [
+        { name: "   ", weight: 0.5, direction: "higher_is_better" as const },
+        { name: "speed", weight: 0.5, direction: "higher_is_better" as const },
+      ],
+      rawCriteriaText: "",
+    } as unknown as UserIntent;
+    const ranked = await rankCandidates(intent, [candidate("A", { speed: 5 }), candidate("B", { speed: 9 })]);
+    expect(ranked[0]!.name).toBe("B");
+    // Only one breakdown row survives — the whitespace-named one was dropped
+    expect(ranked[0]!.utilityBreakdown).toHaveLength(1);
+    expect(ranked[0]!.utilityBreakdown[0]!.criterion).toBe("speed");
+  });
+
+  it("(judge P1 #5) coerces string weight; drops NaN/negative weights", async () => {
+    const intent = {
+      category: "x",
+      criteria: [
+        { name: "a", weight: "0.6" as unknown as number, direction: "higher_is_better" as const },
+        { name: "b", weight: -1, direction: "higher_is_better" as const },
+        { name: "c", weight: 0.4, direction: "higher_is_better" as const },
+      ],
+      rawCriteriaText: "",
+    } as unknown as UserIntent;
+    const ranked = await rankCandidates(intent, [candidate("A", { a: 5, c: 3 }), candidate("B", { a: 9, c: 9 })]);
+    expect(ranked[0]!.name).toBe("B");
+    expect(Number.isFinite(ranked[0]!.utilityScore)).toBe(true);
+    // b (negative weight) was dropped
+    expect(ranked[0]!.utilityBreakdown.map((r) => r.criterion)).toEqual(["a", "c"]);
+  });
+
+  it("(judge P1 #6) normalizes invalid direction to higher_is_better", async () => {
+    const intent = {
+      category: "x",
+      criteria: [{ name: "speed", weight: 1, direction: "ascending" as unknown as "higher_is_better" }],
+      rawCriteriaText: "",
+    } as unknown as UserIntent;
+    const ranked = await rankCandidates(intent, [candidate("Slow", { speed: 1 }), candidate("Fast", { speed: 9 })]);
+    expect(ranked[0]!.name).toBe("Fast");
+  });
+
+  it("(judge P1 #7) survives intent === undefined without crashing", async () => {
+    const ranked = await rankCandidates(undefined as unknown as UserIntent, [candidate("A", {}), candidate("B", {})]);
+    expect(ranked).toHaveLength(2);
+  });
+
+  it("(judge P0 #1) filters candidates whose name is empty or whitespace", async () => {
+    const intent: UserIntent = {
+      category: "x",
+      criteria: [{ name: "speed", weight: 1, direction: "higher_is_better" }],
+      rawCriteriaText: "",
+    };
+    const ranked = await rankCandidates(intent, [
+      { ...candidate("Real", { speed: 9 }) },
+      { ...candidate("", { speed: 9 }) },
+      { ...candidate("   ", { speed: 9 }) },
+    ]);
+    expect(ranked).toHaveLength(1);
+    expect(ranked[0]!.name).toBe("Real");
+  });
+
   it("survives intent.criteria being entirely invalid and falls back to default", async () => {
     const intent = {
       category: "x",

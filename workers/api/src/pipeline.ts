@@ -88,10 +88,16 @@ export async function runAuditPipeline(
   console.log("[rank] top=%s score=%s", ranked[0]?.name ?? "?", ranked[0]?.utilityScore.toFixed(3));
   emit("rank:done", { top: ranked[0] });
 
+  // Judge P0 #1: every c.name must be a non-empty string before .toLowerCase().
+  // search.ts now filters, but defense in depth — a malformed candidate slipping
+  // through must not 500 the whole audit.
   const aiPickName = extract.aiRecommendation.pickedProduct?.name?.toLowerCase() ?? "";
   const aiPickCandidate = aiPickName
     ? ranked.find(
-        (c) => c.name.toLowerCase().includes(aiPickName) || aiPickName.includes(c.name.toLowerCase()),
+        (c) =>
+          typeof c.name === "string" &&
+          c.name.length > 0 &&
+          (c.name.toLowerCase().includes(aiPickName) || aiPickName.includes(c.name.toLowerCase())),
       ) ?? null
     : null;
 
@@ -111,6 +117,21 @@ export async function runAuditPipeline(
   }
   if (!ranked[0]) {
     warnings.push({ stage: "rank", message: "Ranking produced no top pick — verify candidates have parseable spec values." });
+  }
+  // Judge P2 #9: detect the fallback-to-overall_quality path. When the user's stated
+  // criteria were all dropped (malformed / nameless from Opus), rank uses a single
+  // default. Surface that honestly so the UI doesn't show "ranked by overall_quality"
+  // as if the user had asked for it.
+  const topBreakdown = ranked[0]?.utilityBreakdown ?? [];
+  const userAskedForCriteria = (extract.intent.criteria?.length ?? 0) > 0;
+  const rankedOnDefaultOnly =
+    topBreakdown.length === 1 && topBreakdown[0]?.criterion === "overall_quality";
+  if (userAskedForCriteria && rankedOnDefaultOnly) {
+    warnings.push({
+      stage: "rank",
+      message:
+        "Your stated criteria were dropped during extraction (missing names or invalid weights). Ranking fell back to a neutral overall_quality default. Try rephrasing with explicit attributes.",
+    });
   }
 
   return {

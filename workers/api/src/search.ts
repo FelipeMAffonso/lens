@@ -94,13 +94,40 @@ No prose outside the JSON. No markdown fences.`;
   if (!parsed.candidates || !Array.isArray(parsed.candidates)) {
     throw new Error(`search response missing 'candidates' array: keys=${Object.keys(parsed).join(",")}`);
   }
-  return parsed.candidates.map((c) => ({
-    ...c,
-    currency: c.currency ?? "USD",
-    attributeScores: {},
-    utilityScore: 0,
-    utilityBreakdown: [],
-  }));
+  // Judge P0 #2: Opus-freelanced candidates can arrive without `name`, with
+  // null/string prices, or with missing `brand`. Validate + coerce before
+  // handing to downstream stages.
+  const dropped: number[] = [];
+  const out = parsed.candidates
+    .map((c, i) => {
+      if (!c || typeof c !== "object") { dropped.push(i); return null; }
+      const name = typeof c.name === "string" ? c.name.trim() : "";
+      if (name.length === 0) { dropped.push(i); return null; }
+      const rawPrice = (c as { price?: unknown }).price;
+      const price =
+        typeof rawPrice === "number" && Number.isFinite(rawPrice)
+          ? rawPrice
+          : typeof rawPrice === "string"
+            ? Number.parseFloat(rawPrice.replace(/[^0-9.]/g, "")) || null
+            : null;
+      const specs = (c as { specs?: unknown }).specs;
+      return {
+        ...c,
+        name,
+        brand: typeof c.brand === "string" ? c.brand : "",
+        price,
+        currency: typeof c.currency === "string" && c.currency.length > 0 ? c.currency : "USD",
+        specs: specs && typeof specs === "object" ? (specs as Record<string, string | number | boolean>) : {},
+        attributeScores: {},
+        utilityScore: 0,
+        utilityBreakdown: [],
+      } satisfies Candidate;
+    })
+    .filter((c): c is Candidate => c !== null);
+  if (dropped.length > 0) {
+    console.warn("[search] dropped %d malformed candidates (missing/invalid name): indexes=%s", dropped.length, dropped.join(","));
+  }
+  return out;
 }
 
 function stripFences(s: string): string {

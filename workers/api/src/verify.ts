@@ -42,8 +42,11 @@ export async function verifyClaims(
     categoryPack?.slug ?? "none",
     categoryPack?.body.confabulationPatterns.length ?? 0);
 
-  const safeCandidates = candidates.filter((c): c is Candidate => !!c && typeof c.name === "string");
-  const pickName = rec.pickedProduct?.name?.toLowerCase() ?? "";
+  // Judge P0 #3: include empty-string name filter to avoid brittle coupling with rank.
+  const safeCandidates = candidates.filter(
+    (c): c is Candidate => !!c && typeof c.name === "string" && c.name.trim().length > 0,
+  );
+  const pickName = rec.pickedProduct?.name?.toLowerCase().trim() ?? "";
 
   const aiPick = pickName
     ? safeCandidates.find(

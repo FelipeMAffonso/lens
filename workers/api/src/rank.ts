@@ -14,12 +14,48 @@ export async function rankCandidates(
   intent: UserIntent,
   candidates: Candidate[],
 ): Promise<Candidate[]> {
-  const safeCandidates = candidates.filter((c): c is Candidate => !!c && typeof c.name === "string");
-  const DEFAULT_CRITERION = { name: "overall_quality", weight: 1, direction: "higher_is_better" as const };
-  const usableFromIntent = (intent.criteria ?? []).filter(
-    (c) => c && typeof c.name === "string" && c.name.length > 0,
+  // Judge P0 #1 / P1 #4: filter blank / whitespace-only names before any downstream
+  // string op. P1 #7: treat malformed intent as an empty criteria bag.
+  const safeIntent = intent ?? ({} as UserIntent);
+  const safeCandidates = candidates.filter(
+    (c): c is Candidate => !!c && typeof c.name === "string" && c.name.trim().length > 0,
   );
-  const safeCriteria = usableFromIntent.length > 0 ? usableFromIntent : [DEFAULT_CRITERION];
+  const VALID_DIRECTIONS = new Set(["higher_is_better", "lower_is_better", "target", "binary"] as const);
+  const DEFAULT_CRITERION = { name: "overall_quality", weight: 1, direction: "higher_is_better" as const };
+  const droppedCriteriaCount = { count: 0 };
+  // Judge P1 #5, #6: coerce weight to a finite number + normalize direction. Drop
+  // criteria where we cannot recover a sane shape.
+  const usableFromIntent = (safeIntent.criteria ?? [])
+    .map((c) => {
+      if (!c || typeof c !== "object") { droppedCriteriaCount.count++; return null; }
+      const name = typeof c.name === "string" ? c.name.trim() : "";
+      if (name.length === 0) { droppedCriteriaCount.count++; return null; }
+      const rawWeight = (c as { weight?: unknown }).weight;
+      const weight =
+        typeof rawWeight === "number" && Number.isFinite(rawWeight)
+          ? rawWeight
+          : typeof rawWeight === "string"
+            ? Number.parseFloat(rawWeight) || 0
+            : 0;
+      if (!Number.isFinite(weight) || weight < 0) { droppedCriteriaCount.count++; return null; }
+      const rawDir = (c as { direction?: unknown }).direction;
+      const direction = typeof rawDir === "string" && VALID_DIRECTIONS.has(rawDir as never)
+        ? (rawDir as "higher_is_better" | "lower_is_better" | "target" | "binary")
+        : "higher_is_better";
+      const rawTarget = (c as { target?: unknown }).target;
+      const target = typeof rawTarget === "number" || typeof rawTarget === "string" ? rawTarget : undefined;
+      return { name, weight, direction, target };
+    })
+    .filter((c): c is { name: string; weight: number; direction: "higher_is_better" | "lower_is_better" | "target" | "binary"; target: string | number | undefined } => c !== null);
+  const fellBackToDefault = usableFromIntent.length === 0;
+  const safeCriteria = fellBackToDefault ? [DEFAULT_CRITERION] : usableFromIntent;
+  if (droppedCriteriaCount.count > 0 || fellBackToDefault) {
+    console.warn(
+      "[rank] dropped=%d fellBackToDefault=%s — Opus may have freelanced criteria without names/weights",
+      droppedCriteriaCount.count,
+      fellBackToDefault,
+    );
+  }
 
   const scored = safeCandidates.map((cand) => {
     const breakdown = safeCriteria.map((crit) => {
