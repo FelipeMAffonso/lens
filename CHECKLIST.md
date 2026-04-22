@@ -82,7 +82,7 @@
 |---|---|---|---|---|
 | S4-W21 | Price history + sale legitimacy | ✅ | `BLOCKS/S4-W21-price-history.md` | `d977ce3` |
 | S4-W22 | Dark-pattern checkout scan (wire /passive-scan) | ✅ | `BLOCKS/S4-W22-passive-scan.md` | `59bd662` |
-| S4-W23 | Compatibility check | ⬜ | 🔬 | |
+| S4-W23 | Compatibility check | ✅ | `BLOCKS/S4-W23-compatibility-check.md` | `32f7b1f` |
 | S4-W24 | True-total-cost reveal | ✅ | `BLOCKS/S4-W24-true-total-cost.md` | `4d7a693` |
 | S4-W25 | Data-disclosure audit | ⬜ | 🔬 | |
 | S4-W26 | Breach history | ⬜ | 🔬 | |
@@ -232,6 +232,7 @@
 - 2026-04-22: S0-W5 ✅ — subscription-discovery pipeline. Migration 0006 + classifier (16 sender allowlist + keyword gate + intent resolution + amount/cadence/next-renewal extraction + marketing-blast negative filter + per-service default cadence) + repo (upsert by (user, service), listByUser, listUpcomingRenewals) + 6 HTTP endpoints (scan/list/upcoming/patch/delete/cancel-draft) + subs.discover workflow skeleton registered. memory-d1 shim extended for <=/>=/< / >. 48 new tests (593/593 total green, +48 over CJ-W46). Live smoke: endpoints respond + auth gates fire. Commit `8be7053`.
 - 2026-04-22: S6-W34 ✅ — price-drop refund watcher LIVE. 8-retailer price-match-window table (BBY/Target/Walmart/HD/Lowe's/Costco/Apple active + Amazon explicitly inactive since 2018), pure detector with 10 explicit ineligibility reasons, claim-drafter assembling retailer-formal letter + portal URLs, F2-pattern repo over purchases+interventions, price.poll workflow registered for the existing 17 */2 cron, 3 HTTP endpoints (GET /windows, POST /scan, POST /:id/file). Composes S4-W21 + F2 purchases + F2 interventions without a new table. 32 new tests (625/625 green, +32). Live smoke: /price-refund/windows returns 8-retailer payload. Commit `d5b7a12`.
 - 2026-04-22: S3-W16 ✅ — /provenance/verify. Three-stage fuzzy-match claim verifier (exact → normalized → partial-sentence token overlap ≥ 50% / 400-char window) + dual-layer affiliate detector (URL rules for 7 programs: amazon-tag/shareasale/awin/rakuten/skimlinks/impact-radius/utm-tracking + HTML rules for rel=sponsored + FTC disclosure phrases + body-embedded redirects). Composite provenance score in [0,1]. Parallel fan-out fetch with 5-way concurrency + 400KB body cap. 37 new tests (662/662 green, +37). Live smoke: Amazon bot-block handled gracefully; amazon-tag URL-level indicator still surfaces. Commit `6d65b7e`.
+- 2026-04-22: S4-W23 ✅ — /compat/check 10-rule compatibility library LIVE. Covers 2015 MBP proprietary SSD, generic M.2 SATA-vs-NVMe, 4K@60 external display caps, laptop charger wattage, phone-charger connector, AirPods Bluetooth version, HDMI 2.0-vs-2.1 cable, printer-ink cartridge model, camera-lens mount, phone case model. Profile table auto-enriches specs from product name. Unknown pairs return no-rule-matched (never silent false-pass). 31 new tests (693/693 green, +31). Live smoke: 2015 MBP + M.2 NVMe → incompatible, rule mbp-proprietary-blade fires. Commit `32f7b1f`.
 
 ---
 
