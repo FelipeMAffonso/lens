@@ -54,6 +54,11 @@ GMAIL_OAUTH_REDIRECT_URI=https://lens-api.webmarinelli.workers.dev/oauth/gmail/c
 # deterministic, safe for demos). "real" hits Opus 4.7's live web_search.
 LENS_SEARCH_MODE=fixture
 
+# ─── S7-W38 — firmware / CVE advisory source ────────────────────────────────
+# "fixture" (default) uses the curated fixture dataset (15+ advisories).
+# "live" would walk manufacturer PSIRT pages + NVD JSON feed (scaffold only).
+LENS_FIRMWARE_MODE=fixture
+
 # ─── S4-W21 — price history (Keepa) ─────────────────────────────────────────
 # Optional. When set + LENS_PRICE_MODE=auto|keepa, /price-history hits the
 # real Keepa API for Amazon products. Unset falls back to a deterministic

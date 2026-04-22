@@ -6,6 +6,7 @@ import { ReviewScanRequestSchema, scanReviews } from "./review-scan.js";
 import { WorkflowEngine } from "./workflow/engine.js";
 import { auditWorkflow } from "./workflow/specs/audit.js";
 import "./workflow/specs/recall-watch.js"; // register cron-targeted workflow
+import "./workflow/specs/firmware-watch.js"; // S7-W38 firmware weekly cron
 import { getWorkflow, workflowStats } from "./workflow/registry.js";
 import { dispatchCron } from "./cron/dispatcher.js";
 import { CRON_JOBS } from "./cron/jobs.js";
@@ -73,6 +74,7 @@ import {
   handleDelete as handleHouseholdDelete,
   handleEffective as handlePreferencesEffective,
 } from "./household/handler.js";
+import { handleScan as handleFirmwareScan } from "./firmware/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -448,6 +450,9 @@ app.post("/household/members", (c) => handleHouseholdCreate(c as never));
 app.patch("/household/members/:id", (c) => handleHouseholdPatch(c as never));
 app.delete("/household/members/:id", (c) => handleHouseholdDelete(c as never));
 app.get("/preferences/effective", (c) => handlePreferencesEffective(c as never));
+
+// S7-W38 — firmware / CVE on-demand scan.
+app.post("/firmware/scan", (c) => handleFirmwareScan(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these
