@@ -14,6 +14,7 @@
     "https://claude.ai/*",
     "https://gemini.google.com/*",
     "https://www.perplexity.ai/*",
+    "https://amazon.com/*",
     "https://*.amazon.com/*",
     "https://*.bestbuy.com/*",
     "https://*.walmart.com/*",
@@ -29,6 +30,7 @@
         "https://claude.ai/*",
         "https://gemini.google.com/*",
         "https://www.perplexity.ai/*",
+        "https://amazon.com/*",
         "https://*.amazon.com/*",
         "https://*.bestbuy.com/*",
         "https://*.walmart.com/*",
@@ -38,7 +40,7 @@
       ],
       "js": ["content.js"],
       "run_at": "document_idle",
-      "all_frames": false
+      "all_frames": true
     }
   ],
   "background": { "service_worker": "background.js", "type": "module" },

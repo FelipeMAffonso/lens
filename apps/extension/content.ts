@@ -129,12 +129,19 @@ function pickMostSevere(hits: ReturnType<typeof scanDocument>): ReturnType<typeo
 }
 
 // F6 ambient pill attachment on AI-chat hosts.
+// Judge P0-3: with `all_frames: true`, content.ts runs in every iframe — useful
+// for Amazon Rufus (rendered in a nested iframe) but noisy elsewhere. Gate
+// everything except the Amazon adapter to the top frame.
 function bootAIChatPills(): void {
   const adapter = adapterForUrl();
   if (!adapter) return;
+  const inTopFrame = window === window.top;
+  if (!inTopFrame && adapter.id !== "rufus") {
+    return;
+  }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const mo = watchForResponses(adapter);
-  console.log("[Lens] ambient pill active for host:", adapter.id);
+  console.log("[Lens] ambient pill active for host:", adapter.id, "topFrame:", inTopFrame);
 }
 
 // Boot sequence

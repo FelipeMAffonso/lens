@@ -1,5 +1,5 @@
 import type { HostAdapter } from "./common.js";
-import { txt } from "./common.js";
+import { markStale, txt } from "./common.js";
 
 export const chatgptAdapter: HostAdapter = {
   id: "chatgpt",
@@ -17,10 +17,7 @@ export const chatgptAdapter: HostAdapter = {
       ...root.querySelectorAll<HTMLElement>('article[data-author-role="assistant"]'),
     ];
     if (alt.length > 0) {
-      if (!(globalThis as { __lensChatgptStale?: boolean }).__lensChatgptStale) {
-        console.warn("[Lens] chatgpt selector stale — using fallback");
-        (globalThis as { __lensChatgptStale?: boolean }).__lensChatgptStale = true;
-      }
+      if (markStale("chatgpt")) console.warn("[Lens] chatgpt selector stale — using fallback");
       return alt;
     }
     return [];
