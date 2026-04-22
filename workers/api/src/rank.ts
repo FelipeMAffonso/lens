@@ -23,12 +23,12 @@ export async function rankCandidates(
   const scored = safeCandidates.map((cand) => {
     const breakdown = safeCriteria.map((crit) => {
       const rawValues = safeCandidates
-        .map((c) => toNumberIfPossible(c.specs?.[crit.name]))
+        .map((c) => toNumberIfPossible(lookupSpec(c.specs, crit.name)))
         .filter((v): v is number => v !== null);
       const min = rawValues.length ? Math.min(...rawValues) : 0;
       const max = rawValues.length ? Math.max(...rawValues) : 1;
 
-      const raw = cand.specs?.[crit.name];
+      const raw = lookupSpec(cand.specs, crit.name);
       let score = 0;
       const n = toNumberIfPossible(raw);
       if (n !== null && max !== min) {
@@ -71,4 +71,44 @@ function toNumberIfPossible(v: unknown): number | null {
     if (match) return Number(match[0]);
   }
   return null;
+}
+
+/**
+ * Try the exact criterion name first, then common field-name aliases so that
+ * a pack criterion "build_quality" can resolve to fixture field "build_score"
+ * or "build_quality_score" without requiring exact alignment in every catalog.
+ */
+function lookupSpec(
+  specs: Record<string, unknown> | undefined,
+  criterionName: string,
+): unknown {
+  if (!specs) return undefined;
+  if (specs[criterionName] !== undefined) return specs[criterionName];
+
+  const aliases = aliasSet(criterionName);
+  for (const alias of aliases) {
+    if (specs[alias] !== undefined) return specs[alias];
+  }
+  return undefined;
+}
+
+function aliasSet(name: string): string[] {
+  const out = new Set<string>();
+  // Normalize common suffix swaps
+  const base = name
+    .replace(/_score$/, "")
+    .replace(/_quality$/, "")
+    .replace(/_power$/, "")
+    .replace(/_level$/, "");
+  const bases = [name, base];
+  for (const b of bases) {
+    if (!b) continue;
+    out.add(b);
+    out.add(`${b}_score`);
+    out.add(`${b}_quality`);
+    out.add(`${b}_power`);
+    out.add(`${b}_level`);
+    out.add(`${b}_rating`);
+  }
+  return [...out];
 }
