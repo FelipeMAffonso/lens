@@ -13,7 +13,7 @@
 | # | Block | Status | File | Commit |
 |---|---|---|---|---|
 | F0 | Winner calibration (read-only) | ✅ | `BLOCKS/F0-WINNER-CALIBRATION.md` | - |
-| F1 | Auth: magic-link + anon | ⬜ | `BLOCKS/F1-auth-magic-link.md` | |
+| F1 | Auth: magic-link + anon | ✅ | `BLOCKS/F1-auth-magic-link.md` | `c27013f` |
 | F2 | Persistence: D1 + KV + R2 | ⬜ | `BLOCKS/F2-persistence.md` | |
 | F3 | Workflow engine (DAG + bus + DO) | ⬜ | `BLOCKS/F3-workflow-engine.md` | |
 | F4 | Cron + scheduler primitives | ⬜ | 🔬 | |
@@ -220,6 +220,7 @@
 - 2026-04-21: S3-W17 ✅ — review-authenticity heuristic scanner + /review-scan endpoint. Commit `e2aa8aa`.
 - 2026-04-21: ci fix ✅ — npm install + pack-maintenance secret-env. Commit `7441c04`.
 - 2026-04-21: F20 ✅ — vitest workspace, 68 tests passing, Playwright web scaffolded, CI unit-tests job. Commit `d6569a5`.
+- 2026-04-21: F1 ✅ — auth magic-link + anon LIVE. D1+KV+R2 provisioned on Cloudflare (via wrangler), JWT_SECRET set, migration 0001_auth.sql applied, 33 new tests (101 total green), backend endpoints + vanilla-TS frontend (session.ts, signin-modal.ts, callback.ts) + cross-site SameSite=None cookies. Live smoke confirmed. Commit `c27013f`.
 
 ---
 
