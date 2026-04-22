@@ -142,7 +142,7 @@
 
 | # | Variant | Status | File | Commit |
 |---|---|---|---|---|
-| V-EXT-INLINE-a | Sidebar on ChatGPT | ✅ | `BLOCKS/V-EXT-INLINE-a-chatgpt-sidebar.md` | `pending` |
+| V-EXT-INLINE-a | Sidebar on ChatGPT | ✅ | `BLOCKS/V-EXT-INLINE-a-chatgpt-sidebar.md` | `15ca140` |
 | V-EXT-INLINE-b | Sidebar on Claude.ai | ⬜ | 🔬 | |
 | V-EXT-INLINE-c | Sidebar on Gemini | ⬜ | 🔬 | |
 | V-EXT-INLINE-d | Sidebar on Rufus/Amazon | ⬜ | 🔬 | |
