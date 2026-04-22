@@ -54,6 +54,7 @@ import {
   handlePut as handleSourceWeightingPut,
 } from "./source-weighting/handler.js";
 import { handleBreachHistory } from "./breach/handler.js";
+import { handleCheckoutSummary } from "./checkout-summary/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -398,6 +399,9 @@ app.put("/source-weighting", (c) => handleSourceWeightingPut(c as never));
 
 // S4-W26 — seller breach history. Public (no auth) by design.
 app.get("/breach-history", (c) => handleBreachHistory(c as never));
+
+// S4-W28 — checkout-readiness summary (composes S4 signals into proceed/hesitate/rethink).
+app.post("/checkout/summary", (c) => handleCheckoutSummary(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these
