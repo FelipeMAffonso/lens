@@ -1,0 +1,54 @@
+{
+  "slug": "category/student-loans",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Student loans (US)",
+  "summary": "Federal and private student loans — major welfare category with complex rate / forgiveness / repayment trade-offs.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Federal Direct Subsidized and Unsubsidized loans have borrower-side protections private lenders do not: income-driven repayment (IDR), PSLF forgiveness, disability discharge, death discharge, deferment/forbearance flexibility.", "sourceUrl": "https://studentaid.gov/understand-aid/types/loans/subsidized-unsubsidized", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Private student loans at lower advertised rates frequently require co-signers and lack federal borrower protections. Refinancing federal loans to private waives PSLF/IDR eligibility — usually permanently.", "sourceUrl": "https://www.consumerfinance.gov/consumer-tools/student-loans/", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["student loan", "student loans", "federal student loan", "private student loan", "refinance student loans"],
+    "productTags": ["loan", "education"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "interest_rate_apr", "unit": "percent", "direction": "lower_is_better", "typicalRange": [3, 15] },
+      { "name": "loan_type", "unit": "categorical", "direction": "target", "typicalRange": ["federal-subsidized", "federal-unsubsidized", "federal-plus", "private"], "notes": "Federal offers protections private does not (E1, E2)." },
+      { "name": "cosigner_required", "unit": "boolean", "direction": "binary", "target": false },
+      { "name": "origination_fee_percent", "unit": "percent", "direction": "lower_is_better", "typicalRange": [0, 5] },
+      { "name": "income_driven_repayment_eligible", "unit": "boolean", "direction": "binary", "target": true, "notes": "Federal only (E1)." },
+      { "name": "pslf_eligible", "unit": "boolean", "direction": "binary", "target": true, "notes": "Federal only." },
+      { "name": "forbearance_months_max", "unit": "months", "direction": "higher_is_better", "typicalRange": [0, 36] }
+    ],
+    "specNormalization": {
+      "interest_rate_apr": { "regex": "(\\d+(?:\\.\\d+)?)\\s*%\\s*(?:APR|interest|rate)", "unit": "percent" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "lowest rate in the industry", "reality": "Private student loan rates are credit-based and individualized; 'lowest' is a pre-qualification-only teaser. Your actual rate may be far higher.", "verdict": "misleading", "checkPrompt": "Is the cited rate the teaser (credit-conditional) or actual offer?" },
+      { "pattern": "refinance your federal loans to save", "reality": "Refinancing federal -> private permanently waives PSLF, IDR, disability/death discharge, and federal forbearance (E2). 'Savings' may be net-negative over a career.", "verdict": "false", "checkPrompt": "Has the refinance calculator accounted for the loss of federal protections? PSLF alone can forgive $50k-$200k." },
+      { "pattern": "variable rate for lower payment", "reality": "Variable rates rise in rising-rate environments; the 'lower payment' is point-in-time. Fixed rates lock the cost.", "verdict": "misleading", "checkPrompt": "Does the variable rate have a cap? Is the user prepared for rate increases?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Debt-relief / loan-forgiveness service charging upfront fees", "action": "flag — CFPB has prosecuted multiple debt-relief scammers; federal forgiveness is always free through studentaid.gov" }
+    ],
+    "compatibilityQuestions": [
+      "Eligible for Public Service Loan Forgiveness (government, 501(c)(3) nonprofit)? Keep loans federal.",
+      "Private-sector high-income career? Refinancing federal-to-private MAY make sense if PSLF isn't on the table.",
+      "Variable or fixed rate preference?"
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Origination fees (4-5% on federal PLUS; variable on private)", "annualCostUsd": [50, 2000], "frequency": "one-time" },
+      { "name": "Late fees / auto-pay discount loss", "annualCostUsd": [0, 100], "frequency": "monthly" }
+    ],
+    "regulatoryLinks": [],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Financial product." }
+  }
+}

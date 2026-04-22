@@ -1,0 +1,50 @@
+{
+  "slug": "category/wine",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Wine",
+  "summary": "Still and sparkling wine, $10-$500/bottle range. Heavy marketing claim / reality gap.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Wine ratings from major critics (Parker, Wine Spectator) correlate weakly with blind-tasting preferences across consumers; price-band placebo effect is well documented in behavioral-economics literature.", "sourceUrl": "https://www.nature.com/articles/s41562-020-00944-2", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "'Reserve' has no legal meaning in US wine labeling; it's purely marketing. In Italy (Riserva) and Spain (Reserva) it has legal aging requirements.", "sourceUrl": "https://www.ttb.gov/wine/wine-labeling", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["wine", "red wine", "white wine", "champagne", "sparkling wine"],
+    "productTags": ["wine", "alcohol"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "critic_score", "unit": "score_80_100", "direction": "higher_is_better", "typicalRange": [80, 100], "notes": "Weak correlation with blind-tasting preference (E1)." },
+      { "name": "price_per_bottle", "unit": "USD", "direction": "lower_is_better", "typicalRange": [10, 500] },
+      { "name": "region_pedigree", "unit": "categorical", "direction": "target", "typicalRange": ["generic", "appellation-controlled", "premier-cru", "grand-cru"] },
+      { "name": "vintage_year", "unit": "year", "direction": "target", "typicalRange": [2015, 2026] },
+      { "name": "producer_reputation", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] }
+    ],
+    "specNormalization": {
+      "vintage_year": { "regex": "(\\d{4})", "unit": "year" },
+      "price_per_bottle": { "regex": "\\$(\\d+(?:\\.\\d+)?)", "unit": "USD" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "Reserve / Private Reserve", "reality": "US: no legal meaning (E2). Only the Italian 'Riserva' and Spanish 'Reserva' have regulated aging requirements. US 'Reserve' is marketing.", "verdict": "misleading", "checkPrompt": "Is this from a jurisdiction where Reserve/Riserva has legal meaning, or US where it doesn't?" },
+      { "pattern": "95 points from Wine Spectator", "reality": "Critic ratings correlate weakly with blind-tasting preferences across individuals (E1). Score placement between 90-95 has minor real correlation; point-level differences in the 90s are often statistical noise.", "verdict": "misleading", "checkPrompt": "Is the score framing premium-differentiation or baseline quality?" },
+      { "pattern": "aged in French oak", "reality": "Specific; French oak vs American oak does produce measurable flavor differences. But 'in' could mean 5% neutral oak contact vs 100% new-barrel fermentation — huge spectrum.", "verdict": "misleading", "checkPrompt": "What percentage new oak? What duration?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "High-end first-growth Bordeaux priced at auction well below market", "action": "flag — counterfeit fine wine is a documented problem in the secondary market" }
+    ],
+    "compatibilityQuestions": [
+      "Food pairing? Matters more than critic score.",
+      "Current drinking or cellar? Vintage and producer matter if cellaring.",
+      "Subjective palate preference (fruit-forward, earthy, tannic) matters more than price."
+    ],
+    "typicalHiddenCosts": [],
+    "regulatoryLinks": ["regulation/us-federal-ftc-endorsement-guides"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Consumable." }
+  }
+}

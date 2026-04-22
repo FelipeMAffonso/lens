@@ -1,0 +1,52 @@
+{
+  "slug": "category/washing-machines",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Washing machines",
+  "summary": "Top-load and front-load residential washers, $600-$2500.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "ENERGY STAR washers use ~20% less energy and ~33% less water than minimum-efficiency models; lifetime savings average $370-$520.", "sourceUrl": "https://www.energystar.gov/products/washers", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Front-load washers have lower operating costs but require door-seal maintenance (mold risk) and longer cycle times than top-load.", "sourceUrl": "https://www.consumerreports.org/appliances/washing-machines/", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["washing machine", "washer", "clothes washer"],
+    "productTags": ["washer", "laundry-appliance"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "capacity_cu_ft", "unit": "cu_ft", "direction": "higher_is_better", "typicalRange": [4.0, 6.2] },
+      { "name": "style", "unit": "categorical", "direction": "target", "typicalRange": ["top-load-agitator", "top-load-impeller", "front-load", "compact"] },
+      { "name": "energy_star_certified", "unit": "boolean", "direction": "binary", "target": true, "notes": "~20% energy savings (E1)." },
+      { "name": "annual_energy_kwh", "unit": "kWh", "direction": "lower_is_better", "typicalRange": [100, 400] },
+      { "name": "spin_speed_rpm", "unit": "RPM", "direction": "higher_is_better", "typicalRange": [700, 1500] },
+      { "name": "noise_db", "unit": "dB", "direction": "lower_is_better", "typicalRange": [45, 75] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [600, 2500] }
+    ],
+    "specNormalization": {
+      "capacity_cu_ft": { "regex": "(\\d+(?:\\.\\d+)?)\\s*cu\\.?\\s*ft", "unit": "cu_ft" },
+      "spin_speed_rpm": { "regex": "(\\d+)\\s*RPM", "unit": "RPM" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "powerful cleaning", "reality": "Cleaning performance depends on drum design, wash action, and detergent dosing — not on maximalist 'power' claims. CR and Wirecutter have measured actual cleaning scores.", "verdict": "unverifiable", "checkPrompt": "Is the cleaning claim backed by an independent score (CR, Wirecutter)?" },
+      { "pattern": "extra-large capacity", "reality": "Not standardized. Actual cu.ft. number matters; 4.5 cu.ft. is 'large'; 5.0+ is 'extra-large'; 6.0+ is 'mega'. Cross-check the cu.ft. figure.", "verdict": "misleading", "checkPrompt": "What is the actual cu.ft. capacity?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Is your laundry-room floor reinforced? High-spin front-load washers (1200+ RPM) can damage weaker floors.",
+      "Stackable needed for apartment / condo? Limits the model set."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Delivery + installation + old-washer haul-away", "annualCostUsd": [100, 350], "frequency": "one-time" },
+      { "name": "Extended warranty (often poor value; parts failure <5% in first 3 years)", "annualCostUsd": [100, 400], "frequency": "one-time" },
+      { "name": "Door-seal cleaning for front-load (mold prevention) or pedestal", "annualCostUsd": [15, 80], "frequency": "ongoing" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "washing-machine", "typicalPartsAvailability": "high", "notes": "Most major brands serviceable 10-15 years." }
+  }
+}

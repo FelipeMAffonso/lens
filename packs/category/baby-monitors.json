@@ -1,0 +1,53 @@
+{
+  "slug": "category/baby-monitors",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Baby monitors",
+  "summary": "Audio, video, and wearable baby monitors — safety-adjacent with subscription-entanglement risk.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "AAP (American Academy of Pediatrics) has stated there is no scientific evidence that infant-monitoring consumer wearables reduce SIDS risk; these are wellness devices, not medical devices.", "sourceUrl": "https://publications.aap.org/pediatrics/article/141/6/e20174057/37797/Smartphone-Based-Monitoring-of-Infants", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Wi-Fi baby monitors have been repeatedly breached — unauthorized access via default credentials or unencrypted feeds has been widely documented.", "sourceUrl": "https://www.consumerreports.org/video-monitors/privacy-concerns-baby-monitors-a9272906257/", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["baby monitor", "video monitor", "audio monitor", "nanit", "owlet"],
+    "productTags": ["baby", "monitor", "safety"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "monitor_type", "unit": "categorical", "direction": "target", "typicalRange": ["audio-only", "video-dedicated", "video-wifi", "wearable", "combination"] },
+      { "name": "wifi_required_for_viewing", "unit": "boolean", "direction": "binary", "target": false, "notes": "Dedicated (non-Wi-Fi) monitors avoid the hacking risk (E2)." },
+      { "name": "subscription_required_for_features", "unit": "boolean", "direction": "binary", "target": false, "notes": "Nanit and some others paywall analytics/events behind subscription." },
+      { "name": "range_feet", "unit": "feet", "direction": "higher_is_better", "typicalRange": [200, 1500] },
+      { "name": "battery_hours", "unit": "hours", "direction": "higher_is_better", "typicalRange": [4, 20] },
+      { "name": "video_resolution", "unit": "categorical", "direction": "target", "typicalRange": ["480p", "720p", "1080p", "2K", "4K"] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [30, 400] }
+    ],
+    "specNormalization": {
+      "range_feet": { "regex": "(\\d+)\\s*(?:ft|feet)", "unit": "feet" },
+      "battery_hours": { "regex": "(\\d+)\\s*(?:hours|hrs|hr)", "unit": "hours" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "SIDS detection", "reality": "No FDA-approved consumer wearable reduces SIDS risk, per AAP (E1). 'SIDS detection' or 'reduces SIDS risk' is misleading and can create false confidence.", "verdict": "misleading", "checkPrompt": "Is the SIDS-reduction claim supported by FDA clearance and peer-reviewed evidence?" },
+      { "pattern": "hospital-grade monitoring", "reality": "Consumer monitors are not FDA-cleared as medical devices. 'Hospital-grade' is marketing; hospital-grade medical monitors cost 10x and require prescription.", "verdict": "misleading", "checkPrompt": "Is the device FDA-cleared as a medical device or sold as consumer wellness?" },
+      { "pattern": "encrypted secure feed", "reality": "'Encrypted' varies — transport encryption (TLS) is baseline; end-to-end encryption is rarer. Historical breaches are well-documented (E2).", "verdict": "misleading", "checkPrompt": "Is the encryption end-to-end or just transport-layer?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Wi-Fi or dedicated? Dedicated is more secure against hacking (E2).",
+      "Single room or whole-house coverage? Range requirements.",
+      "Subscription acceptable? Some monitors paywall key features."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Subscription for analytics / event history (Nanit, Owlet)", "annualCostUsd": [60, 300], "frequency": "annual" },
+      { "name": "Replacement pad / sensor for wearable", "annualCostUsd": [30, 100], "frequency": "one-time-or-annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "camera", "typicalPartsAvailability": "low", "notes": "Replace-don't-repair for most." }
+  }
+}

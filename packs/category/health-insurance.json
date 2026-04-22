@@ -1,0 +1,54 @@
+{
+  "slug": "category/health-insurance",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Health insurance (US individual / family)",
+  "summary": "Individual and family health insurance — high complexity, high welfare-delta per household.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Metal tier differences (Bronze/Silver/Gold/Platinum) reflect the actuarial split of cost sharing: Bronze covers ~60% of costs, Silver ~70%, Gold ~80%, Platinum ~90%.", "sourceUrl": "https://www.healthcare.gov/choose-a-plan/plans-categories/", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Cost-sharing reduction (CSR) subsidies are only available with SILVER plans on the ACA marketplace for qualifying income levels — an asymmetry that rewards picking Silver over Bronze for many middle-income households.", "sourceUrl": "https://www.healthcare.gov/lower-costs/save-on-out-of-pocket-costs/", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["health insurance", "medical insurance", "aca plan", "marketplace plan", "health plan"],
+    "productTags": ["insurance", "health"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "annual_premium", "unit": "USD", "direction": "lower_is_better", "typicalRange": [2000, 25000] },
+      { "name": "deductible", "unit": "USD", "direction": "lower_is_better", "typicalRange": [500, 12000] },
+      { "name": "out_of_pocket_max", "unit": "USD", "direction": "lower_is_better", "typicalRange": [3000, 18000] },
+      { "name": "metal_tier", "unit": "categorical", "direction": "target", "typicalRange": ["Catastrophic", "Bronze", "Silver", "Gold", "Platinum"], "notes": "E1" },
+      { "name": "network_adequacy", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "preferred_doctors_in_network", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "prescription_drug_coverage", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] }
+    ],
+    "specNormalization": {},
+    "confabulationPatterns": [
+      { "pattern": "comprehensive coverage", "reality": "Every ACA-compliant plan covers the 10 essential health benefits. 'Comprehensive' is a marketing feel-word; the real differences are in cost-sharing, network, and formulary.", "verdict": "misleading", "checkPrompt": "What are the specific deductible, out-of-pocket max, and network adequacy differences?" },
+      { "pattern": "low monthly premium", "reality": "High-deductible plans have low premiums but can cost $10,000+ in a bad year. Total-cost analysis requires expected claims: premium + expected cost-sharing = actual annual cost (E1).", "verdict": "misleading", "checkPrompt": "Has the user computed total expected annual cost, not just premium?" },
+      { "pattern": "Gold/Platinum for best coverage", "reality": "Not always optimal. Middle-income households with qualifying subsidy income get CSR only on Silver — making Silver the lowest-cost option (E2). Check subsidy eligibility before assuming higher metal = better.", "verdict": "misleading", "checkPrompt": "Has the user checked CSR subsidy eligibility? If yes and income qualifies, Silver is often optimal despite worse headline tier." }
+    ],
+    "counterfeitSignals": [
+      { "signal": "'Short-term' plan marketed as ACA-compliant — they are NOT", "action": "flag as dangerous; short-term plans exclude pre-existing conditions and have annual caps" }
+    ],
+    "compatibilityQuestions": [
+      "Do you need specific doctors / hospitals? Check in-network status.",
+      "Any prescription drugs? Check the formulary — same drug can cost $0 or $500/mo across plans.",
+      "Are you or family eligible for CSR subsidies? That determines whether Silver is your optimal tier.",
+      "Planned surgeries or pregnancy? Higher metal tiers reduce out-of-pocket."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Out-of-network surprise bills (reduced by No Surprises Act, 2022)", "annualCostUsd": [0, 10000], "frequency": "conditional" },
+      { "name": "Non-formulary prescription drugs", "annualCostUsd": [0, 5000], "frequency": "ongoing" },
+      { "name": "Coinsurance on hospitalizations", "annualCostUsd": [500, 8000], "frequency": "conditional" }
+    ],
+    "regulatoryLinks": [],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Financial/medical service." }
+  }
+}

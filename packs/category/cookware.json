@@ -1,0 +1,53 @@
+{
+  "slug": "category/cookware",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Cookware (pots and pans)",
+  "summary": "Pots, pans, skillets, and cookware sets — stainless, cast iron, nonstick, carbon steel.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "PFOA was phased out of nonstick cookware in the US by 2013. Modern 'PFOA-free' is the default, not a differentiator. However, PTFE-based nonstick (most brands) still releases fumes above 500°F.", "sourceUrl": "https://www.epa.gov/assessing-and-managing-chemicals-under-tsca/fact-sheet-20152010-pfoa-stewardship-program", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "'Tri-ply' or 'clad' cookware construction (stainless outer + aluminum core) distributes heat more evenly than single-layer stainless; thickness of the aluminum core matters more than the ply count.", "sourceUrl": "https://www.seriouseats.com/best-stainless-steel-skillet", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["cookware", "pots and pans", "skillet", "frying pan", "cookware set"],
+    "productTags": ["cookware", "kitchen"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "material", "unit": "categorical", "direction": "target", "typicalRange": ["nonstick-PTFE", "nonstick-ceramic", "stainless-single-layer", "stainless-clad-tri-ply", "stainless-clad-5-ply", "cast-iron", "enameled-cast-iron", "carbon-steel"] },
+      { "name": "induction_compatible", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "oven_safe_temp_f", "unit": "degrees_F", "direction": "higher_is_better", "typicalRange": [350, 800] },
+      { "name": "dishwasher_safe", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "aluminum_core_thickness_mm", "unit": "mm", "direction": "higher_is_better", "typicalRange": [1, 4], "notes": "Thicker core = more even heat (E2)." },
+      { "name": "warranty_years", "unit": "years", "direction": "higher_is_better", "typicalRange": [1, 999] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [30, 900] }
+    ],
+    "specNormalization": {
+      "oven_safe_temp_f": { "regex": "(\\d+)\\s*°?\\s*F", "unit": "degrees_F" },
+      "warranty_years": { "regex": "(\\d+)[- ]?year|(lifetime)", "unit": "years" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "PFOA-free safe nonstick", "reality": "PFOA has been phased out since 2013 (E1) — this is baseline. PTFE-based nonstick (almost all brands) still releases fumes above 500°F and is not safe for all cooking.", "verdict": "misleading", "checkPrompt": "Is PFOA-free framed as a premium feature? It's baseline." },
+      { "pattern": "tri-ply stainless construction", "reality": "Ply count matters less than aluminum-core thickness (E2). Some 'tri-ply' has 0.8mm core; some 'single-layer' with thick encapsulated disc performs identically.", "verdict": "misleading", "checkPrompt": "What's the aluminum core thickness in mm?" },
+      { "pattern": "nonstick forever", "reality": "All PTFE-based nonstick degrades with use (1-5 years typical depending on treatment). 'Forever' claims are marketing; ceramic-coating nonstick degrades faster than PTFE.", "verdict": "false", "checkPrompt": "What's the realistic lifespan of the nonstick coating?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "All-Clad or Le Creuset >50% off from marketplace seller", "action": "flag — counterfeit high-end cookware with inferior materials is widespread" }
+    ],
+    "compatibilityQuestions": [
+      "Induction cooktop? Requires ferromagnetic base (magnetic stainless, cast iron, carbon steel).",
+      "Gas or electric? Gas loves carbon steel / cast iron; electric benefits from thick clad aluminum core."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Replacement when nonstick degrades (every 1-5 years)", "annualCostUsd": [30, 200], "frequency": "bi-annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "low", "notes": "Cast iron lasts a century; nonstick is disposable. Stainless can be reconditioned by professional re-polishing." }
+  }
+}

@@ -1,4 +1,4 @@
-import type { AuditResult, HostAI, Candidate } from "@lens/shared";
+import type { AuditResult, HostAI, Candidate, Claim } from "@lens/shared";
 
 const API_BASE = import.meta.env.VITE_LENS_API_URL ?? "https://lens-api.webmarinelli.workers.dev";
 
@@ -8,14 +8,27 @@ let currentResult: AuditResult | null = null;
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
+const EXAMPLE_AUDITS: Record<string, { source: HostAI; userPrompt: string; raw: string }> = {
+  "chatgpt-espresso": {
+    source: "chatgpt",
+    userPrompt: "espresso machine under $400, pressure + build + steam matter most",
+    raw: "For an espresso machine under $400 that balances pressure, build quality, and steam power, I recommend the De'Longhi Stilosa (EC260BK). It features a 15-bar pressure pump, a stainless-steel build, and a manual steam wand for frothing milk. At around $249, it's a reliable pick that won't break the bank while still delivering café-quality espresso.",
+  },
+  "claude-laptop": {
+    source: "claude",
+    userPrompt: "best laptop under $1000 for coding — battery life, keyboard, reliability matter most",
+    raw: "For coding under $1000, I'd recommend the Lenovo ThinkPad E14 Gen 5. You'll get 16GB of RAM, a 512GB SSD, and the legendary ThinkPad keyboard — durable enough for daily typing and well-liked by developers. Battery life is around 10 hours, and the build quality and reliability are what this line is known for.",
+  },
+};
+
 async function loadPackStats(): Promise<void> {
   try {
     const res = await fetch(`${API_BASE}/packs/stats`);
     const data = await res.json();
     const el = $("pack-stats");
-    el.textContent = `${data.totalPacks} knowledge packs live · ${data.byType.category} categories · ${data.byType.darkPattern} dark patterns · ${data.byType.regulation} regulations · ${data.categoryAliases} aliases`;
+    el.textContent = `${data.totalPacks} knowledge packs · ${data.byType.category} categories · ${data.byType.darkPattern} dark patterns · ${data.byType.regulation} regulations`;
   } catch {
-    $("pack-stats").textContent = "packs API unreachable";
+    $("pack-stats").textContent = "packs api offline";
   }
 }
 
@@ -27,7 +40,23 @@ function setMode(m: Mode): void {
   ($("query-section") as HTMLElement).classList.toggle("hidden", m !== "query");
   ($("text-section") as HTMLElement).classList.toggle("hidden", m !== "text");
   ($("audit-btn") as HTMLButtonElement).textContent =
-    m === "query" ? "Find spec-optimal" : "Audit this AI answer";
+    m === "query" ? "Find the spec-optimal pick" : "Audit this AI answer";
+}
+
+function prefillExampleQuery(query: string): void {
+  setMode("query");
+  ($("query-prompt") as HTMLTextAreaElement).value = query;
+  ($("query-prompt") as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function prefillExampleAudit(key: string): void {
+  const ex = EXAMPLE_AUDITS[key];
+  if (!ex) return;
+  setMode("text");
+  ($("source") as HTMLSelectElement).value = ex.source;
+  ($("user-prompt") as HTMLInputElement).value = ex.userPrompt;
+  ($("ai-output") as HTMLTextAreaElement).value = ex.raw;
+  ($("ai-output") as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 async function runAudit(): Promise<void> {
@@ -36,13 +65,13 @@ async function runAudit(): Promise<void> {
   const resultEl = $("result");
   streamEl.hidden = false;
   resultEl.hidden = true;
-  logEl.textContent = "";
+  logEl.innerHTML = "";
 
   let body: unknown;
   if (currentMode === "query") {
     const userPrompt = ($("query-prompt") as HTMLTextAreaElement).value.trim();
     if (!userPrompt) {
-      logEl.append(li("Type what you're shopping for first."));
+      logEl.append(logLine("Tell me what you're shopping for first."));
       return;
     }
     body = { kind: "query", userPrompt };
@@ -50,21 +79,15 @@ async function runAudit(): Promise<void> {
     const source = ($("source") as HTMLSelectElement).value as HostAI;
     const userPrompt = ($("user-prompt") as HTMLInputElement).value || undefined;
     const raw = ($("ai-output") as HTMLTextAreaElement).value.trim();
-    const file = ($("screenshot") as HTMLInputElement).files?.[0];
-    if (file) {
-      body = { kind: "image", source, imageBase64: await fileToBase64(file), userPrompt };
-    } else if (raw) {
-      body = { kind: "text", source, raw, userPrompt };
-    } else {
-      logEl.append(li("Paste the AI's answer or drop a screenshot."));
+    if (!raw) {
+      logEl.append(logLine("Paste the AI's answer first."));
       return;
     }
+    body = { kind: "text", source, raw, userPrompt };
   }
 
-  // Start SSE for live sub-agent log.
   void runStream(body, logEl);
 
-  // Fetch the full audit card.
   const res = await fetch(`${API_BASE}/audit`, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -72,7 +95,7 @@ async function runAudit(): Promise<void> {
   });
   if (!res.ok) {
     const err = await res.text().catch(() => "");
-    logEl.append(li(`HTTP ${res.status}: ${err.slice(0, 300)}`));
+    logEl.append(logLine(`Error: ${res.status} — ${err.slice(0, 200)}`));
     return;
   }
   const result = (await res.json()) as AuditResult;
@@ -102,7 +125,7 @@ async function runStream(body: unknown, logEl: HTMLElement): Promise<void> {
         const dataJson = chunk.match(/^data: (.+)$/m)?.[1];
         if (!event || !dataJson) continue;
         const data = JSON.parse(dataJson);
-        logEl.append(li(`${event} · ${summarize(event, data)}`));
+        logEl.append(logLine(`${event.replace(":", " → ")} · ${summarize(event, data)}`));
       }
     }
   } catch {
@@ -112,15 +135,21 @@ async function runStream(body: unknown, logEl: HTMLElement): Promise<void> {
 
 function summarize(event: string, data: unknown): string {
   const d = data as Record<string, unknown>;
-  if (event === "extract:done") return `category=${(d.intent as any)?.category ?? "?"}`;
-  if (event === "search:done") return `${d.count} candidates`;
-  if (event === "verify:done") return `${(d.claims as unknown[])?.length ?? 0} claims verified`;
-  if (event === "rank:done") return `top=${(d.top as Candidate)?.name ?? "?"}`;
+  if (event === "extract:done") return `category: ${(d.intent as any)?.category ?? "?"}`;
+  if (event === "search:done") return `${d.count} real products found`;
+  if (event === "verify:done") return `${(d.claims as unknown[])?.length ?? 0} AI claims checked`;
+  if (event === "rank:done") return `top pick: ${(d.top as Candidate)?.name ?? "?"}`;
   if (event === "crossModel:done") {
     const r = d.results as Array<{ provider: string; model: string; agreesWithLens: boolean }>;
-    return r.map((x) => `${x.provider}:${x.model} ${x.agreesWithLens ? "✓" : "✗"}`).join(", ");
+    return r.length === 0 ? "(no other-model picks)" : r.map((x) => `${x.provider}: ${x.agreesWithLens ? "agrees ✓" : "sides with host AI"}`).join(", ");
   }
-  return JSON.stringify(data).slice(0, 120);
+  return "";
+}
+
+function logLine(text: string): HTMLLIElement {
+  const el = document.createElement("li");
+  el.textContent = text;
+  return el;
 }
 
 function renderResult(r: AuditResult): void {
@@ -129,171 +158,252 @@ function renderResult(r: AuditResult): void {
   const body = $("result-body");
   body.innerHTML = "";
 
-  const card = document.createElement("div");
-  card.className = "audit-card";
-
   const isJob1 = r.aiRecommendation.claims.length === 0 && r.aiRecommendation.pickedProduct.name.startsWith("(no AI");
-  const showAiPanel = !isJob1;
 
-  // Header with category + paper anchor
-  const header = document.createElement("div");
-  header.className = "card-header";
-  header.innerHTML = `
-    <h2>${isJob1 ? "Your spec-optimal pick" : "Lens audit"}</h2>
-    <p class="card-subtitle">category: <strong>${esc(r.intent.category)}</strong></p>
+  body.append(headerCard(r, isJob1));
+  if (!isJob1) body.append(verdictBanner(r));
+  body.append(heroPickCard(r));
+  body.append(criteriaCard(r));
+  if (!isJob1 && r.claims.length > 0) body.append(claimsCard(r));
+  body.append(rankedCard(r));
+  body.append(crossModelCard(r));
+  body.append(elapsedFooter(r));
+}
+
+function headerCard(r: AuditResult, isJob1: boolean): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="card-header">
+      <div>
+        <h2>${isJob1 ? "Your spec-optimal pick" : "Lens audit"}</h2>
+        <p class="card-subtitle">Category: <strong>${esc(r.intent.category)}</strong></p>
+      </div>
+      <div class="pack-pill">transparent math · pack-verified</div>
+    </div>
   `;
-  card.append(header);
+  return card;
+}
 
-  // Criteria sliders — pack-driven, re-rank on drag
-  const sliders = document.createElement("section");
-  sliders.className = "criteria-sliders panel";
-  sliders.innerHTML = `<h3>Your criteria (drag to re-weight)</h3>`;
-  const sliderWrap = document.createElement("div");
-  sliderWrap.className = "sliders-wrap";
+function verdictBanner(r: AuditResult): HTMLElement {
+  const falseCount = r.claims.filter((c) => c.verdict === "false").length;
+  const misleadCount = r.claims.filter((c) => c.verdict === "misleading").length;
+  const trueCount = r.claims.filter((c) => c.verdict === "true").length;
+  const total = r.claims.length;
+
+  let cls = "good";
+  let icon = "✓";
+  let title = "The AI's claims check out.";
+  let body = `${trueCount} of ${total} attribute claims verified.`;
+
+  if (falseCount > 0) {
+    cls = "bad";
+    icon = "✗";
+    title = `Lens flagged ${falseCount} false claim${falseCount === 1 ? "" : "s"} in the AI's recommendation.`;
+    body = `${falseCount} false, ${misleadCount} misleading, ${trueCount} verified out of ${total} total.`;
+  } else if (misleadCount > 0) {
+    cls = "mixed";
+    icon = "⚠";
+    title = `Lens flagged ${misleadCount} misleading claim${misleadCount === 1 ? "" : "s"}.`;
+    body = `${misleadCount} misleading, ${trueCount} verified out of ${total} total.`;
+  }
+
+  const div = document.createElement("div");
+  div.className = `verdict-banner ${cls}`;
+  div.innerHTML = `
+    <div class="verdict-icon">${icon}</div>
+    <div class="verdict-text"><strong>${esc(title)}</strong>${esc(body)}</div>
+  `;
+  return div;
+}
+
+function heroPickCard(r: AuditResult): HTMLElement {
+  const o = r.specOptimal;
+  const matchPct = Math.round((o.utilityScore ?? 0) * 100);
+  const card = document.createElement("section");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="card-header"><h2>Spec-optimal pick</h2></div>
+    <div class="hero-pick">
+      <div>
+        <div class="pick-product"><span class="brand">${esc(o.brand ?? "")}</span> <span class="name">${esc(o.name)}</span></div>
+        <div class="pick-price">Price: <span class="amount">$${o.price ?? "?"}</span></div>
+      </div>
+      <div class="match-bar">
+        <div class="match-bar-fill"><div style="width:${matchPct}%"></div></div>
+        <div class="match-bar-label">${matchPct}% match to your criteria</div>
+      </div>
+    </div>
+    <details>
+      <summary>How was this scored?</summary>
+      <div class="criteria-detail">
+        ${o.utilityBreakdown
+          .map((b) => {
+            const wp = Math.round(b.weight * 100);
+            const sp = Math.round(b.score * 100);
+            return `<div class="criterion-row">
+              <div class="label">${esc(b.criterion)}</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span style="color:var(--fg-muted);font-size:12px;min-width:100px;">You weight ${wp}%</span>
+                <span style="flex:1;height:4px;background:var(--bg);border-radius:999px;overflow:hidden;"><span style="display:block;height:100%;background:var(--hl);width:${sp}%"></span></span>
+                <span style="color:var(--fg-dim);font-size:12px;min-width:70px;">scores ${sp}/100</span>
+              </div>
+              <div class="value">+${(b.contribution * 100).toFixed(0)}</div>
+            </div>`;
+          })
+          .join("")}
+      </div>
+    </details>
+  `;
+  return card;
+}
+
+function criteriaCard(r: AuditResult): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="card-header">
+      <div>
+        <h2>Your criteria</h2>
+        <p class="card-subtitle">Drag sliders to re-weight. Ranking below updates live.</p>
+      </div>
+    </div>
+    <div class="criteria-detail" id="sliders-wrap"></div>
+  `;
+  const wrap = card.querySelector<HTMLElement>("#sliders-wrap")!;
   for (const c of r.intent.criteria) {
+    const pct = Math.round(c.weight * 100);
     const row = document.createElement("div");
-    row.className = "slider-row";
+    row.className = "criterion-row";
     row.innerHTML = `
-      <label>${esc(c.name)}</label>
-      <input type="range" min="0" max="100" value="${Math.round(c.weight * 100)}" data-criterion="${esc(c.name)}" />
-      <span class="weight-val" data-criterion="${esc(c.name)}">${Math.round(c.weight * 100)}%</span>
+      <div class="label">${esc(c.name)}</div>
+      <input type="range" min="0" max="100" value="${pct}" data-criterion="${esc(c.name)}" />
+      <div class="value" data-criterion-val="${esc(c.name)}">${pct}%</div>
     `;
-    sliderWrap.append(row);
+    wrap.append(row);
   }
-  sliders.append(sliderWrap);
-  card.append(sliders);
-
-  // Panels container
-  const panels = document.createElement("div");
-  panels.className = "panels-grid";
-
-  if (showAiPanel) {
-    panels.append(aiPanel(r));
-  }
-  panels.append(optimalPanel(r));
-  if (showAiPanel) {
-    panels.append(claimsPanel(r));
-  }
-  panels.append(crossModelPanel(r));
-
-  card.append(panels);
-
-  // Ranked list with utility breakdown
-  const ranked = document.createElement("section");
-  ranked.className = "ranked-list panel";
-  ranked.innerHTML = `<h3>Full ranking (utility breakdown)</h3>`;
-  const table = document.createElement("table");
-  table.innerHTML = `<thead><tr><th>#</th><th>Product</th><th>Price</th><th>Utility</th><th>Breakdown</th></tr></thead>`;
-  const tbody = document.createElement("tbody");
-  tbody.id = "ranking-tbody";
-  for (let i = 0; i < Math.min(r.candidates.length, 10); i++) {
-    tbody.append(candidateRow(r.candidates[i]!, i));
-  }
-  table.append(tbody);
-  ranked.append(table);
-  card.append(ranked);
-
-  // Elapsed
-  const elapsed = document.createElement("p");
-  elapsed.className = "elapsed";
-  elapsed.textContent = `${r.elapsedMs.total} ms end-to-end (extract ${r.elapsedMs.extract} · search ${r.elapsedMs.search} · verify ${r.elapsedMs.verify} · rank ${r.elapsedMs.rank} · crossModel ${r.elapsedMs.crossModel})`;
-  card.append(elapsed);
-
-  body.append(card);
-
-  // Slider interactivity — re-rank client-side using the server-returned per-criterion scores.
-  sliderWrap.querySelectorAll<HTMLInputElement>("input[type='range']").forEach((input) => {
+  wrap.querySelectorAll<HTMLInputElement>("input[type='range']").forEach((input) => {
     input.addEventListener("input", () => {
-      document
-        .querySelector<HTMLSpanElement>(`span.weight-val[data-criterion="${input.dataset.criterion}"]`)!
-        .textContent = `${input.value}%`;
+      wrap.querySelector<HTMLSpanElement>(`[data-criterion-val="${input.dataset.criterion}"]`)!.textContent = `${input.value}%`;
       reRank();
     });
   });
+  return card;
 }
 
-function aiPanel(r: AuditResult): HTMLElement {
-  const p = r.aiRecommendation.pickedProduct;
-  const div = document.createElement("section");
-  div.className = "panel ai-said";
-  div.innerHTML = `
-    <h3>Your AI said</h3>
-    <strong>${esc(p.brand ?? "")} ${esc(p.name)}</strong>
-    <ul>${r.aiRecommendation.claims.map((c) => `<li><strong>${esc(c.attribute)}:</strong> ${esc(c.statedValue)}</li>`).join("")}</ul>
+function claimsCard(r: AuditResult): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="card-header"><h2>AI's claims, checked</h2></div>
+    <div class="claims-list">${r.claims.map((c) => claimRow(c)).join("")}</div>
   `;
-  return div;
+  return card;
 }
 
-function optimalPanel(r: AuditResult): HTMLElement {
-  const o = r.specOptimal;
-  const div = document.createElement("section");
-  div.className = "panel spec-optimal";
-  div.innerHTML = `
-    <h3>Spec-optimal for your criteria</h3>
-    <strong>${esc(o.brand ?? "")} ${esc(o.name)}</strong> — $${o.price ?? "?"}
-    <p class="utility-line">Utility <strong>${o.utilityScore.toFixed(2)}</strong></p>
-    <ul>${o.utilityBreakdown
-      .map(
-        (b) =>
-          `<li>${esc(b.criterion)}: w ${b.weight.toFixed(2)} × s ${b.score.toFixed(2)} = <strong>${b.contribution.toFixed(2)}</strong></li>`,
-      )
-      .join("")}</ul>
+function claimRow(c: Claim): string {
+  const icons: Record<string, string> = { true: "✓", false: "✗", misleading: "⚠", unverifiable: "?" };
+  const icon = icons[c.verdict] ?? "?";
+  const labelByVerdict: Record<string, string> = {
+    true: "Accurate",
+    false: "False",
+    misleading: "Misleading",
+    unverifiable: "Unverifiable",
+  };
+  const label = labelByVerdict[c.verdict] ?? c.verdict;
+  return `<div class="claim-row verdict-${c.verdict}">
+    <div class="claim-icon">${icon}</div>
+    <div class="claim-body">
+      <div>
+        <span class="claim-attr">${esc(c.attribute ?? "?")}</span>
+        <span class="claim-stated">${esc(c.statedValue ?? "")}</span>
+        <span class="claim-verdict-badge">${esc(label)}</span>
+      </div>
+      ${c.note ? `<div class="claim-note">${esc(c.note)}</div>` : ""}
+    </div>
+  </div>`;
+}
+
+function rankedCard(r: AuditResult): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="card-header">
+      <h2>Full ranking</h2>
+      <p class="card-subtitle">${r.candidates.length} real products · transparent utility math</p>
+    </div>
+    <div class="ranked-list" id="ranked-list"></div>
   `;
-  return div;
-}
-
-function claimsPanel(r: AuditResult): HTMLElement {
-  const div = document.createElement("section");
-  div.className = "panel claims";
-  div.innerHTML = `
-    <h3>Claim verdicts</h3>
-    <ul>${r.claims
-      .map(
-        (c) =>
-          `<li class="verdict-${c.verdict}"><strong>${esc(c.attribute)}:</strong> ${esc(c.statedValue)} → <em>${esc(c.verdict)}</em>${c.note ? `<br/><small>${esc(c.note)}</small>` : ""}</li>`,
-      )
-      .join("")}</ul>
-  `;
-  return div;
-}
-
-function crossModelPanel(r: AuditResult): HTMLElement {
-  const div = document.createElement("section");
-  div.className = "panel cross-model";
-  if (r.crossModel.length === 0) {
-    div.innerHTML = `<h3>Cross-model disagreement</h3><p class="muted">No other-model picks available (provider keys not configured). The Managed Agent fan-out lives at workers/cross-model/ (Day 3).</p>`;
-    return div;
+  const list = card.querySelector<HTMLElement>("#ranked-list")!;
+  for (let i = 0; i < Math.min(r.candidates.length, 10); i++) {
+    list.append(rankRow(r.candidates[i]!, i));
   }
-  div.innerHTML = `
-    <h3>Other frontier models</h3>
-    <ul>${r.crossModel
-      .map(
-        (c) =>
-          `<li><strong>${esc(c.provider)}</strong> / ${esc(c.model)}: picked <em>${esc(c.pickedProduct.name.split("\n")[0]!.slice(0, 60))}</em> <span class="agree-${c.agreesWithLens}">${c.agreesWithLens ? "✓ agrees with Lens" : "✗ agrees with host AI"}</span></li>`,
-      )
-      .join("")}</ul>
-  `;
-  return div;
+  return card;
 }
 
-function candidateRow(c: Candidate, i: number): HTMLTableRowElement {
-  const tr = document.createElement("tr");
-  tr.innerHTML = `
-    <td>${i + 1}</td>
-    <td><strong>${esc(c.brand ?? "")}</strong> ${esc(c.name)}</td>
-    <td>$${c.price ?? "?"}</td>
-    <td class="utility-cell">${c.utilityScore.toFixed(3)}</td>
-    <td><small>${c.utilityBreakdown
-      .map((b) => `${esc(b.criterion)}=${b.score.toFixed(2)}`)
-      .join(" · ")}</small></td>
+function rankRow(c: Candidate, i: number): HTMLElement {
+  const row = document.createElement("div");
+  row.className = `rank-row rank-${i + 1}`;
+  const pct = Math.round((c.utilityScore ?? 0) * 100);
+  row.innerHTML = `
+    <div class="rank-num">#${i + 1}</div>
+    <div class="rank-product">
+      <span class="brand">${esc(c.brand ?? "")}</span>
+      <span class="name">${esc(c.name)}</span>
+    </div>
+    <div class="rank-price">$${c.price ?? "?"}</div>
+    <div class="rank-match">
+      <div class="rank-match-bar"><div style="width:${pct}%"></div></div>
+      <div class="rank-match-label">${pct}%</div>
+    </div>
   `;
-  return tr;
+  return row;
+}
+
+function crossModelCard(r: AuditResult): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "card";
+  if (r.crossModel.length === 0) {
+    card.innerHTML = `
+      <div class="card-header"><h2>What other frontier models picked</h2></div>
+      <p class="muted" style="margin: 0;">The cross-model check runs on a <a href="https://lens-cross-model.webmarinelli.workers.dev/health" target="_blank" style="color:var(--hl-hi);">separate Claude Managed Agent Worker</a>. No other-model picks for this run — some provider keys may need refresh.</p>
+    `;
+    return card;
+  }
+  card.innerHTML = `
+    <div class="card-header">
+      <h2>What other frontier models picked</h2>
+      <p class="card-subtitle">Parallel fan-out via Claude Managed Agent</p>
+    </div>
+    <div class="cross-model-list">
+      ${r.crossModel
+        .map(
+          (c) => `<div class="cross-model-row">
+        <div class="cross-model-left">
+          <span class="cross-model-provider">${esc(c.provider)}</span>
+          <span class="cross-model-pick">${esc((c.pickedProduct.name || "").split("\n")[0]!.slice(0, 60))}</span>
+        </div>
+        <div class="cross-model-verdict ${c.agreesWithLens ? "agrees" : "disagrees"}">
+          ${c.agreesWithLens ? "✓ agrees with Lens" : "sides with host AI"}
+        </div>
+      </div>`,
+        )
+        .join("")}
+    </div>
+  `;
+  return card;
+}
+
+function elapsedFooter(r: AuditResult): HTMLElement {
+  const el = document.createElement("p");
+  el.className = "elapsed";
+  el.textContent = `${(r.elapsedMs.total / 1000).toFixed(1)}s end-to-end · extract ${r.elapsedMs.extract}ms · search ${r.elapsedMs.search}ms · verify ${r.elapsedMs.verify}ms · rank ${r.elapsedMs.rank}ms · cross-model ${r.elapsedMs.crossModel}ms`;
+  return el;
 }
 
 function reRank(): void {
   if (!currentResult) return;
-  // Read current weights from sliders, renormalize to sum=1.
-  const sliders = Array.from(document.querySelectorAll<HTMLInputElement>(".slider-row input"));
+  const sliders = Array.from(document.querySelectorAll<HTMLInputElement>(".criterion-row input[type='range']"));
   const raw: Record<string, number> = {};
   let sum = 0;
   for (const s of sliders) {
@@ -304,7 +414,6 @@ function reRank(): void {
   const normalized: Record<string, number> = {};
   for (const [k, v] of Object.entries(raw)) normalized[k] = sum > 0 ? v / sum : 0;
 
-  // Recompute utility per candidate using the server-returned per-criterion scores.
   const rescored = currentResult.candidates.map((cand) => {
     let u = 0;
     const breakdown = cand.utilityBreakdown.map((b) => {
@@ -317,11 +426,10 @@ function reRank(): void {
   });
   rescored.sort((a, b) => b.utilityScore - a.utilityScore);
 
-  // Re-render ranking table only (not the whole card).
-  const tbody = document.getElementById("ranking-tbody")!;
-  tbody.innerHTML = "";
+  const list = document.getElementById("ranked-list")!;
+  list.innerHTML = "";
   for (let i = 0; i < Math.min(rescored.length, 10); i++) {
-    tbody.append(candidateRow(rescored[i]!, i));
+    list.append(rankRow(rescored[i]!, i));
   }
 }
 
@@ -331,22 +439,14 @@ function esc(s: string | undefined): string {
   );
 }
 
-function li(text: string): HTMLLIElement {
-  const el = document.createElement("li");
-  el.textContent = text;
-  return el;
-}
-
-async function fileToBase64(f: File): Promise<string> {
-  const buf = new Uint8Array(await f.arrayBuffer());
-  let s = "";
-  for (let i = 0; i < buf.length; i++) s += String.fromCharCode(buf[i]!);
-  return btoa(s);
-}
-
-// ---------- init ----------
 document.querySelectorAll<HTMLButtonElement>(".mode-btn").forEach((btn) => {
   btn.addEventListener("click", () => setMode(btn.dataset.mode as Mode));
+});
+document.querySelectorAll<HTMLButtonElement>(".chip[data-example-query]").forEach((btn) => {
+  btn.addEventListener("click", () => prefillExampleQuery(btn.dataset.exampleQuery!));
+});
+document.querySelectorAll<HTMLButtonElement>(".chip[data-example-audit]").forEach((btn) => {
+  btn.addEventListener("click", () => prefillExampleAudit(btn.dataset.exampleAudit!));
 });
 $("audit-btn").addEventListener("click", () => {
   void runAudit();

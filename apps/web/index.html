@@ -3,30 +3,45 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Lens — the consumer's independent shopping agent</title>
+    <title>Lens — your independent AI shopping agent</title>
+    <meta name="description" content="Paste any AI shopping recommendation or just describe what you want. Lens verifies every claim, shows transparent spec-optimal alternatives, and catches AI confabulations across 73 knowledge packs." />
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
-    <main class="container">
-      <header>
-        <h1>Lens</h1>
-        <p class="tagline">
-          The consumer's independent agent across every point of every purchase.
-          Paste an AI shopping recommendation, or just describe what you want.
-        </p>
-        <div class="pack-stats" id="pack-stats">loading packs…</div>
-      </header>
+    <nav class="top-nav">
+      <div class="brand">
+        <span class="logo">◉</span>
+        <span class="brand-name">Lens</span>
+      </div>
+      <div class="nav-meta" id="pack-stats">loading…</div>
+      <a class="nav-link" href="https://github.com/FelipeMAffonso/lens" target="_blank">GitHub ↗</a>
+    </nav>
 
-      <nav class="mode-switch">
-        <button class="mode-btn active" data-mode="query">
-          <span class="badge">Job 1</span>
-          I want to buy…
+    <main class="container">
+      <section class="hero">
+        <h1>Your independent AI shopping agent</h1>
+        <p class="hero-sub">
+          Paste an AI shopping recommendation from ChatGPT, Claude, Gemini, or Rufus — or just
+          describe what you're looking for. Lens verifies every claim against live product data,
+          shows the <strong>transparent spec-optimal pick</strong>, flags confabulations, and
+          checks what other frontier models picked.
+        </p>
+        <p class="hero-anchor">
+          Grounded in peer-reviewed research: <em>18 AI models, 382,000 shopping trials, submitted to Nature.</em>
+          AI shopping assistants pick non-optimal products 21% of the time and confabulate reasons 86% of the time.
+        </p>
+      </section>
+
+      <section class="mode-switch" role="tablist">
+        <button class="mode-btn active" data-mode="query" role="tab">
+          <span class="mode-title">I want to buy something</span>
+          <span class="mode-hint">Describe it → Lens ranks real products transparently</span>
         </button>
-        <button class="mode-btn" data-mode="text">
-          <span class="badge">Job 2</span>
-          Audit an AI's answer
+        <button class="mode-btn" data-mode="text" role="tab">
+          <span class="mode-title">Audit an AI's answer</span>
+          <span class="mode-hint">Paste it → Lens catches the confabulations</span>
         </button>
-      </nav>
+      </section>
 
       <section class="paste-box">
         <div class="mode-section" id="query-section">
@@ -34,8 +49,14 @@
           <textarea
             id="query-prompt"
             rows="3"
-            placeholder="e.g. espresso machine under $400, pressure + build quality + steam matter most"
+            placeholder="e.g. espresso machine under $400 — pressure, build quality, and steam power matter most"
           ></textarea>
+          <div class="example-chips" aria-label="Example queries">
+            <button class="chip" data-example-query="espresso machine under $400, pressure + build quality + steam power matter most">☕ Espresso machine, $400</button>
+            <button class="chip" data-example-query="laptop under $1000 for coding — battery life, keyboard, reliability matter most">💻 Laptop for coding, $1000</button>
+            <button class="chip" data-example-query="over-ear ANC headphones under $300, comfort + battery + mic quality matter most">🎧 ANC headphones, $300</button>
+            <button class="chip" data-example-query="office chair under $500 — lumbar support, 3D armrests, 10-year warranty matter most">🪑 Office chair, $500</button>
+          </div>
         </div>
 
         <div class="mode-section hidden" id="text-section">
@@ -45,42 +66,75 @@
             <option value="claude">Claude</option>
             <option value="gemini">Gemini</option>
             <option value="rufus">Amazon Rufus</option>
+            <option value="perplexity">Perplexity</option>
             <option value="unknown">Other</option>
           </select>
 
           <label for="user-prompt">Your original prompt (optional)</label>
-          <input id="user-prompt" type="text" placeholder="what you asked the AI for" />
+          <input id="user-prompt" type="text" placeholder="what you asked the AI" />
 
           <label for="ai-output">The AI's answer (paste here)</label>
-          <textarea id="ai-output" rows="8" placeholder="Paste the AI's full recommendation…"></textarea>
+          <textarea id="ai-output" rows="8" placeholder="Paste the AI's full recommendation — the product it picked, and the reasons it gave…"></textarea>
 
-          <label class="screenshot">
-            <input type="file" id="screenshot" accept="image/png,image/jpeg" />
-            …or drop a screenshot
-          </label>
+          <div class="example-chips" aria-label="Example AI recommendations">
+            <button class="chip" data-example-audit="chatgpt-espresso">Try: ChatGPT espresso recommendation</button>
+            <button class="chip" data-example-audit="claude-laptop">Try: Claude laptop recommendation</button>
+          </div>
         </div>
 
-        <button id="audit-btn">Audit</button>
+        <button id="audit-btn" class="primary-btn">Audit</button>
       </section>
 
-      <section id="stream" class="stream" hidden>
-        <h2>Running audit</h2>
-        <ul id="stream-log"></ul>
+      <section id="stream" class="stream-panel" hidden>
+        <div class="stream-header">
+          <div class="stream-spinner" aria-hidden="true"></div>
+          <h3>Running audit — live pipeline</h3>
+        </div>
+        <ol id="stream-log" class="stream-log"></ol>
       </section>
 
-      <section id="result" class="result" hidden>
+      <section id="result" class="result-section" hidden>
         <div id="result-body"></div>
       </section>
 
-      <footer>
-        <p>
-          <strong>Open source</strong> under MIT.
-          <a href="https://github.com/FelipeMAffonso/lens" target="_blank">Repo</a> ·
-          <a href="/src/styles.css">CSS</a> ·
-          Built with Claude Opus 4.7 for the Built with Opus 4.7 hackathon.
-        </p>
-      </footer>
+      <section class="hero-anchor-footer">
+        <h3>How Lens works</h3>
+        <div class="how-grid">
+          <div class="how-card">
+            <div class="how-icon">1</div>
+            <h4>Extract</h4>
+            <p>Claude Opus 4.7 with <strong>adaptive thinking</strong> reads your query or the AI's answer and derives weighted criteria from your stated preferences.</p>
+          </div>
+          <div class="how-card">
+            <div class="how-icon">2</div>
+            <h4>Search</h4>
+            <p>Opus 4.7's <strong>web search tool</strong> pulls real product listings. Spec sheets are loaded into <strong>1M context</strong> for side-by-side comparison.</p>
+          </div>
+          <div class="how-card">
+            <div class="how-icon">3</div>
+            <h4>Verify</h4>
+            <p>Every AI claim is checked against spec data. <strong>73 Knowledge Packs</strong> provide category-specific confabulation patterns.</p>
+          </div>
+          <div class="how-card">
+            <div class="how-icon">4</div>
+            <h4>Rank + cross-check</h4>
+            <p>Deterministic <strong>transparent utility math</strong>. Sliders re-weight live. A <strong>Claude Managed Agent</strong> fans out to three other frontier models.</p>
+          </div>
+        </div>
+      </section>
     </main>
+
+    <footer class="site-footer">
+      <p>
+        Open source under MIT ·
+        <a href="https://github.com/FelipeMAffonso/lens" target="_blank">github.com/FelipeMAffonso/lens</a> ·
+        Built with Claude Opus 4.7 for the <em>Built with Opus 4.7</em> hackathon.
+      </p>
+      <p class="footer-fine">
+        Research anchor: Affonso et al., submitted to Nature (2026) — 18 models, 382,000 shopping trials.
+      </p>
+    </footer>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
