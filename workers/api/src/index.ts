@@ -3,6 +3,9 @@ import { cors } from "hono/cors";
 import { AuditInputSchema } from "@lens/shared";
 import { runAuditPipeline } from "./pipeline.js";
 import { ReviewScanRequestSchema, scanReviews } from "./review-scan.js";
+import { WorkflowEngine } from "./workflow/engine.js";
+import { auditWorkflow } from "./workflow/specs/audit.js";
+import { getWorkflow, workflowStats } from "./workflow/registry.js";
 import {
   handleRequest as authHandleRequest,
   handleSignout as authHandleSignout,
@@ -74,29 +77,42 @@ app.get("/packs/:slug", async (c) => {
   return c.json(pack);
 });
 
+// Workflow engine endpoint (F3). Routes /audit through the WorkflowEngine using
+// the registered "audit" spec. Falls back to the legacy runAuditPipeline if the
+// engine path fails unexpectedly (safety net during rollout).
 app.post("/audit", async (c) => {
   const body = await c.req.json().catch(() => null);
   const parsed = AuditInputSchema.safeParse(body);
   if (!parsed.success) {
     return c.json({ error: "invalid_input", issues: parsed.error.issues }, 400);
   }
-  try {
+  const useLegacy = c.req.query("legacy") === "1";
+  if (useLegacy) {
     const result = await runAuditPipeline(parsed.data, c.env);
+    return c.json(result);
+  }
+  try {
+    const engine = new WorkflowEngine(c.env as never);
+    const spec = getWorkflow("audit") ?? auditWorkflow;
+    const runOpts: Parameters<typeof engine.run>[2] = {};
+    const uid = c.get("userId") as string | undefined;
+    const aid = c.get("anonUserId") as string | undefined;
+    if (uid) runOpts.userId = uid;
+    if (aid) runOpts.anonUserId = aid;
+    const result = await engine.run(spec, parsed.data, runOpts);
     return c.json(result);
   } catch (err) {
     const e = err as Error & { stage?: string; cause?: unknown };
-    console.error("audit pipeline failed:", e.stage ?? "unknown_stage", e.message, e.stack);
+    console.error("audit workflow failed:", e.message, e.stack);
     return c.json(
-      {
-        error: "pipeline_failed",
-        stage: e.stage ?? "unknown_stage",
-        message: e.message,
-        cause: String(e.cause ?? ""),
-      },
+      { error: "workflow_failed", message: e.message, cause: String(e.cause ?? "") },
       500,
     );
   }
 });
+
+// List registered workflows (useful for debugging + MCP tool discovery later).
+app.get("/workflows", (c) => c.json(workflowStats()));
 
 app.post("/audit/stream", async (c) => {
   // Server-sent-events variant for the live streaming sub-agent panel.
