@@ -144,6 +144,23 @@ const result = query({
 - **Do not** log user emails, API keys, or raw session tokens.
 - **Do not** post to production services (Resend email, push notifications, SMS) without a `LENS_ENV=production` gate and an explicit user authorization.
 
+## The Apple-product bar (added 2026-04-21)
+
+Every block touches the product surface. Every block is graded against:
+
+1. **Smooth.** No jank, no FOUC, no jarring transitions, no spinner-that-never-spins, no layout shift. Target CLS ≤ 0.01, TBT ≤ 150ms.
+2. **Intelligent.** Every input anticipates intent. Empty states teach. Error states recover. Ambiguous queries ask one clarifying question, not five.
+3. **Beautiful.** Typography scale, 4px radius scale, coral accent `#DA7756`, soft shadows, consistent spacing ramp (4/8/12/16/24/32/48). No pixel-pushed one-offs.
+4. **Motion with purpose.** 150ms on interactive elements, 300ms on layout changes. `cubic-bezier(0.22, 1, 0.36, 1)` (ease-out-quint). Progress bars for predictable duration, not indefinite spinners.
+5. **Accessible.** Every interactive element keyboard-reachable, focus rings visible, aria-labels set, AA contrast. axe-core clean on every route.
+6. **Responsive.** Every surface works cleanly at 360px. Extension sidebar collapses to full-screen on narrow viewports.
+7. **Delightful details.** Optimistic updates on profile saves. Toast on successful sign-in. Subtle micro-interaction on slider re-rank (brief 200ms flash on the new top pick). Empty states that feel like conversation.
+8. **Consistent across surfaces.** Web dashboard, extension sidebar, mobile PWA, email digest, MCP schemas — all share the type scale, color tokens, motion curves, icon set. One product, many surfaces.
+9. **Honest loading.** "Searching the web for 12 real espresso machines" beats "Loading…". Every long-running workflow narrates itself via SSE tied to stage labels.
+10. **Never a placeholder.** Every UI state is a real state with real copy, not `lorem ipsum` or `TODO`. If a feature isn't built, its card doesn't exist yet; if it exists, it's complete.
+
+**The test:** show the finished surface to someone who has never seen Lens. If their first reaction isn't "oh this is nice", the bar hasn't been hit.
+
 ## One-line mantra
 
-**Read the context. Write the block file at depth. Execute every item. Test. Deploy. Commit. Mark ✅. Next.**
+**Read the context. Write the block file at depth. Execute every item. Test. Deploy. Commit. Mark ✅. Next. Feel like Apple shipped it.**
