@@ -8,7 +8,9 @@ Single source of truth for **everything** that exists, what's missing, what's br
 - **API:** https://lens-api.webmarinelli.workers.dev — `/health`, `/audit`, `/audit/stream`, `/passive-scan`, `/packs`, `/packs/stats`, `/packs/:slug`
 - **Cross-model agent:** https://lens-cross-model.webmarinelli.workers.dev — `/fanout` parallel multi-provider with Opus 4.7 synthesis
 - **Repo:** https://github.com/FelipeMAffonso/lens — 50+ commits, MIT, CI green
-- **Knowledge packs:** **85 active** (45 category + 17 dark-pattern + 10 regulation + 8 fee + 5 intervention) — all 0-warning validated, every pack has ≥1 primary source
+- **Knowledge packs:** **96 active** (50 category + 19 dark-pattern + 12 regulation + 10 fee + 5 intervention) — 0 errors, every pack has ≥1 primary source
+- **SKU index:** 8 category packs carry pack-driven representative SKUs (espresso-machines, laptops, headphones, coffee-makers, robot-vacuums, monitors, smartphones, refrigerators, golf-clubs)
+- **Last deploy:** API ver 13be9d91 (2026-04-22)
 
 ## Pack inventory (all 85)
 
