@@ -83,6 +83,7 @@ import {
   handleRecipientGet as handleGiftRecipientGet,
   handleRecipientPost as handleGiftRecipientPost,
 } from "./gift/handler.js";
+import { handleCompare } from "./compare/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -461,6 +462,9 @@ app.get("/preferences/effective", (c) => handlePreferencesEffective(c as never))
 
 // S7-W38 — firmware / CVE on-demand scan.
 app.post("/firmware/scan", (c) => handleFirmwareScan(c as never));
+
+// S1-W9 — comparative framing help. Public (no auth).
+app.post("/compare/framings", (c) => handleCompare(c as never));
 
 // CJ-W48 — gift-buying shared-link flow.
 app.post("/gift/requests", (c) => handleGiftCreate(c as never));
