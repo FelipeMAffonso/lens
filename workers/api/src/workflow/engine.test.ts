@@ -165,7 +165,7 @@ describe("WorkflowEngine", () => {
     const engine = new WorkflowEngine({});
     await engine.run(spec, undefined);
     expect(onComplete).toHaveBeenCalledOnce();
-    const args = onComplete.mock.calls[0]!;
+    const args = onComplete.mock.calls[0] as unknown as [unknown, unknown, unknown];
     // args = [run, output, ctx]
     expect(args[1]).toBe(7);
   });

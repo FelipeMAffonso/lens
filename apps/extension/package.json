@@ -1,10 +1,10 @@
 {
   "name": "@lens/extension",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Chrome MV3 extension for Lens. Build with `npm run build`, then load-unpacked from dist/.",
   "scripts": {
-    "build": "esbuild content.ts --bundle --outfile=dist/content.js --platform=browser --format=iife --target=chrome120 && esbuild background.ts --bundle --outfile=dist/background.js --platform=browser --format=iife --target=chrome120 && cp manifest.json popup.html popup.js dist/",
+    "build": "node ./scripts/build.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
@@ -13,4 +13,3 @@
     "typescript": "^5.6.2"
   }
 }
-

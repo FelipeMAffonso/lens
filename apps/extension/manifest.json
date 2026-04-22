@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Lens — AI shopping audit",
-  "version": "0.1.0",
-  "description": "Audit any AI shopping recommendation in one click.",
+  "version": "0.2.0",
+  "description": "Audit any AI shopping recommendation in one click. Inline sidebar on ChatGPT, Claude, Gemini, Rufus, Perplexity + passive dark-pattern scan.",
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Audit this recommendation"
+    "default_title": "Lens"
   },
   "permissions": ["activeTab", "storage", "scripting"],
   "host_permissions": ["<all_urls>"],
@@ -13,9 +13,16 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ],
   "background": { "service_worker": "background.js", "type": "module" },
-  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" }
+  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" },
+  "web_accessible_resources": [
+    {
+      "resources": ["sidebar/*", "icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
