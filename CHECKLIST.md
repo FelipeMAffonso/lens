@@ -44,7 +44,7 @@
 | S0-W2 | Scheduled replacement reminders | ⬜ | 🔬 | |
 | S0-W3 | Trigger-based purchase alerts | ⬜ | 🔬 | |
 | S0-W4 | Pre-need category onboarding | ⬜ | 🔬 | |
-| S0-W5 | Subscription discovery | ⬜ | 🔬 | |
+| S0-W5 | Subscription discovery | ✅ | `BLOCKS/S0-W5-subscription-discovery.md` | `8be7053` |
 
 ### Stage 1 — Discovery
 
@@ -229,6 +229,7 @@
 - 2026-04-22: S3-W15 ✅ — per-host DOM parsers + universal structured extractors. 6 host adapters (amazon/bestbuy/walmart/target/homedepot/shopify) + 3 universal strategies (JSON-LD / OpenGraph / microdata) + orchestrator with priority merge + source-tagged output. extract.ts#extractFromUrl now skips the Opus round-trip when the structured parse is confident (name + price). 51 new tests (478/478 green). Deployed b35a159a. Commit `3749c44`.
 - 2026-04-22: S4-W24 ✅ — /total-cost reveal. 50-state+DC tax table + USPS first-3-digit ZIP bucketing, per-host shipping policy (Amazon Prime / $35-threshold free for BBY/Walmart/Target / $45 for HD / Costco free / Shopify-generic 5% cap), category-pack-driven hiddenCosts (one-time vs ongoing frequency classification, 3-year projection). Extension-readable productName + category overrides. 29 new tests (507/507 green). Live smoke: Breville Bambino at $349.99 in Bay Area → upfront $375.36, year1 $1,367.86, year3 $2,402.86. Commit `4d7a693`.
 - 2026-04-22: CJ-W46 ✅ — values-overlay reranker + persistence. 7-key taxonomy (country-of-origin/union-made/carbon-footprint/animal-welfare/b-corp/small-business/repairability), brand allowlists (B-Corp + UAW + USA-made + animal-welfare + small-business + iFixit repairability scores), longest-match brand tokenization, POST /values-overlay/rerank + PUT/GET persistence via F2 preferences. Empty overlay is a true no-op. 38 new tests (545/545 green). Live smoke: Patagonia b-corp weight 0.3 promotes it over a non-B-Corp competitor (0.95 vs 0.7). Commit `79e425e`.
+- 2026-04-22: S0-W5 ✅ — subscription-discovery pipeline. Migration 0006 + classifier (16 sender allowlist + keyword gate + intent resolution + amount/cadence/next-renewal extraction + marketing-blast negative filter + per-service default cadence) + repo (upsert by (user, service), listByUser, listUpcomingRenewals) + 6 HTTP endpoints (scan/list/upcoming/patch/delete/cancel-draft) + subs.discover workflow skeleton registered. memory-d1 shim extended for <=/>=/< / >. 48 new tests (593/593 total green, +48 over CJ-W46). Live smoke: endpoints respond + auth gates fire. Commit `8be7053`.
 
 ---
 
