@@ -1,0 +1,35 @@
+{
+  "slug": "dark-pattern/autoplaying-media",
+  "type": "dark-pattern",
+  "version": "1.0.0",
+  "name": "Autoplaying media",
+  "summary": "Video or audio starts playing automatically on page load without user consent, interrupting the task, burning data, and often displaying ads that the user cannot dismiss without interaction.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Chrome 66+ (April 2018) blocks autoplay with sound by default; Safari 11+ enforces the same. Violating sites typically mute the track but still autoplay video, which is itself a data-cost and accessibility harm.", "sourceUrl": "https://developer.chrome.com/blog/autoplay/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "FTC 2022 'Bringing Dark Patterns to Light' report identifies autoplaying content that forces interaction as a Section 5 deceptive practice when paired with ads or upsell.", "sourceUrl": "https://www.ftc.gov/reports/bringing-dark-patterns-light", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "W3C WCAG 2.1 Success Criterion 1.4.2 (Audio Control): if audio plays automatically for more than 3 seconds, a mechanism to pause or stop is required. Autoplay without such mechanism fails WCAG Level A.", "sourceUrl": "https://www.w3.org/WAI/WCAG21/Understanding/audio-control.html", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "pageTypes": ["article", "product-detail", "landing-page", "news-site", "video-hosting"] },
+  "body": {
+    "canonicalName": "Autoplaying media",
+    "brignullId": "interference",
+    "description": "Video or audio plays automatically when a page loads — ad pre-rolls, muted-but-animated 'feature showcase' videos, background music, or video pop-outs that follow the viewport as the user scrolls. Beyond the interruption, autoplay burns mobile data (30-100MB per auto-played video), triggers CPU fan noise, and violates WCAG 1.4.2 when paired with audio (E3).",
+    "severity": "nuisance",
+    "illegalInJurisdictions": ["WCAG-required-contexts (US government, EU public-sector)"],
+    "detectionHeuristics": [
+      { "kind": "dom-attribute", "selector": "video[autoplay], audio[autoplay]", "description": "HTML5 autoplay attribute on media element." },
+      { "kind": "js-pattern", "trigger": "video.play()-on-load", "description": "JavaScript calling .play() without user interaction — often via IntersectionObserver trigger that fires immediately." },
+      { "kind": "dom-structure", "selector": "video[data-autoplay-on-scroll], .floating-video-sticky", "description": "Viewport-following sticky videos that persist across page interactions." }
+    ],
+    "llmVerifyPrompt": "Inspect the page for autoplaying media. Check: (1) does media start without explicit user click, (2) does audio play without a visible pause control within 3 seconds (WCAG 1.4.2 violation), (3) is the media ad content, (4) is the media a sticky/floating element that persists on scroll. Flag verdict: no-autoplay, muted-autoplay, or intrusive-autoplay.",
+    "remediation": "Overlay Lens warning with one-click action to (a) pause all media on the page via browser API, (b) enable browser-level autoplay blocking (Chrome/Firefox settings deep-link), (c) cite WCAG 1.4.2 if the autoplay has audio.",
+    "regulatoryLinks": ["regulation/eu-digital-services-act"],
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

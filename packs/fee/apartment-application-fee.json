@@ -1,0 +1,39 @@
+{
+  "slug": "fee/apartment-application-fee",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Apartment application fee",
+  "summary": "A non-refundable fee charged by landlords or leasing agents to process a rental application, typically $25-$100 per applicant, covering credit/background-check cost plus margin.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "White House January 2023 fact sheet targeting rental housing junk fees including application fees, with CFPB and FTC coordinated enforcement actions.", "sourceUrl": "https://www.whitehouse.gov/briefing-room/statements-releases/2023/07/19/fact-sheet-biden-harris-administration-takes-on-junk-fees-in-rental-housing-to-lower-costs-for-renters/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "CFPB 2024 report on rental-application-fee pricing: surveyed fees 2019-2023 rose from median $35 to median $55; typical underlying cost (credit + background check) is $15-$25.", "sourceUrl": "https://www.consumerfinance.gov/data-research/research-reports/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "State law variance: Washington state caps application fees at actual cost of screening + $75 max (RCW 59.18.257); California requires refund of unused portion (Civil Code §1950.6); many states have no cap.", "sourceUrl": "https://app.leg.wa.gov/RCW/default.aspx?cite=59.18.257", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": { "categoryContext": ["apartment-rentals"], "pageTypes": ["rental-listing", "application-form", "lease-signing"] },
+  "body": {
+    "canonicalName": "Apartment application fee",
+    "description": "A non-refundable fee assessed at the start of the rental application process. Justified as covering credit-report and background-check costs (~$20 combined), fees frequently run $50-$100 with the remainder being landlord margin. Some properties charge per-applicant fees even for co-applicants who share one household credit report.",
+    "typicalRange": { "min": 25, "max": 100, "unit": "USD", "frequency": "per-applicant" },
+    "identificationSignals": [
+      { "kind": "text-pattern", "patterns": ["application fee", "screening fee", "processing fee"], "caseSensitive": false },
+      { "kind": "per-applicant", "selector": "application-form[multi-applicant]", "description": "Application form charging separate fee per co-applicant rather than household-level screening." }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "US-federal", "regulationSlug": null, "requirement": "FTC Rule-making in process on rental fee disclosure; White House 2023 fact sheet commits agencies to coordinated enforcement (E1)." },
+      { "jurisdiction": "Washington-state", "regulationSlug": null, "requirement": "RCW 59.18.257 caps application fees at screening cost + $75 (E3)." },
+      { "jurisdiction": "California", "regulationSlug": null, "requirement": "Civ. Code §1950.6 caps application screening fee at actual cost + adjusted $30 (2024 figure), and requires itemized refund of unused portion." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "sometimes (on slow markets or end-of-month deadline pressure)",
+      "typicalSuccessRate": 0.25,
+      "script": "Ask the leasing office: 'Can you waive the application fee since I have a credit report I can share directly?' This works most often in slow rental markets (winter months) and with smaller landlords. Corporate-owned large complexes rarely waive. If the market allows, request a portable tenant-screening report (available from TransUnion SmartMove, $40 one-time) that multiple landlords accept instead of paying per-landlord."
+    },
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

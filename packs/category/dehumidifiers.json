@@ -1,0 +1,95 @@
+{
+  "slug": "category/dehumidifiers",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Dehumidifiers",
+  "summary": "Portable and whole-home dehumidifiers, 22-70 pint/day capacity, $200-$1400 range.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "DOE 2019 test procedure (10 CFR Appendix X1) redefined dehumidifier capacity at 65°F/60%RH — the 'DOE new' rating — replacing the older 80°F/60%RH standard. A unit rated 50-pint pre-2019 is typically ~30-pint post-2019.", "sourceUrl": "https://www.energy.gov/eere/buildings/standards-and-test-procedures-dehumidifiers", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "ENERGY STAR dehumidifiers are 15% more efficient than standard models; annual savings typically $20-$60.", "sourceUrl": "https://www.energystar.gov/products/dehumidifiers", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "AHAM (Association of Home Appliance Manufacturers) certification program verifies dehumidifier capacity claims against the DOE test procedure.", "sourceUrl": "https://ahamverifide.org/dehumidifiers/", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E4", "claim": "CPSC 2020 recall of 2 million dehumidifiers (Gree, Midea, others) for fire/burn hazard — among the largest consumer product recalls in US history.", "sourceUrl": "https://www.cpsc.gov/Recalls/2021/Gree-Reannounces-Recall-of-Dehumidifiers-Due-to-Serious-Fire-and-Burn-Hazards", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["dehumidifier", "dehumidifiers", "basement dehumidifier", "portable dehumidifier"],
+    "productTags": ["dehumidifier", "home-appliance", "hvac-adjacent"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "capacity_ppd_doe_new", "unit": "pints_per_day", "direction": "higher_is_better", "typicalRange": [22, 50], "notes": "Post-2019 DOE rating at 65°F/60%RH (E1). Always compare like-to-like; pre-2019 numbers are inflated by ~50%." },
+      { "name": "energy_star_certified", "unit": "boolean", "direction": "binary", "target": true, "notes": "~15% efficiency savings (E2)." },
+      { "name": "aham_verified", "unit": "boolean", "direction": "binary", "target": true, "notes": "Independently verified capacity claim (E3)." },
+      { "name": "pump_drain", "unit": "boolean", "direction": "binary", "target": true, "notes": "Pump allows draining uphill; gravity-only drain requires floor-level drain." },
+      { "name": "operating_temp_low_f", "unit": "degrees_F", "direction": "lower_is_better", "typicalRange": [32, 65], "notes": "Basements stay 50-60°F year-round; units rated above 65°F low-op don't work reliably there." },
+      { "name": "noise_db", "unit": "dB", "direction": "lower_is_better", "typicalRange": [42, 62] },
+      { "name": "recalled_last_5yr", "unit": "boolean", "direction": "binary", "target": false, "notes": "Major fire-risk recalls (E4)." },
+      { "name": "warranty_years", "unit": "years", "direction": "higher_is_better", "typicalRange": [1, 5] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [200, 1400] }
+    ],
+    "specNormalization": {
+      "capacity_ppd_doe_new": { "regex": "(\\d+)\\s*(?:pint|ppd)", "unit": "pints_per_day" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "50-pint dehumidifier", "reality": "Check whether the 50-pint rating is pre-2019 (80°F/60%RH) or post-2019 DOE-new (65°F/60%RH) (E1). Same unit has both numbers; post-2019 is the fair comparison. A unit marketed as '50-pint' at the same SKU as pre-2019 is typically ~30-pint at modern rating.", "verdict": "misleading", "checkPrompt": "Is the pint capacity the DOE post-2019 figure, or the legacy pre-2019 figure?" },
+      { "pattern": "works in any conditions", "reality": "Most residential dehumidifiers use refrigerant coils that frost over below ~50°F ambient. Basement use below that threshold requires a desiccant dehumidifier or a unit specifically rated for low temperatures.", "verdict": "misleading", "checkPrompt": "What's the minimum operating temperature? Basements below 60°F need a low-temp model." },
+      { "pattern": "quiet operation", "reality": "Dehumidifiers are inherently noisy (50+ dB at high fan). 'Quiet' claims without a specific dB figure are meaningless. 45 dB or below is library-quiet; 55+ dB is noticeable in adjacent rooms.", "verdict": "unverifiable", "checkPrompt": "What's the dB figure at the highest fan setting?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Gree-manufactured dehumidifier model number in the 2013-2020 recall list", "action": "flag — refer to CPSC recall list (E4) for the exact model and register for replacement" }
+    ],
+    "compatibilityQuestions": [
+      "Square footage of the space you want to dehumidify? Larger spaces need higher capacity.",
+      "Basement or above-grade? Basements require low-temp-rated units.",
+      "Do you have a floor drain? If not, you need a pump-drain model or you'll be emptying a bucket daily."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Electricity (dehumidifiers draw 300-800W continuously)", "annualCostUsd": [80, 250], "frequency": "ongoing" },
+      { "name": "Drain hose (for continuous drain)", "annualCostUsd": [15, 40], "frequency": "one-time" },
+      { "name": "Replacement filter (some models)", "annualCostUsd": [15, 40], "frequency": "bi-annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": null,
+      "typicalPartsAvailability": "low",
+      "notes": "Compressor failures are not economically repairable. Most consumer dehumidifiers are replace-don't-repair after 5-7 years."
+    },
+    "representativeSkus": [
+      {
+        "sku": "frigidaire-fghd5022u1", "name": "35-Pint FGHD5022U1", "brand": "Frigidaire", "model": "FGHD5022U1", "priceUsd": 299, "currency": "USD",
+        "url": "https://www.frigidaire.com/Home-Comfort/Dehumidifiers",
+        "specs": { "capacity_ppd_doe_new": 35, "energy_star_certified": true, "aham_verified": true, "pump_drain": false, "operating_temp_low_f": 41, "noise_db": 51, "recalled_last_5yr": false, "warranty_years": 1 },
+        "tier": "mid"
+      },
+      {
+        "sku": "hisense-dh7019k1g", "name": "50-Pint DH7019K1G", "brand": "Hisense", "model": "DH7019K1G", "priceUsd": 249, "currency": "USD",
+        "url": "https://www.hisense-usa.com/dehumidifiers",
+        "specs": { "capacity_ppd_doe_new": 50, "energy_star_certified": true, "aham_verified": true, "pump_drain": false, "operating_temp_low_f": 38, "noise_db": 52, "recalled_last_5yr": false, "warranty_years": 1 },
+        "tier": "mid"
+      },
+      {
+        "sku": "honeywell-tp70wkn", "name": "70-Pint TP70WKN (pre-2019-rated)", "brand": "Honeywell", "model": "TP70WKN", "priceUsd": 329, "currency": "USD",
+        "url": "https://www.honeywellstore.com/",
+        "specs": { "capacity_ppd_doe_new": 40, "energy_star_certified": true, "aham_verified": true, "pump_drain": true, "operating_temp_low_f": 41, "noise_db": 53, "recalled_last_5yr": false, "warranty_years": 5 },
+        "tier": "mid", "notes": "Sold as '70-pint' pre-2019 marketing; DOE-new rating is 40 ppd (E1). 5-year compressor warranty."
+      },
+      {
+        "sku": "aprilaire-e070", "name": "E070 70-Pint Professional", "brand": "Aprilaire", "model": "E070", "priceUsd": 999, "currency": "USD",
+        "url": "https://www.aprilaire.com/whole-house-products/dehumidifier",
+        "specs": { "capacity_ppd_doe_new": 70, "energy_star_certified": false, "aham_verified": true, "pump_drain": true, "operating_temp_low_f": 36, "noise_db": 59, "recalled_last_5yr": false, "warranty_years": 5 },
+        "tier": "premium"
+      },
+      {
+        "sku": "santa-fe-advance100", "name": "Advance100", "brand": "Santa Fe", "model": "Advance100", "priceUsd": 1399, "currency": "USD",
+        "url": "https://santafeproducts.com/advance100/",
+        "specs": { "capacity_ppd_doe_new": 100, "energy_star_certified": true, "aham_verified": true, "pump_drain": true, "operating_temp_low_f": 36, "noise_db": 55, "recalled_last_5yr": false, "warranty_years": 6 },
+        "tier": "premium", "notes": "Whole-home; highest energy-efficiency (EF 2.9+)."
+      }
+    ]
+  }
+}

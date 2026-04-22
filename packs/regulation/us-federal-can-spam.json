@@ -1,0 +1,44 @@
+{
+  "slug": "regulation/us-federal-can-spam",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "CAN-SPAM Act",
+  "summary": "US federal law (15 USC §7701 et seq.) setting standards for commercial email: truthful sender identification, accurate subject lines, clear unsubscribe mechanism, honoring opt-outs within 10 business days.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-22",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Controlling the Assault of Non-Solicited Pornography and Marketing Act of 2003 (CAN-SPAM), codified at 15 USC §§7701-7713 and implemented by 16 CFR Part 316.", "sourceUrl": "https://www.law.cornell.edu/uscode/text/15/chapter-103", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E2", "claim": "FTC CAN-SPAM Compliance Guide for Business detailing the seven main requirements: accurate header, truthful subject, identify as ad, valid postal address, unsubscribe link, honor opt-outs in 10 business days, monitor third-party senders.", "sourceUrl": "https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business", "retrieved": "2026-04-22", "primary": true },
+    { "ref": "E3", "claim": "FTC civil penalties for CAN-SPAM violations adjusted annually for inflation; 2024 maximum $51,744 per email (16 CFR 1.98). Multiple aggravating factors (deceptive subject lines, harvested addresses) can multiply penalties.", "sourceUrl": "https://www.ftc.gov/legal-library/browse/rules/controlling-assault-non-solicited-pornography-marketing-act-2003-can-spam-act", "retrieved": "2026-04-22", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "US-federal",
+    "productCategories": ["commercial-email", "marketing-email", "transactional-email"],
+    "businessScope": {
+      "appliesTo": ["Senders of commercial email to US recipients", "Affiliates and third parties sending on behalf of primary businesses"],
+      "userResidency": "US-recipient",
+      "note": "Applies only to commercial email; transactional-only messages (receipts, account updates) have different disclosure requirements. Does NOT require opt-in consent (unlike GDPR/CASL)."
+    }
+  },
+  "body": {
+    "officialName": "Controlling the Assault of Non-Solicited Pornography and Marketing Act of 2003",
+    "citation": "15 USC §§7701-7713; 16 CFR Part 316",
+    "status": "in-force",
+    "effectiveDate": "2004-01-01",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "CAN-SPAM imposes seven requirements on commercial email: (1) non-deceptive From/To/Reply-To headers, (2) non-deceptive subject lines, (3) identification as an advertisement, (4) physical postal address of sender, (5) unsubscribe mechanism that works, (6) opt-out honored within 10 business days and permanent, (7) business is accountable even when hiring third parties to send email. Preempts most state anti-spam laws but allows state deceptive-practice laws and common-law fraud claims. Does NOT create a private right of action — only FTC, state AGs, and ISPs may enforce.",
+    "userRightsPlainLanguage": "Every commercial email you receive must: tell you honestly who sent it, have a truthful subject line, identify itself as advertising, include a real physical address, and give you a working unsubscribe link. Once you click unsubscribe, they must stop emailing you within 10 business days — and can't transfer your address to another affiliate to send you the same content. You can't sue spammers yourself under CAN-SPAM, but you can report them to the FTC and your state AG, and forward the email to spam@uce.gov.",
+    "enforcementSignals": [
+      { "action": "FTC CAN-SPAM enforcement action list with consent decrees and settlements", "url": "https://www.ftc.gov/legal-library/browse/cases-proceedings", "description": "Regular cadence of CAN-SPAM enforcement; recent cases focus on affiliate-marketing schemes with deceptive subject lines." },
+      { "action": "FBI forward mailbox for CAN-SPAM complaints", "url": "https://www.ic3.gov/" }
+    ],
+    "evidenceRefs": ["E1", "E2", "E3"]
+  }
+}
