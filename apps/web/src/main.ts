@@ -290,6 +290,14 @@ function enrichmentsCard(r: AuditResult): HTMLElement {
     card.innerHTML = `<div class="card-header"><h2>Trust signals</h2></div><p class="muted" style="margin:0;">Enrichment pipeline did not run for this audit.</p>`;
     return card;
   }
+  // Judge P1-6: when every signal is "skipped" (query-mode audits without a
+  // product URL), collapse to a single muted line instead of 5 italic chips.
+  const signals = [e.scam, e.breach, e.priceHistory, e.provenance, e.sponsorship].filter(Boolean);
+  const allSkipped = signals.length > 0 && signals.every((s) => s?.status === "skipped");
+  if (allSkipped) {
+    card.innerHTML = `<div class="card-header"><h2>Trust signals</h2></div><p class="muted" style="margin:0;">No trust signals apply to this audit (query mode — no retailer URL to evaluate).</p>`;
+    return card;
+  }
   const rows: string[] = [];
   const chipFor = (
     label: string,
@@ -300,7 +308,8 @@ function enrichmentsCard(r: AuditResult): HTMLElement {
   ): string => {
     const statusCls = status === "ok" ? "ok" : status === "error" ? "err" : "skip";
     const text = status === "ok" ? (verdict ?? "ok") : status === "error" ? `error: ${reason ?? ""}` : `skipped: ${reason ?? ""}`;
-    return `<div class="trust-chip ${cls} ${statusCls}">
+    // Judge P1-3: a11y — role=group + aria-label joins label + text.
+    return `<div class="trust-chip ${cls} ${statusCls}" role="group" aria-label="${esc(label)}: ${esc(text)}">
       <div class="trust-chip-label">${esc(label)}</div>
       <div class="trust-chip-value">${esc(text)}</div>
     </div>`;
@@ -320,23 +329,39 @@ function enrichmentsCard(r: AuditResult): HTMLElement {
   return card;
 }
 
-// B5 — repairability card (async fetch /repairability/lookup)
+// B5 — repairability card (async fetch /repairability/lookup).
+// Judge P0-2: in-session cache keyed on (brand||"")::name::category. N audits
+// of the same product don't re-hit the worker.
+const REPAIR_CACHE = new Map<string, Promise<Response>>();
+
 async function hydrateRepairabilityCard(r: AuditResult, slot: HTMLElement): Promise<void> {
   const top = r.specOptimal;
   if (!top || !top.name || top.name.startsWith("(no candidates")) {
     slot.innerHTML = `<div class="card-header"><h2>Repairability</h2></div><p class="muted" style="margin:0;">No product to assess.</p>`;
     return;
   }
+  // Judge P0-2: skip for brand-less picks. iFixit matching is brand-dependent
+  // and a nameless query-mode pick will just return source=none anyway.
+  if (!top.brand || top.brand.trim().length === 0) {
+    slot.innerHTML = `<div class="card-header"><h2>Repairability</h2></div><p class="muted" style="margin:0;">Repairability lookup requires a product brand. This pick has none.</p>`;
+    return;
+  }
+  const cacheKey = `${(top.brand ?? "").toLowerCase()}::${top.name.toLowerCase()}::${(r.intent.category ?? "").toLowerCase()}`;
   try {
-    const res = await fetch(`${API_BASE}/repairability/lookup`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        productName: top.name,
-        ...(top.brand ? { brand: top.brand } : {}),
-        ...(r.intent.category ? { category: r.intent.category } : {}),
-      }),
-    });
+    let resPromise = REPAIR_CACHE.get(cacheKey);
+    if (!resPromise) {
+      resPromise = fetch(`${API_BASE}/repairability/lookup`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          productName: top.name,
+          ...(top.brand ? { brand: top.brand } : {}),
+          ...(r.intent.category ? { category: r.intent.category } : {}),
+        }),
+      });
+      REPAIR_CACHE.set(cacheKey, resPromise);
+    }
+    const res = (await resPromise).clone();
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body = (await res.json()) as {
       source: string;
@@ -355,9 +380,9 @@ async function hydrateRepairabilityCard(r: AuditResult, slot: HTMLElement): Prom
         <p class="card-subtitle">iFixit-style score · source: ${esc(body.source)}</p>
       </div>
       <div class="repair-grid">
-        <div class="repair-score ${bandCls}">
-          <div class="repair-score-num">${esc(scoreDisplay)}</div>
-          <div class="repair-band">${esc(body.band)}</div>
+        <div class="repair-score ${bandCls}" role="group" aria-label="Repairability score ${esc(scoreDisplay)}, band ${esc(body.band)}">
+          <div class="repair-score-num" aria-hidden="true">${esc(scoreDisplay)}</div>
+          <div class="repair-band" aria-hidden="true">${esc(body.band)}</div>
         </div>
         <div class="repair-detail">
           ${body.commonFailures.length > 0 ? `<div><strong>Common failure modes:</strong><ul style="margin:4px 0 0 18px;padding:0;">${body.commonFailures.slice(0, 4).map((f) => `<li>${esc(f)}</li>`).join("")}</ul></div>` : ""}
@@ -604,8 +629,9 @@ function heroPickCard(r: AuditResult): HTMLElement {
   card.className = "card";
   // B5: surface a clickable retailer link (URL already scrubbed of affiliate
   // params at the search boundary).
+  // Judge P1-5: aria-label for the external-link arrow that's otherwise visual-only.
   const urlLink = o.url
-    ? `<a href="${esc(o.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--hl-hi);text-decoration:underline;font-size:13px;">View at retailer ↗</a>`
+    ? `<a href="${esc(o.url)}" target="_blank" rel="noopener noreferrer" aria-label="View ${esc(o.name)} at retailer (opens in new tab)" style="color:var(--hl-hi);text-decoration:underline;font-size:13px;">View at retailer <span aria-hidden="true">↗</span></a>`
     : `<span class="muted" style="font-size:13px;">No retailer URL available</span>`;
   card.innerHTML = `
     <div class="card-header"><h2>Lens's top pick</h2></div>
