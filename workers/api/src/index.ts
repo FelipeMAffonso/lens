@@ -12,6 +12,7 @@ import { CRON_JOBS } from "./cron/jobs.js";
 import { handleWebhook } from "./webhooks/handler.js";
 import { listWebhooks } from "./webhooks/registry.js";
 import { transcribe, TranscribeRequestSchema } from "./voice/transcribe.js";
+import { computeScore, EMBED_JS, ScoreQuerySchema } from "./public/score.js";
 import {
   handleRequest as authHandleRequest,
   handleSignout as authHandleSignout,
@@ -136,6 +137,52 @@ app.get("/cron/jobs", (c) =>
 // F5 — webhook surface.
 app.post("/webhook/:id", (c) => handleWebhook(c as never));
 app.get("/webhooks", (c) => c.json({ hooks: listWebhooks() }));
+
+// F15 — Public Lens Score API.
+app.get("/score", async (c) => {
+  const parsed = ScoreQuerySchema.safeParse({
+    url: c.req.query("url"),
+    category: c.req.query("category"),
+    criteria: c.req.query("criteria"),
+  });
+  if (!parsed.success) {
+    return c.json({ error: "invalid_input", issues: parsed.error.issues }, 400);
+  }
+  try {
+    const engine = new WorkflowEngine(c.env as never);
+    const score = await computeScore(parsed.data, async (input) => {
+      const result = (await engine.run(auditWorkflow, input)) as {
+        specOptimal: {
+          name: string;
+          brand?: string;
+          price?: number | null;
+          utilityScore: number;
+          utilityBreakdown: Array<{
+            criterion: string;
+            weight: number;
+            score: number;
+            contribution: number;
+          }>;
+        };
+        intent: { category: string };
+      };
+      return result;
+    });
+    return c.json(score);
+  } catch (err) {
+    const e = err as Error;
+    return c.json({ error: "score_failed", message: e.message }, 500);
+  }
+});
+
+app.get("/embed.js", (c) => {
+  return new Response(EMBED_JS, {
+    headers: {
+      "content-type": "application/javascript",
+      "cache-control": "public, max-age=3600",
+    },
+  });
+});
 
 // F11 — voice transcription surface.
 app.post("/voice/transcribe", async (c) => {

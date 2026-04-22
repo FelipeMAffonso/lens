@@ -6,4 +6,5 @@ export default defineWorkspace([
   "apps/extension",
   "workers/api",
   "workers/cross-model",
+  "workers/mcp",
 ]);

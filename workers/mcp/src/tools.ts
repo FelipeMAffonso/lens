@@ -1,0 +1,152 @@
+// MCP tool definitions. Each tool ships a JSON Schema for its inputs that
+// external clients (Claude Desktop, Claude Code, etc.) use to populate calls.
+
+export interface McpToolDef {
+  name: string;
+  description: string;
+  inputSchema: {
+    type: "object";
+    properties: Record<string, unknown>;
+    required?: string[];
+    additionalProperties?: boolean;
+  };
+}
+
+export const TOOLS: McpToolDef[] = [
+  {
+    name: "lens.audit",
+    description:
+      "Audit an AI shopping recommendation against a transparent spec-optimal utility function. Returns the AI's pick, Lens's pick, verified claims, cross-assistant disagreement, and a welfare-delta.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        kind: {
+          type: "string",
+          enum: ["text", "query", "url", "image", "photo"],
+          description: "Input shape. 'text' = paste of AI answer, 'query' = plain user shopping question, 'url' = product page, 'image' / 'photo' = base64 screenshot.",
+        },
+        source: {
+          type: "string",
+          enum: ["chatgpt", "claude", "gemini", "rufus", "unknown"],
+          description: "Which AI assistant produced the answer being audited (for 'text' / 'image' kinds).",
+        },
+        raw: { type: "string", description: "The AI's full response text (for 'text' kind)." },
+        userPrompt: { type: "string", description: "The user's original prompt, if available." },
+        url: { type: "string", description: "A product page URL (for 'url' kind)." },
+        imageBase64: { type: "string", description: "Base64 image (for 'image' / 'photo' kinds)." },
+        category: { type: "string", description: "Optional category hint." },
+      },
+      required: ["kind"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "lens.spec_optimal",
+    description:
+      "Rank real products for a category against user-stated criteria using a transparent weighted utility function. No AI in the loop; pure math + live product data.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        category: { type: "string", description: "Product category slug (e.g. 'espresso-machines', 'laptops')." },
+        criteria: {
+          type: "string",
+          description: "Natural-language criteria (e.g. 'pressure + build quality + steam matter most, under $400').",
+        },
+      },
+      required: ["category", "criteria"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "lens.dark_pattern_scan",
+    description:
+      "Verify Stage-1 dark-pattern heuristic hits against the full Brignull canonical taxonomy + applicable regulation packs (FTC Junk Fees Rule, CCPA, etc.).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        host: { type: "string", description: "Host of the page being scanned." },
+        pageType: {
+          type: "string",
+          enum: ["checkout", "cart", "product", "booking", "signup", "any"],
+          description: "Page type classification.",
+        },
+        hits: {
+          type: "array",
+          description: "Stage-1 heuristic hits (from the extension's content script).",
+          items: {
+            type: "object",
+            properties: {
+              packSlug: { type: "string" },
+              brignullId: { type: "string" },
+              excerpt: { type: "string" },
+            },
+          },
+        },
+      },
+      required: ["host", "pageType", "hits"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "lens.regulation_lookup",
+    description:
+      "Look up a regulation pack by slug. Returns scope, effective dates, vacated status, user rights in plain language, and enforcement signals.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        slug: {
+          type: "string",
+          description: "Pack slug, e.g. 'regulation/us-federal-ftc-junk-fees'.",
+        },
+      },
+      required: ["slug"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "lens.pack_get",
+    description: "Retrieve any knowledge pack by slug (category/dark-pattern/regulation/fee/intervention).",
+    inputSchema: {
+      type: "object",
+      properties: { slug: { type: "string" } },
+      required: ["slug"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "lens.pack_list",
+    description: "List all registered Lens knowledge packs + registry stats.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        type: {
+          type: "string",
+          enum: ["category", "dark-pattern", "regulation", "fee", "intervention"],
+          description: "Optional filter by pack type.",
+        },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "lens.intervention_draft",
+    description:
+      "Draft a consumer-protection letter (return request, subscription cancellation, FTC / CFPB complaint) using the applicable intervention pack template.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        packSlug: {
+          type: "string",
+          description: "Intervention pack slug (e.g. 'intervention/draft-magnuson-moss-return').",
+        },
+        context: {
+          type: "object",
+          description: "User-supplied fill-ins (product name, order id, purchase date, seller, defect description, etc.).",
+          additionalProperties: true,
+        },
+      },
+      required: ["packSlug", "context"],
+      additionalProperties: false,
+    },
+  },
+];

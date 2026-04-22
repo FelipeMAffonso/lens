@@ -1,0 +1,10 @@
+name = "lens-mcp"
+main = "src/index.ts"
+compatibility_date = "2026-04-21"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+LENS_API_URL = "https://lens-api.webmarinelli.workers.dev"
+
+[observability]
+enabled = true
