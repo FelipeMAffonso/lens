@@ -41,6 +41,34 @@ export const PreferenceRowSchema = z.object({
 });
 export type PreferenceRow = z.infer<typeof PreferenceRowSchema>;
 
+// ─── gift_requests + gift_responses (CJ-W48) ─────────────────────────────
+export const GiftStatusEnum = z.enum(["awaiting", "completed", "revoked", "expired"]);
+export const GiftRequestRowSchema = z.object({
+  id: z.string().min(1),
+  giver_user_id: z.string().min(1),
+  recipient_label: z.string().nullable(),
+  occasion: z.string().nullable(),
+  category: z.string().nullable(),
+  budget_min: z.number().int().nullable(),
+  budget_max: z.number().int(),
+  share_token_hash: z.string(),
+  status: GiftStatusEnum,
+  expires_at: z.string(),
+  created_at: z.string(),
+  completed_at: z.string().nullable(),
+  revoked_at: z.string().nullable(),
+});
+export type GiftRequestRow = z.infer<typeof GiftRequestRowSchema>;
+export type GiftStatus = z.infer<typeof GiftStatusEnum>;
+
+export const GiftResponseRowSchema = z.object({
+  gift_id: z.string().min(1),
+  criteria_json: z.string(),
+  recipient_notes: z.string().nullable(),
+  submitted_at: z.string(),
+});
+export type GiftResponseRow = z.infer<typeof GiftResponseRowSchema>;
+
 // ─── household_members ────────────────────────────────────────────────────
 export const HouseholdRoleEnum = z
   .enum(["owner", "adult", "teen", "child", "guest"])

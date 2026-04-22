@@ -75,6 +75,14 @@ import {
   handleEffective as handlePreferencesEffective,
 } from "./household/handler.js";
 import { handleScan as handleFirmwareScan } from "./firmware/handler.js";
+import {
+  handleCreate as handleGiftCreate,
+  handleList as handleGiftList,
+  handleAudit as handleGiftAudit,
+  handleRevoke as handleGiftRevoke,
+  handleRecipientGet as handleGiftRecipientGet,
+  handleRecipientPost as handleGiftRecipientPost,
+} from "./gift/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -453,6 +461,14 @@ app.get("/preferences/effective", (c) => handlePreferencesEffective(c as never))
 
 // S7-W38 — firmware / CVE on-demand scan.
 app.post("/firmware/scan", (c) => handleFirmwareScan(c as never));
+
+// CJ-W48 — gift-buying shared-link flow.
+app.post("/gift/requests", (c) => handleGiftCreate(c as never));
+app.get("/gift/requests", (c) => handleGiftList(c as never));
+app.get("/gift/requests/:id/audit", (c) => handleGiftAudit(c as never));
+app.delete("/gift/requests/:id", (c) => handleGiftRevoke(c as never));
+app.get("/gift/recipient", (c) => handleGiftRecipientGet(c as never));
+app.post("/gift/recipient", (c) => handleGiftRecipientPost(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these
