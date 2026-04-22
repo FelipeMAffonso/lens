@@ -1,0 +1,59 @@
+{
+  "slug": "category/smartphones",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Smartphones",
+  "summary": "Consumer smartphones iOS and Android, $150-$1800.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Smartphone 'optical zoom' claims above the actual telephoto lens focal length are digital zoom rebranded ('Hybrid Zoom', 'Space Zoom') with software upscaling.", "sourceUrl": "https://www.dxomark.com/zoom-what-is-it-and-how-does-it-work/", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "Battery capacity (mAh) is only weakly correlated with actual battery life; efficiency of the SoC and screen matter more.", "sourceUrl": "https://www.notebookcheck.net/Battery-Life.1162.0.html", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["smartphone", "phone", "cell phone", "iphone", "android", "galaxy", "pixel"],
+    "productTags": ["smartphone", "mobile"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "camera_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "DXOMark or equivalent; avoid megapixel-only comparisons." },
+      { "name": "battery_life_hours", "unit": "hours", "direction": "higher_is_better", "typicalRange": [8, 30], "notes": "Real-world mixed use, not 'talk time' (E2)." },
+      { "name": "cpu_performance", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "display_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.4, 1.0] },
+      { "name": "update_support_years", "unit": "years", "direction": "higher_is_better", "typicalRange": [2, 7], "notes": "Apple: 6-7 years typical. Google Pixel 8+: 7 years. Samsung S24+: 7 years. Most Android budget phones: 2-3 years." },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [150, 1800] }
+    ],
+    "specNormalization": {
+      "battery_mah": { "regex": "(\\d+)\\s*mAh", "unit": "mAh" },
+      "storage_gb": { "regex": "(\\d+)\\s*GB", "unit": "GB" },
+      "screen_inches": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:inch|\"|in\\b)", "unit": "inches" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "100x zoom", "reality": "True optical zoom is limited by physical telephoto focal length (typically 3x-10x). '100x' is digital zoom with software upscaling; image quality degrades severely beyond the optical limit (E1).", "verdict": "misleading", "checkPrompt": "Is the cited zoom figure optical, hybrid, or digital?" },
+      { "pattern": "largest battery in class", "reality": "Battery capacity (mAh) does not translate directly to battery life; SoC efficiency and screen matter more (E2). A phone with 4000 mAh and efficient chipset can outlast 5000 mAh with inefficient chipset.", "verdict": "misleading", "checkPrompt": "Is the battery claim mAh-based or real-world-hours-based?" },
+      { "pattern": "7 years of updates", "reality": "Check what kind of updates: major OS updates, security-only, or feature-parity. Samsung's 7-year pledge includes both major OS and security; some manufacturers promise security-only in later years.", "verdict": "misleading", "checkPrompt": "Does the update support promise distinguish OS updates from security patches?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "New iPhone listed >20% below Apple price from non-authorized seller", "action": "flag as likely refurbished-sold-as-new or grey-market" }
+    ],
+    "compatibilityQuestions": [
+      "What carrier — check 5G band compatibility; some models skip mid-band n77/n78.",
+      "Existing ecosystem (iMessage lock-in, AirPods, Apple Watch) vs open preference."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Protective case + screen protector", "annualCostUsd": [30, 100], "frequency": "one-time-or-annual" },
+      { "name": "AppleCare / Samsung Care", "annualCostUsd": [150, 300], "frequency": "one-time" },
+      { "name": "iCloud / Google One storage when base runs out", "annualCostUsd": [12, 120], "frequency": "annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": "phone",
+      "typicalPartsAvailability": "variable",
+      "notes": "Fairphone scores highest. Modern iPhone / Samsung are glued and need specialty tools. Google Pixel has moderate self-repair program."
+    }
+  }
+}

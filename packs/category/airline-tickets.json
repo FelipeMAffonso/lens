@@ -1,0 +1,53 @@
+{
+  "slug": "category/airline-tickets",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Airline tickets",
+  "summary": "Domestic and international flight tickets, all classes.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "US DOT requires airlines and ticket agents to display full fare including mandatory taxes and government fees in advertised prices.", "sourceUrl": "https://www.transportation.gov/airconsumer/price-advertising", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Basic Economy fares from major US carriers frequently exclude carry-on bags, seat selection, and cancellation credit — making nominal ticket price misleading until ancillary fees are added.", "sourceUrl": "https://www.consumerreports.org/travel/basic-economy-airline-tickets", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["airline ticket", "flight", "flights", "plane ticket"],
+    "productTags": ["travel", "airlines"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "total_price_all_in", "unit": "USD", "direction": "lower_is_better", "typicalRange": [50, 5000], "notes": "Total including baggage, seat, meal, cancellation for user's actual trip profile. DOT requires taxes/government fees included in advertised price (E1) but does NOT require airline-imposed ancillaries." },
+      { "name": "total_travel_time_hours", "unit": "hours", "direction": "lower_is_better", "typicalRange": [1, 30] },
+      { "name": "layovers", "unit": "count", "direction": "lower_is_better", "typicalRange": [0, 3] },
+      { "name": "schedule_reliability", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.5, 1.0], "notes": "On-time performance by route and carrier; DOT publishes monthly." },
+      { "name": "cancellation_flexibility", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.0, 1.0], "notes": "Basic Economy ~0, Main Cabin ~0.5, refundable ~1.0." }
+    ],
+    "specNormalization": {
+      "total_travel_time_hours": { "regex": "(\\d+)\\s*h(?:ours?)?\\s*(\\d+)?\\s*m?", "unit": "hours" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "from $99", "reality": "Basic Economy headline fare; actual trip cost with carry-on ($50+), seat selection ($30+), and cancellation flexibility is often 2-3× the headline (E2).", "verdict": "misleading", "checkPrompt": "Is the cited fare Basic Economy? What are the ancillary charges for the user's actual needs?" },
+      { "pattern": "non-stop flight", "reality": "'Non-stop' means no intermediate stops; 'direct' can mean the same flight number but with intermediate stops. These are not synonyms.", "verdict": "misleading", "checkPrompt": "Is 'direct' being used to imply 'non-stop'? Check the stop count." }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Third-party ticket seller with price >30% below carrier's direct price", "action": "flag as potential scam or non-refundable wholesale arrangement" }
+    ],
+    "compatibilityQuestions": [
+      "Do you need a carry-on? Basic Economy typically disallows.",
+      "Would you change plans if needed? Basic Economy typically has no credit; Main Cabin has reuse credit; refundable has full refund.",
+      "Checking elite status? Some fare classes don't earn miles or status."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Carry-on bag fee (Basic Economy)", "annualCostUsd": [0, 70], "frequency": "per-flight" },
+      { "name": "Checked bag fee", "annualCostUsd": [0, 100], "frequency": "per-flight" },
+      { "name": "Seat-selection fee", "annualCostUsd": [0, 80], "frequency": "per-flight" },
+      { "name": "Change / cancellation fee", "annualCostUsd": [0, 500], "frequency": "conditional" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-ftc-junk-fees"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Service, not product." }
+  }
+}

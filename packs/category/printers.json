@@ -1,0 +1,56 @@
+{
+  "slug": "category/printers",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Printers",
+  "summary": "Inkjet, laser, all-in-one printers $50-$800. High ink-lock-in risk category.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Consumer inkjet ink costs more per volume than vintage champagne; the 'razor and blades' business model charges low printer prices to monetize consumable cartridges.", "sourceUrl": "https://www.consumerreports.org/printers/printer-ink-cost-drive-consumers-away-from-inkjets", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "HP Instant Ink firmware updates have disabled third-party and user-refilled cartridges, leading to class-action lawsuits alleging Magnuson-Moss tie-in violations.", "sourceUrl": "https://www.theverge.com/2024/1/20/24045136/hp-instant-ink-class-action-lawsuit-ink-firmware-update", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["printer", "printers", "inkjet", "laser printer", "all-in-one printer"],
+    "productTags": ["printer", "office"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "type", "unit": "categorical", "direction": "target", "typicalRange": ["inkjet", "laser", "ecotank", "all-in-one"], "notes": "EcoTank / tank printers have 10-50× lower cost per page than cartridge inkjets." },
+      { "name": "cost_per_page_bw", "unit": "USD_per_page", "direction": "lower_is_better", "typicalRange": [0.01, 0.25], "notes": "Cartridge inkjets: $0.05-0.25. Laser: $0.02-0.05. EcoTank: $0.001-0.01." },
+      { "name": "cost_per_page_color", "unit": "USD_per_page", "direction": "lower_is_better", "typicalRange": [0.03, 0.50] },
+      { "name": "pages_per_minute", "unit": "ppm", "direction": "higher_is_better", "typicalRange": [6, 35] },
+      { "name": "wifi_auto_updates_respect_user", "unit": "boolean", "direction": "binary", "target": true, "notes": "Critical: HP's firmware updates can disable third-party cartridges (E2)." },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [50, 800] }
+    ],
+    "specNormalization": {
+      "pages_per_minute": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:ppm|pages per minute)", "unit": "ppm" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "free printer with subscription", "reality": "HP Instant Ink and similar bundle a cheap printer with a recurring ink subscription; lifetime cost is typically 3-5× higher than buying a tank printer outright (E1).", "verdict": "misleading", "checkPrompt": "Has the true annual cost including the ink subscription been compared to buying a tank printer?" },
+      { "pattern": "HP+ premium features", "reality": "HP+ subscription requires HP-brand ink only; third-party cartridges are blocked by firmware (E2). This is the fee/ink-subscription-entanglement pack's canonical trigger.", "verdict": "misleading", "checkPrompt": "Does the printer require HP+ enrollment? Is third-party ink blocked?" },
+      { "pattern": "4800x1200 dpi photo quality", "reality": "Interpolated dpi — printer places fewer physical droplets than cited. Real-print resolution is lower; photo quality depends on ink formulation and paper more than the cited dpi.", "verdict": "misleading", "checkPrompt": "Is the cited dpi physical or interpolated?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "How many pages per month do you actually print? Occasional users should consider laser (ink doesn't dry); high-volume users should consider EcoTank.",
+      "Do you print photos? If not, color inkjet is usually the wrong choice."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Replacement ink cartridges", "annualCostUsd": [60, 500], "frequency": "quarterly" },
+      { "name": "Subscription (HP Instant Ink, etc.)", "annualCostUsd": [36, 300], "frequency": "monthly" },
+      { "name": "Paper (specialty photo paper)", "annualCostUsd": [20, 100], "frequency": "occasional" },
+      { "name": "Drum unit replacement (laser)", "annualCostUsd": [60, 200], "frequency": "bi-annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": "printer",
+      "typicalPartsAvailability": "low",
+      "notes": "Print-head clogs and roller wear are not economically repairable on consumer inkjets. Laser printers have more serviceable parts."
+    }
+  }
+}

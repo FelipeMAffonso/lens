@@ -1,0 +1,58 @@
+{
+  "slug": "category/mattresses",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Mattresses",
+  "summary": "Consumer mattresses $300-$3000, foam / hybrid / innerspring / latex.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Mattress marketing 'medium firm' ratings are not standardized; the same label from two brands can differ 2-3 points on the 1-10 firmness scale.", "sourceUrl": "https://www.sleepfoundation.org/best-mattress", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "Sleep trials advertised as 'free' often include return fees, return-shipping charges, or mandatory donation/resale arrangements that cost the consumer.", "sourceUrl": "https://www.consumerreports.org/cro/mattresses", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["mattress", "mattresses", "bed", "foam mattress", "hybrid mattress"],
+    "productTags": ["mattress", "bedding", "sleep"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "firmness", "unit": "scale_1_10", "direction": "target", "typicalRange": [3, 9], "notes": "Not standardized across brands (E1); Lens normalizes by third-party measured firmness where available." },
+      { "name": "cooling", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "Foam sleeps hot; coils/latex sleep cool. Gel infusions offer marginal improvement." },
+      { "name": "edge_support", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.2, 1.0] },
+      { "name": "motion_isolation", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "warranty_years", "unit": "years", "direction": "higher_is_better", "typicalRange": [5, 25] },
+      { "name": "trial_days", "unit": "days", "direction": "higher_is_better", "typicalRange": [30, 365] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [300, 3000] }
+    ],
+    "specNormalization": {
+      "firmness": { "regex": "(\\d+)\\s*(?:/10)?\\s*firmness", "unit": "scale_1_10" },
+      "trial_days": { "regex": "(\\d+)[- ]?(?:day|night)\\s*(?:trial|risk[- ]?free)", "unit": "days" },
+      "warranty_years": { "regex": "(\\d+)[- ]?year\\s*warranty", "unit": "years" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "medium firm", "reality": "'Medium firm' from Brand A is often 1-3 points different from 'medium firm' from Brand B on the 1-10 scale (E1). Cross-brand comparisons require an independent firmness rating.", "verdict": "misleading", "checkPrompt": "Is the firmness claim calibrated to an independent scale or self-declared?" },
+      { "pattern": "100-night free trial", "reality": "Return costs are often non-zero: return shipping, mattress-removal fees, or mandatory donation arrangements (E2). 'Free' is misleading for anyone exercising the trial.", "verdict": "misleading", "checkPrompt": "What is the actual cost to the user if they exercise the trial return?" },
+      { "pattern": "medical grade / chiropractor recommended", "reality": "Not an FDA-regulated claim category for mattresses; 'medical grade' has no defined meaning. 'Chiropractor recommended' is typically a marketing arrangement, not a clinical endorsement.", "verdict": "misleading", "checkPrompt": "Is the medical/chiropractor claim specific and verifiable, or generic marketing?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "What's your sleeping position — side, back, stomach, combination? Affects optimal firmness range.",
+      "Do you share the bed? Motion isolation matters if partners have different sleep schedules.",
+      "Hot sleeper? Foam density and cover material matter much more than 'cooling gel' claims."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Mattress foundation / bed frame required", "annualCostUsd": [100, 500], "frequency": "one-time" },
+      { "name": "Protector / topper recommended", "annualCostUsd": [40, 200], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": null,
+      "typicalPartsAvailability": "none",
+      "notes": "Mattresses are not repairable consumer goods."
+    }
+  }
+}

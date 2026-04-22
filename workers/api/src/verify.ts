@@ -1,6 +1,8 @@
 import type { AIRecommendation, Candidate, Claim, UserIntent } from "@lens/shared";
 import type { Env } from "./index.js";
 import { opusExtendedThinking } from "./anthropic.js";
+import { findCategoryPack } from "./packs/registry.js";
+import { categoryConfabulationsPrompt } from "./packs/prompter.js";
 
 const SYSTEM = `You are a claim verifier. Given:
   (a) the product an AI assistant recommended, with its cited attribute claims, and
@@ -25,13 +27,20 @@ outside the JSON. No markdown fences.`;
 export async function verifyClaims(
   rec: AIRecommendation,
   candidates: Candidate[],
-  _intent: UserIntent,
+  intent: UserIntent,
   env: Env,
 ): Promise<Claim[]> {
   if (!rec.claims || rec.claims.length === 0) {
     console.log("[verify] no claims to verify; returning empty");
     return [];
   }
+
+  // Pull category-specific confabulation patterns from the pack if available.
+  const categoryPack = findCategoryPack(intent.category);
+  const packFragment = categoryPack ? "\n\n" + categoryConfabulationsPrompt(categoryPack) : "";
+  console.log("[verify] category_pack=%s confab_patterns=%d",
+    categoryPack?.slug ?? "none",
+    categoryPack?.body.confabulationPatterns.length ?? 0);
 
   const safeCandidates = candidates.filter((c): c is Candidate => !!c && typeof c.name === "string");
   const pickName = rec.pickedProduct?.name?.toLowerCase() ?? "";
@@ -59,7 +68,7 @@ export async function verifyClaims(
   ].join("\n");
 
   const { text } = await opusExtendedThinking(env, {
-    system: SYSTEM,
+    system: SYSTEM + packFragment,
     user: userText,
     maxOutputTokens: 8000,
     effort: "high",

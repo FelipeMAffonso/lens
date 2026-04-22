@@ -1,0 +1,57 @@
+{
+  "slug": "category/tvs",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Televisions",
+  "summary": "Consumer televisions 32-98 inch, LCD/QLED/OLED/Mini-LED, $200-$5000.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "TV 'motion rate' figures (e.g. '240 MotionFlow', '120 TruMotion', '480 PixelPure') are manufacturer-coined metrics, not true refresh rates. True panel refresh rate is 60Hz or 120Hz.", "sourceUrl": "https://www.rtings.com/tv/tests/motion", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "HDR peak brightness claims are short-duration peak (typically 10% window); sustained full-screen brightness is 30-60% of the peak figure.", "sourceUrl": "https://www.rtings.com/tv/tests/picture-quality/peak-brightness", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["tv", "television", "tvs", "smart tv", "oled", "qled"],
+    "productTags": ["tv", "display", "home-entertainment"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "panel_type", "unit": "categorical", "direction": "target", "typicalRange": ["LCD", "QLED", "Mini-LED", "OLED", "MLA-OLED", "QD-OLED"], "notes": "OLED wins on black levels; Mini-LED wins on brightness; QLED is mid-range." },
+      { "name": "peak_brightness_nits", "unit": "nits", "direction": "higher_is_better", "typicalRange": [200, 3000], "notes": "Sustained brightness is 30-60% of peak (E2)." },
+      { "name": "refresh_rate_hz", "unit": "Hz", "direction": "higher_is_better", "typicalRange": [60, 120], "notes": "True panel refresh, not marketing 'motion rate' figures (E1)." },
+      { "name": "size_inches", "unit": "inches", "direction": "target", "typicalRange": [32, 98] },
+      { "name": "input_lag_ms", "unit": "ms", "direction": "lower_is_better", "typicalRange": [5, 60], "notes": "Critical for gaming; <20ms is excellent, >40ms is laggy." },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [200, 5000] }
+    ],
+    "specNormalization": {
+      "size_inches": { "regex": "(\\d+)\\s*(?:inch|\"|in\\b)", "unit": "inches" },
+      "peak_brightness_nits": { "regex": "(\\d+)\\s*(?:nits|cd/m)", "unit": "nits" },
+      "refresh_rate_hz": { "regex": "(\\d+)\\s*Hz", "unit": "Hz" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "240Hz motion rate", "reality": "Marketing figure, not true panel refresh (E1). Panel is 60 or 120Hz; motion interpolation is a separate feature.", "verdict": "misleading", "checkPrompt": "Is the cited Hz figure the true panel refresh rate or a marketing 'motion rate' metric?" },
+      { "pattern": "up to 4000 nits HDR peak", "reality": "Peak brightness is short-duration (10% window); sustained full-screen brightness is far lower (E2). Real-world HDR viewing uses the sustained figure.", "verdict": "misleading", "checkPrompt": "Does the brightness figure specify peak-vs-sustained and window size?" },
+      { "pattern": "smart TV with access to 10,000+ apps", "reality": "App count includes redundant versions, low-quality apps, and inactive bloat. Relevant metric is support for the specific apps the user uses (Netflix, YouTube, Max, Disney+, etc.).", "verdict": "misleading", "checkPrompt": "Does the TV support the specific streaming services the user actually uses?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Room lighting: bright/sunlit room favors high-brightness Mini-LED over OLED.",
+      "Primary use: movies (favor OLED black levels), gaming (favor low input lag + 120Hz), sports (favor brightness + motion)."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Wall mount", "annualCostUsd": [30, 150], "frequency": "one-time" },
+      { "name": "Soundbar or external audio (modern thin TVs have poor speakers)", "annualCostUsd": [100, 1500], "frequency": "one-time" },
+      { "name": "Streaming subscriptions for app content", "annualCostUsd": [0, 1000], "frequency": "ongoing" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": "tv",
+      "typicalPartsAvailability": "low",
+      "notes": "Panel replacement typically costs more than a new TV. Power boards and control boards can be repaired by specialty shops."
+    }
+  }
+}

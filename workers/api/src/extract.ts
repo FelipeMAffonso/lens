@@ -1,6 +1,8 @@
 import type { AuditInput, UserIntent, AIRecommendation } from "@lens/shared";
 import type { Env } from "./index.js";
 import { opusExtendedThinking } from "./anthropic.js";
+import { findCategoryPack } from "./packs/registry.js";
+import { categoryCriteriaPrompt } from "./packs/prompter.js";
 
 const SYSTEM_PROMPT = `You audit AI shopping recommendations. Decompose the pasted assistant answer into two JSON objects.
 
@@ -63,15 +65,42 @@ export async function extractIntentAndRecommendation(
           },
         ];
 
-  const { text } = await opusExtendedThinking(env, {
+  // Two-pass extraction: first pass detects the category, second pass uses the
+  // applicable category pack (if any) to seed the criteria template.
+  const { text: firstPassText } = await opusExtendedThinking(env, {
     system: SYSTEM_PROMPT,
     user: userContent,
     maxOutputTokens: 6000,
     effort: "high",
   });
 
+  const firstJson = stripFences(firstPassText);
+  console.log("[extract] first_pass_length=%d first_200=%s", firstPassText.length, firstPassText.slice(0, 200));
+  let firstParsed: { intent?: { category?: string } };
+  try {
+    firstParsed = JSON.parse(firstJson);
+  } catch {
+    firstParsed = {};
+  }
+
+  const categoryGuess = firstParsed.intent?.category;
+  const categoryPack = categoryGuess ? findCategoryPack(categoryGuess) : null;
+  console.log("[extract] category_guess=%s pack_hit=%s", categoryGuess, categoryPack?.slug ?? "none");
+
+  // If we hit a pack, do a second pass with the criteria template injected.
+  // Otherwise keep the first-pass result.
+  const text = categoryPack
+    ? (
+        await opusExtendedThinking(env, {
+          system: SYSTEM_PROMPT + "\n\n" + categoryCriteriaPrompt(categoryPack),
+          user: userContent,
+          maxOutputTokens: 6000,
+          effort: "high",
+        })
+      ).text
+    : firstPassText;
+
   const json = stripFences(text);
-  console.log("[extract] raw_text_length=%d first_400=%s", text.length, text.slice(0, 400));
 
   let parsed: { intent?: Partial<UserIntent>; aiRecommendation?: Partial<AIRecommendation> };
   try {

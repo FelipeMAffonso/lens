@@ -1,0 +1,55 @@
+{
+  "slug": "category/cameras",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Digital cameras",
+  "summary": "Mirrorless and DSLR interchangeable-lens cameras $400-$6000.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Megapixel count is a weak predictor of image quality; sensor size, dynamic range, and lens quality matter more.", "sourceUrl": "https://www.dpreview.com/articles/9076001773/megapixel-myth", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["camera", "cameras", "dslr", "mirrorless", "interchangeable lens"],
+    "productTags": ["camera", "photography"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "sensor_size", "unit": "categorical", "direction": "target", "typicalRange": ["1-inch", "Micro-4/3", "APS-C", "Full-frame", "Medium-format"], "notes": "Larger sensors = more light, better low-light, shallower depth of field." },
+      { "name": "megapixels", "unit": "MP", "direction": "higher_is_better", "typicalRange": [16, 60], "notes": "Weak predictor of quality (E1); sensor size dominates." },
+      { "name": "dynamic_range_ev", "unit": "EV", "direction": "higher_is_better", "typicalRange": [11, 15] },
+      { "name": "autofocus_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.4, 1.0] },
+      { "name": "video_max_resolution", "unit": "categorical", "direction": "target", "typicalRange": ["1080p", "4K", "6K", "8K"] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [400, 6000] }
+    ],
+    "specNormalization": {
+      "megapixels": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:MP|megapixel)", "unit": "MP" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "45 megapixels for stunning detail", "reality": "Megapixel count above ~24MP shows minimal real-world benefit for most uses; low-light performance and dynamic range depend on sensor size and processing (E1).", "verdict": "misleading", "checkPrompt": "Is the MP claim framed as the primary quality indicator? Sensor size matters more." },
+      { "pattern": "professional-grade 4K video", "reality": "Check for crop factor, bit depth (8-bit vs 10-bit), log profiles, recording time limits. Many 'professional' 4K has 30-min clip limits and heavy crops.", "verdict": "misleading", "checkPrompt": "Are there crop, bit-depth, or time-limit caveats on the 4K claim?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Gray-market body: international firmware without local warranty", "action": "flag and explain warranty implications" }
+    ],
+    "compatibilityQuestions": [
+      "Do you own lenses for a specific mount? Lens investment typically exceeds body investment; switching ecosystems is expensive.",
+      "Primary subject: stills or video? Affects autofocus system and codec priorities."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Lens(es) — typically 1-3× body cost", "annualCostUsd": [300, 10000], "frequency": "one-time" },
+      { "name": "Memory cards (fast CFexpress for 4K/8K is expensive)", "annualCostUsd": [50, 500], "frequency": "one-time" },
+      { "name": "Camera bag, tripod, batteries, filters", "annualCostUsd": [100, 1000], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": "camera",
+      "typicalPartsAvailability": "moderate",
+      "notes": "Canon, Nikon, Sony have authorized repair programs. Independent specialists can service most issues within 7 years."
+    }
+  }
+}

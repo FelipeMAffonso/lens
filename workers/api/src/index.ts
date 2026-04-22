@@ -25,6 +25,19 @@ app.get("/health", (c) =>
   c.json({ ok: true, service: "lens-api", ts: new Date().toISOString() }),
 );
 
+app.get("/packs/stats", async (c) => {
+  const { packStats } = await import("./packs/registry.js");
+  return c.json(packStats());
+});
+
+app.get("/packs/:slug", async (c) => {
+  const { registry } = await import("./packs/registry.js");
+  const slug = decodeURIComponent(c.req.param("slug"));
+  const pack = registry.bySlug.get(slug);
+  if (!pack) return c.json({ error: "not_found", slug }, 404);
+  return c.json(pack);
+});
+
 app.post("/audit", async (c) => {
   const body = await c.req.json().catch(() => null);
   const parsed = AuditInputSchema.safeParse(body);

@@ -1,0 +1,54 @@
+{
+  "slug": "category/credit-cards",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Credit cards",
+  "summary": "Consumer credit cards (rewards, travel, cash-back, balance-transfer, secured).",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "The CARD Act of 2009 requires credit card issuers to disclose key terms in a standardized format (the Schumer Box) on every solicitation and application.", "sourceUrl": "https://www.consumerfinance.gov/ask-cfpb/what-is-a-credit-card-act-of-2009", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Reward redemption value is frequently lower than the 'cash equivalent' implied in marketing; point-to-dollar ratios in travel portals often exceed 1.5 cents per point but drop below 1 cent when redeemed for merchandise or statement credit.", "sourceUrl": "https://www.nerdwallet.com/article/credit-cards/rewards-redemption-value", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["credit card", "credit cards", "rewards card", "cash-back card", "travel card"],
+    "productTags": ["finance", "credit"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "effective_reward_rate", "unit": "percent", "direction": "higher_is_better", "typicalRange": [0, 10], "notes": "User-specific; based on spending categories. Travel cards often have 2-3× multipliers on travel/dining, 1× elsewhere." },
+      { "name": "annual_fee_usd", "unit": "USD", "direction": "lower_is_better", "typicalRange": [0, 695] },
+      { "name": "intro_apr_months", "unit": "months", "direction": "higher_is_better", "typicalRange": [0, 21] },
+      { "name": "ongoing_apr_percent", "unit": "percent", "direction": "lower_is_better", "typicalRange": [12, 30] },
+      { "name": "foreign_transaction_fee_percent", "unit": "percent", "direction": "lower_is_better", "typicalRange": [0, 3] },
+      { "name": "sign_up_bonus_value_usd", "unit": "USD", "direction": "higher_is_better", "typicalRange": [0, 1000] }
+    ],
+    "specNormalization": {
+      "annual_fee_usd": { "regex": "\\$(\\d+)\\s*annual fee", "unit": "USD" },
+      "ongoing_apr_percent": { "regex": "(\\d+(?:\\.\\d+)?)\\s*%\\s*(?:APR|variable|ongoing)", "unit": "percent" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "up to 5% cash back", "reality": "The 5% typically applies to rotating categories, limited spend caps, or manually-activated quarterly categories. Everyday spend in non-bonus categories is usually 1%. Compute actual effective rate from user's actual spending.", "verdict": "misleading", "checkPrompt": "What spending categories qualify for the cited rate? What's the annual spend cap? What's the everyday rate?" },
+      { "pattern": "$500 sign-up bonus", "reality": "Bonus requires meeting a spending threshold in a time window (e.g. $3000 in 90 days). Effective bonus value depends on user's normal spending fitting the threshold without inducing extra spend (E2).", "verdict": "misleading", "checkPrompt": "What's the spending threshold and time window for the bonus?" },
+      { "pattern": "0% intro APR", "reality": "Applies to purchases, balance transfers, or both — but not always equally. Balance transfer typically has a 3-5% upfront fee. Ongoing APR after intro period is often 20-30%.", "verdict": "misleading", "checkPrompt": "Does the intro APR apply to purchases, balance transfers, or both? What's the transfer fee? What's the ongoing APR?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "What's your FICO score? Premium cards require 720+; secured cards target rebuilders.",
+      "Do you carry a balance? If yes, ongoing APR matters far more than rewards — any reward is net-negative at 24% APR.",
+      "Do you travel internationally? Foreign-transaction fees matter."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Annual fee", "annualCostUsd": [0, 695], "frequency": "annual" },
+      { "name": "Foreign transaction fees (3% is common)", "annualCostUsd": [0, 500], "frequency": "per-transaction" },
+      { "name": "Balance transfer fees (3-5% typical)", "annualCostUsd": [0, 500], "frequency": "conditional" },
+      { "name": "Late payment fees (up to $40 per CFPB cap)", "annualCostUsd": [0, 480], "frequency": "conditional" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-cfpb-truth-in-lending"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Financial product." }
+  }
+}

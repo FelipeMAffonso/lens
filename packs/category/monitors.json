@@ -1,0 +1,55 @@
+{
+  "slug": "category/monitors",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Computer monitors",
+  "summary": "Desktop monitors 24-49 inch, IPS/VA/OLED, 1080p-4K, $150-$2500.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Response time claims ('1ms GTG') typically refer to specific gray-to-gray transitions under overdrive; real-world averaged response is often 3-5× the cited figure.", "sourceUrl": "https://www.rtings.com/monitor/tests/motion/response-time", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["monitor", "monitors", "computer monitor", "gaming monitor", "4k monitor"],
+    "productTags": ["monitor", "display"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "resolution", "unit": "categorical", "direction": "target", "typicalRange": ["1080p", "1440p", "4K", "5K", "8K"] },
+      { "name": "refresh_rate_hz", "unit": "Hz", "direction": "higher_is_better", "typicalRange": [60, 540] },
+      { "name": "response_time_ms_real", "unit": "ms", "direction": "lower_is_better", "typicalRange": [2, 15], "notes": "Real-world averaged, not cherry-picked GTG (E1)." },
+      { "name": "color_accuracy_delta_e", "unit": "delta_E", "direction": "lower_is_better", "typicalRange": [0.5, 4.0] },
+      { "name": "brightness_nits", "unit": "nits", "direction": "higher_is_better", "typicalRange": [250, 1500] },
+      { "name": "size_inches", "unit": "inches", "direction": "target", "typicalRange": [24, 49] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [150, 2500] }
+    ],
+    "specNormalization": {
+      "size_inches": { "regex": "(\\d+)\\s*(?:inch|\"|in\\b)", "unit": "inches" },
+      "refresh_rate_hz": { "regex": "(\\d+)\\s*Hz", "unit": "Hz" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "1ms response time", "reality": "GTG figure under overdrive; real-world averaged response is typically 3-5× (E1).", "verdict": "misleading", "checkPrompt": "Is the response-time figure GTG-overdrive or real-world averaged?" },
+      { "pattern": "HDR 400 certified", "reality": "HDR 400 is the lowest VESA HDR tier; true HDR viewing requires HDR 600+, ideally 1000. HDR 400 doesn't support effective HDR content.", "verdict": "misleading", "checkPrompt": "What HDR tier is cited? HDR 400 ≠ meaningful HDR." }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "What GPU / system? 4K@144Hz and 1440p@240Hz require DisplayPort 1.4 or HDMI 2.1.",
+      "Desk depth? Large curved monitors (34-49 inch) need 30+ inches of depth."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Monitor arm (for ergonomic placement)", "annualCostUsd": [50, 300], "frequency": "one-time" },
+      { "name": "High-bandwidth cable (DP 1.4 / HDMI 2.1)", "annualCostUsd": [15, 40], "frequency": "one-time" },
+      { "name": "Color calibrator if accuracy matters", "annualCostUsd": [150, 400], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": "monitor",
+      "typicalPartsAvailability": "low",
+      "notes": "Panels are not economically replaceable. Power supply and control boards can be serviced."
+    }
+  }
+}
