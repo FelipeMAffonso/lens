@@ -63,15 +63,34 @@ export async function rankCandidates(
     );
   }
 
+  // CRITICAL FIX (user-reported 2026-04-22): rank.ts::lookupSpec only looked at
+  // the specs object. Candidate.price is a top-level field, so a user saying
+  // "price matters a lot" triggered a rank on a criterion every candidate
+  // scored 0 for — price was invisible to the ranker. Expensive products then
+  // won on unrelated criteria.
+  //
+  // Augment lookup: try specs → then fall through to top-level candidate
+  // fields (price, name, brand, currency). The augmented lookup preserves the
+  // existing alias resolution for pack criteria.
+  const lookupAugmented = (cand: Candidate, name: string): unknown => {
+    const fromSpecs = lookupSpec(cand.specs, name);
+    if (fromSpecs !== undefined) return fromSpecs;
+    const n = name.toLowerCase();
+    if (n === "price" || n === "cost") return cand.price;
+    if (n === "brand") return cand.brand;
+    if (n === "currency") return cand.currency;
+    return undefined;
+  };
+
   const scored = safeCandidates.map((cand) => {
     const breakdown = safeCriteria.map((crit) => {
       const rawValues = safeCandidates
-        .map((c) => toNumberIfPossible(lookupSpec(c.specs, crit.name)))
+        .map((c) => toNumberIfPossible(lookupAugmented(c, crit.name)))
         .filter((v): v is number => v !== null);
       const min = rawValues.length ? Math.min(...rawValues) : 0;
       const max = rawValues.length ? Math.max(...rawValues) : 1;
 
-      const raw = lookupSpec(cand.specs, crit.name);
+      const raw = lookupAugmented(cand, crit.name);
       let score = 0;
       const n = toNumberIfPossible(raw);
       if (n !== null && max !== min) {

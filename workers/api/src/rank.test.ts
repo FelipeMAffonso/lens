@@ -224,6 +224,26 @@ describe("rankCandidates", () => {
     expect(ranked[0]!.name).toBe("Real");
   });
 
+  it("(user-reported bug) ranks by top-level price when criterion is 'price'", async () => {
+    // User asked for "espresso under $400, price matters a lot".
+    // Fixture: Stilosa $119, Bambino $499, Presswell $389.
+    // Before the lookupAugmented fix, rank returned $499 Bambino because
+    // the fixture didn't have specs.price (price is only on the top-level
+    // candidate), so price-contribution was 0 across the board.
+    const intent: UserIntent = {
+      category: "espresso",
+      criteria: [{ name: "price", weight: 1, direction: "lower_is_better" }],
+      rawCriteriaText: "price matters a lot",
+    };
+    const ranked = await rankCandidates(intent, [
+      candidate("Bambino", { pressure: 19 }, 499),
+      candidate("Stilosa", { pressure: 15 }, 119),
+      candidate("Presswell", { pressure: 20 }, 389),
+    ]);
+    expect(ranked[0]!.name).toBe("Stilosa");
+    expect(ranked.at(-1)!.name).toBe("Bambino");
+  });
+
   it("produces utility scores in [0, 1]", async () => {
     const intent: UserIntent = {
       category: "test",
