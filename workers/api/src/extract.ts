@@ -314,11 +314,13 @@ function buildFromStructured(
       ...(structured.brand ? { brand: structured.brand } : {}),
       ...(structured.price !== undefined ? { price: structured.price } : {}),
       ...(structured.currency ? { currency: structured.currency } : {}),
+      url: input.url,
     },
     claims,
     reasoningTrace:
       structured.description ??
       `Structured extraction from ${structured.host ?? "page"} (source=${structured.sources?.name ?? "unknown"}).`,
+    sourceUrl: input.url,
   };
   return { intent, aiRecommendation };
 }

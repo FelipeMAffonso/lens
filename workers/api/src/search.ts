@@ -163,12 +163,10 @@ No prose outside the JSON. No markdown fences.`;
     .filter(Boolean)
     .join("\n");
 
-  // Judge P1 #6: wall-clock timeout so the worker never exceeds the Cloudflare
-  // subrequest limit. AbortController lets us race the API call against a
-  // hard 25s cap; on timeout we abort and fall back to seeds (handled by the
-  // caller's try/catch).
+  // Wall-clock timeout — raised to 60s since web_search with max_uses=3 often
+  // takes 30-45s on real queries. 25s was aborting too aggressively.
   const controller = new AbortController();
-  const timeoutMs = 25_000;
+  const timeoutMs = 60_000;
   const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
 
   let res: { content: Array<{ type: string; text?: string }> };
@@ -180,7 +178,7 @@ No prose outside the JSON. No markdown fences.`;
         {
           type: "web_search_20260209",
           name: "web_search",
-          max_uses: 4,
+          max_uses: 3,
         } as never,
       ],
       system,

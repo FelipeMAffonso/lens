@@ -25,9 +25,15 @@ function extractHost(url: string | undefined): string | null {
   }
 }
 
-function firstCandidateUrl(candidates: Candidate[], aiPickCandidate: Candidate | null): string | undefined {
+function firstCandidateUrl(
+  candidates: Candidate[],
+  aiPickCandidate: Candidate | null,
+  fallbackSourceUrl: string | undefined,
+): string | undefined {
   if (aiPickCandidate?.url) return aiPickCandidate.url;
   for (const c of candidates) if (c.url) return c.url;
+  // URL-mode audits: AIRecommendation.sourceUrl carries the pasted URL.
+  if (fallbackSourceUrl) return fallbackSourceUrl;
   return undefined;
 }
 
@@ -38,14 +44,20 @@ function firstCandidateUrl(candidates: Candidate[], aiPickCandidate: Candidate |
  */
 export async function runEnrichments(
   intent: UserIntent,
-  _rec: AIRecommendation,
+  rec: AIRecommendation,
   candidates: Candidate[],
   aiPickCandidate: Candidate | null,
   _env: Env,
 ): Promise<Enrichments> {
-  const topUrl = firstCandidateUrl(candidates, aiPickCandidate);
+  const topUrl = firstCandidateUrl(candidates, aiPickCandidate, rec.sourceUrl ?? rec.pickedProduct?.url);
   const host = extractHost(topUrl);
-  const topProduct = aiPickCandidate ?? candidates[0] ?? null;
+  // URL-mode: if we have no candidates but do have a picked product (from the
+  // pasted URL), use that as the top product for price/breach checks.
+  const topProduct: { name?: string; price?: number | null } =
+    aiPickCandidate ?? candidates[0] ?? (rec.pickedProduct ? {
+      name: rec.pickedProduct.name,
+      price: rec.pickedProduct.price ?? null,
+    } : null) ?? { name: undefined, price: null };
 
   const tasks = {
     scam: (async () => {

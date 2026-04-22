@@ -58,10 +58,12 @@ export interface UserIntent {
 /** Parsed summary of the AI assistant's recommendation. */
 export interface AIRecommendation {
   host: HostAI;
-  pickedProduct: { name: string; brand?: string; price?: number; currency?: string };
+  pickedProduct: { name: string; brand?: string; price?: number; currency?: string; url?: string };
   claims: Array<Omit<Claim, "verdict" | "evidenceUrl" | "evidenceSnippet" | "note">>;
   reasoningTrace: string;           // the AI's justification prose, normalized
   citedUrls?: string[];
+  /** Original URL the user pasted (URL mode only) — feeds enrichments when no candidate URL. */
+  sourceUrl?: string;
 }
 
 /** Result of running the same question through one of the three other frontier models. */
