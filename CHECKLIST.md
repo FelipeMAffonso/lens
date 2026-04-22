@@ -69,7 +69,7 @@
 | # | Workflow | Status | File | Commit |
 |---|---|---|---|---|
 | S3-W14 | AI recommendation audit (expand surfaces) | 🟡 | 🔬 | |
-| S3-W15 | URL evaluation (deepen parser) | 🟡 | 🔬 | |
+| S3-W15 | URL evaluation (deepen parser) | ✅ | `BLOCKS/S3-W15-url-evaluation.md` | `3749c44` |
 | S3-W16 | Source provenance | ⬜ | 🔬 | |
 | S3-W17 | Review authenticity (add LLM layer) | 🟡 | 🔬 | |
 | S3-W18 | Counterfeit / grey-market | ⬜ | 🔬 | |
@@ -226,6 +226,7 @@
 - 2026-04-22: S4-W22 ✅ — /passive-scan Stage-2 dark-pattern verification LIVE. The Marriott worked example (VISION_COMPLETE.md §6) runs end-to-end: Stage-1 heuristic → per-host consent → Opus 4.7 verdict → FTC Junk Fees Rule (16 CFR Part 464) citation + $49/night fee breakdown + intervention pack. 6 new modules (types/prompt/verify/repo/handler + migration 0004), 40 new tests (341/341 total green), extension Stage-2 escalation wired, badges upgrade in place on confirm. Drive-by: MCP + email/oauth typecheck regressions fixed. Commit `59bd662`.
 - 2026-04-22: S4-W21 ✅ — /price-history fake-sale detector LIVE. Deterministic URL-hashed 90-day fixture series (stable across runs), population-stddev + median over the series, 5-verdict detector (genuine-sale / fake-sale / modest-dip / no-sale / insufficient-data). Keepa client scaffold + KV 24h cache. 7 new modules, 31 new tests. 386/386 green. Live smoke: genuine-sale on Breville ASIN at 11.4% below 90-day median; fake-sale flagged on synthetic ASIN where 30% banner hides ~3% real discount. Commit `d977ce3`.
 - 2026-04-22: F2 ✅ — persistence layer closed. Migration 0005 adds the 5 tables BLOCKS/F2 specified (audits, preferences, watchers, interventions, welfare_deltas); 10 new src/db modules (client + schemas + 5 repos + in-memory D1 shim for hermetic tests); 12 new HTTP endpoints (GET /history/audits, /history/welfare-delta[/rows], /preferences, /watchers, /interventions + PUT /preferences + POST /watchers + PATCH /watchers/:id/active + POST /interventions + POST /interventions/:id/sent + DELETE /preferences/:id). 41 new tests (427/427 green). Live smoke: PUT+GET preference roundtrips via `x-lens-anon-id` header. Commit `604235e`.
+- 2026-04-22: S3-W15 ✅ — per-host DOM parsers + universal structured extractors. 6 host adapters (amazon/bestbuy/walmart/target/homedepot/shopify) + 3 universal strategies (JSON-LD / OpenGraph / microdata) + orchestrator with priority merge + source-tagged output. extract.ts#extractFromUrl now skips the Opus round-trip when the structured parse is confident (name + price). 51 new tests (478/478 green). Deployed b35a159a. Commit `3749c44`.
 
 ---
 
