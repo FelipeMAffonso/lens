@@ -1,0 +1,49 @@
+{
+  "slug": "category/hotels",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Hotels and short-term lodging",
+  "summary": "Hotels, motels, and short-term rentals for overnight stays.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "FTC Junk Fees Rule (effective May 12, 2025) requires short-term lodging to include all mandatory fees (resort, amenity, destination, facility) in the advertised Total Price.", "sourceUrl": "https://www.ftc.gov/system/files/ftc_gov/pdf/r207011_udf_rule_2024_final_0.pdf", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["hotel", "hotels", "short-term lodging", "motel", "vacation rental"],
+    "productTags": ["travel", "lodging"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "true_total_price_per_night", "unit": "USD", "direction": "lower_is_better", "typicalRange": [60, 1500], "notes": "ALL mandatory fees included per FTC Junk Fees Rule (E1)." },
+      { "name": "cancellation_flexibility", "unit": "categorical", "direction": "target", "typicalRange": ["non-refundable", "partially refundable", "fully refundable"] },
+      { "name": "guest_rating", "unit": "score_0_10", "direction": "higher_is_better", "typicalRange": [5, 10] },
+      { "name": "review_count", "unit": "count", "direction": "higher_is_better", "typicalRange": [20, 10000], "notes": "Low review counts should be treated with caution." },
+      { "name": "distance_from_target_km", "unit": "km", "direction": "lower_is_better", "typicalRange": [0, 50] }
+    ],
+    "specNormalization": {},
+    "confabulationPatterns": [
+      { "pattern": "from $99/night", "reality": "Hotel ads frequently understate by excluding resort/destination/amenity fees. Post May 2025 these MUST be included in advertised total (E1).", "verdict": "false", "checkPrompt": "Does the advertised nightly rate include resort/amenity/destination fees as required by the FTC Junk Fees Rule?" },
+      { "pattern": "luxury / boutique", "reality": "No standardized meaning. Check review-based quality score and specific amenities.", "verdict": "unverifiable", "checkPrompt": "What specific amenities or certifications support 'luxury' or 'boutique'?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Third-party booking site offering rate >25% below hotel's direct rate", "action": "flag as potential non-refundable wholesale or bait-and-switch" }
+    ],
+    "compatibilityQuestions": [
+      "Refund / change flexibility needs? Non-refundable rates can be 15-25% cheaper but forfeit on change.",
+      "Loyalty program targeting? Third-party bookings typically don't earn chain points or elite status."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Resort / destination / amenity fee", "annualCostUsd": [15, 75], "frequency": "per-night" },
+      { "name": "Parking fee (urban hotels)", "annualCostUsd": [20, 70], "frequency": "per-night" },
+      { "name": "Early check-in / late check-out fee", "annualCostUsd": [0, 150], "frequency": "conditional" },
+      { "name": "Wi-Fi fee (mostly eliminated but some hotels still charge)", "annualCostUsd": [0, 20], "frequency": "per-night" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-ftc-junk-fees"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Service." }
+  }
+}

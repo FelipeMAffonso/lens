@@ -1,0 +1,56 @@
+{
+  "slug": "category/air-purifiers",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Air purifiers",
+  "summary": "Indoor air purifiers for residential use, $50-$800.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "CADR (Clean Air Delivery Rate) is the AHAM-standardized measure of purifier effectiveness, tested separately for smoke, dust, and pollen in cubic feet per minute.", "sourceUrl": "https://aham.org/clean-air-delivery-rate-cadr", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "True HEPA filters must remove 99.97% of particles at 0.3 microns per the DOE / Institute of Environmental Sciences and Technology definition. 'HEPA-type' or 'HEPA-like' labels do not meet this standard.", "sourceUrl": "https://www.energy.gov/eere/buildings/articles/hepa-filters", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["air purifier", "air purifiers", "hepa filter", "air cleaner"],
+    "productTags": ["air-purifier", "home"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "cadr_smoke", "unit": "cfm", "direction": "higher_is_better", "typicalRange": [50, 400], "notes": "Match to room size: CADR should be ≥2/3 of room sq-ft for 4-5 ACH (E1)." },
+      { "name": "cadr_dust", "unit": "cfm", "direction": "higher_is_better", "typicalRange": [50, 400] },
+      { "name": "filter_type", "unit": "categorical", "direction": "target", "target": "true_HEPA", "typicalRange": ["HEPA-type", "True HEPA H13", "True HEPA H14", "Activated Carbon"], "notes": "True HEPA removes 99.97% of 0.3-micron particles (E2). 'HEPA-type' is marketing." },
+      { "name": "noise_db_low", "unit": "dB", "direction": "lower_is_better", "typicalRange": [20, 50] },
+      { "name": "annual_filter_cost", "unit": "USD", "direction": "lower_is_better", "typicalRange": [30, 200] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [50, 800] }
+    ],
+    "specNormalization": {
+      "cadr_smoke": { "regex": "(\\d+)\\s*(?:cfm|CFM)", "unit": "cfm" },
+      "noise_db_low": { "regex": "(\\d+)\\s*dB", "unit": "dB" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "HEPA-type filter", "reality": "Does not meet True HEPA 99.97%/0.3-micron standard (E2). 'HEPA-type' is marketing for cheaper filters that do not qualify.", "verdict": "misleading", "checkPrompt": "Is the filter labeled True HEPA (H13/H14) with the 99.97% spec, or a 'HEPA-type' / 'HEPA-like' filter?" },
+      { "pattern": "removes 99% of particles", "reality": "Check at which particle size and efficiency band. True HEPA is 99.97% AT 0.3 microns; lesser filters perform worse outside their tested band.", "verdict": "misleading", "checkPrompt": "At what particle size is the 99% figure measured?" },
+      { "pattern": "covers 1000 sq ft", "reality": "Coverage claims assume 1 air change per hour (ACH). At 4-5 ACH (the level that matters for wildfire smoke or allergens), effective room size is 1/4 to 1/5 the claim (E1).", "verdict": "misleading", "checkPrompt": "What ACH is the coverage claim based on? At 4-5 ACH, effective room size is much smaller." }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Room size — for 4-5 ACH, you need CADR of 2/3 the room's square footage.",
+      "Wildfire smoke or allergies — favor True HEPA H13+ with high CADR_smoke.",
+      "Pet dander — favor activated carbon + True HEPA combo."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Replacement HEPA filters", "annualCostUsd": [50, 250], "frequency": "every 6-12 months" },
+      { "name": "Pre-filters (washable vs disposable)", "annualCostUsd": [10, 40], "frequency": "quarterly" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": null,
+      "typicalPartsAvailability": "limited",
+      "notes": "Filter replacement is the main service need; fan motors are rarely serviceable."
+    }
+  }
+}

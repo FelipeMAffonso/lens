@@ -1,0 +1,48 @@
+{
+  "slug": "category/mechanical-keyboards",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Mechanical keyboards",
+  "summary": "Mechanical keyboards for typing and gaming, $50-$400.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Cherry MX, Gateron, and Kailh switches have standardized actuation-force and travel specifications; 'clicky' / 'tactile' / 'linear' are well-defined categories.", "sourceUrl": "https://www.cherrymx.de/en/mx-original.html", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["mechanical keyboard", "keyboard", "gaming keyboard"],
+    "productTags": ["keyboard", "peripherals"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "switch_type", "unit": "categorical", "direction": "target", "typicalRange": ["linear", "tactile", "clicky", "silent linear", "silent tactile"] },
+      { "name": "layout", "unit": "categorical", "direction": "target", "typicalRange": ["60%", "65%", "TKL", "full-size", "split"] },
+      { "name": "keycap_material", "unit": "categorical", "direction": "target", "target": "PBT", "typicalRange": ["ABS", "PBT"], "notes": "PBT resists shine and wear better than ABS." },
+      { "name": "hot_swappable", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "wireless", "unit": "boolean", "direction": "binary", "target": false, "notes": "Wired has lower latency; wireless is more flexible." },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [50, 400] }
+    ],
+    "specNormalization": {},
+    "confabulationPatterns": [
+      { "pattern": "1ms response time", "reality": "Wired mechanical keyboards typically sample at 1000Hz (=1ms), which is standard — not a differentiator. Latency bottleneck is usually the OS, not the keyboard.", "verdict": "misleading", "checkPrompt": "Is the 1ms claim framed as a superior spec, or standard for mechanical wired keyboards?" },
+      { "pattern": "premium PBT keycaps", "reality": "PBT quality varies widely (thickness, dye-sub vs double-shot). Check thickness spec (1.2mm+ is premium; 0.8mm is budget).", "verdict": "misleading", "checkPrompt": "Is the PBT thickness specified?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Genuine Cherry MX claimed at 40% below market — likely clone switches", "action": "flag" }
+    ],
+    "compatibilityQuestions": [
+      "Primary use: typing, gaming, or both? Switch type preference differs.",
+      "Office use? Favor silent linear or silent tactile."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Aftermarket keycaps ($40-$150)", "annualCostUsd": [40, 150], "frequency": "one-time-occasional" },
+      { "name": "Wrist rest", "annualCostUsd": [20, 60], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "keyboard", "typicalPartsAvailability": "high", "notes": "Hot-swap keyboards are the most repairable; soldered ones require skill." }
+  }
+}

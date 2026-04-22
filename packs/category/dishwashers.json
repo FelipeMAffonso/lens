@@ -1,0 +1,52 @@
+{
+  "slug": "category/dishwashers",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Dishwashers",
+  "summary": "Built-in residential dishwashers, $300-$2000.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "ENERGY STAR certified dishwashers use on average 12% less energy and 30% less water than standard models; Consumer Reports verifies this in independent testing.", "sourceUrl": "https://www.energystar.gov/products/dishwashers", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Decibel ratings for dishwashers are measured at 1 meter under specific test conditions; ratings below 44 dBA are generally perceived as 'quiet' in open-plan kitchens.", "sourceUrl": "https://www.consumerreports.org/dishwashers/quiet-dishwasher-ratings", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["dishwasher", "dishwashers", "built-in dishwasher"],
+    "productTags": ["dishwasher", "kitchen-appliance"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "noise_dba", "unit": "dBA", "direction": "lower_is_better", "typicalRange": [38, 55], "notes": "<44 dBA is quiet for open-plan (E2). <40 is library-quiet." },
+      { "name": "cycle_time_minutes", "unit": "minutes", "direction": "lower_is_better", "typicalRange": [60, 240], "notes": "Quieter and more efficient cycles run longer." },
+      { "name": "energy_star_certified", "unit": "boolean", "direction": "binary", "target": true, "notes": "~12% energy savings (E1)." },
+      { "name": "third_rack", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "annual_energy_kwh", "unit": "kWh", "direction": "lower_is_better", "typicalRange": [180, 310] },
+      { "name": "capacity_place_settings", "unit": "settings", "direction": "higher_is_better", "typicalRange": [10, 16] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [300, 2000] }
+    ],
+    "specNormalization": {
+      "noise_dba": { "regex": "(\\d+)\\s*(?:dBA|dB)", "unit": "dBA" },
+      "cycle_time_minutes": { "regex": "(\\d+)\\s*(?:min|minutes)", "unit": "minutes" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "ultra quiet operation", "reality": "Not standardized. Actual dBA rating must be stated and compared.", "verdict": "unverifiable", "checkPrompt": "Is a specific dBA figure cited?" },
+      { "pattern": "dries dishes perfectly", "reality": "Drying performance varies sharply by brand, cycle, and detergent/rinse aid use. Bosch and Miele drying is better than typical; LG and some Whirlpool models struggle with plastics.", "verdict": "misleading", "checkPrompt": "Is the drying claim brand-specific, cycle-specific, or generic marketing?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Do you have a garbage disposal? Some dishwashers require a disposal or a filter; others have built-in food grinders.",
+      "Is your kitchen open-plan? If yes, prioritize ≤42 dBA."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Installation ($150-$300)", "annualCostUsd": [150, 300], "frequency": "one-time" },
+      { "name": "Rinse aid + detergent", "annualCostUsd": [60, 150], "frequency": "ongoing" },
+      { "name": "Extended warranty (usually not worth it)", "annualCostUsd": [100, 250], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "dishwasher", "typicalPartsAvailability": "high", "notes": "Parts readily available; most repairs under $300 are economically justified." }
+  }
+}

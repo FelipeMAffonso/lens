@@ -1,0 +1,50 @@
+{
+  "slug": "category/office-chairs",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Office chairs",
+  "summary": "Ergonomic office chairs $150-$2000.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "BIFMA X5.1 is the industry-standard certification for office chair durability and safety; not all chairs are tested.", "sourceUrl": "https://www.bifma.org/page/standards", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["office chair", "ergonomic chair", "desk chair"],
+    "productTags": ["office-chair", "furniture"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "lumbar_support", "unit": "categorical", "direction": "target", "typicalRange": ["none", "fixed", "adjustable height", "adjustable depth + height"] },
+      { "name": "armrests", "unit": "categorical", "direction": "target", "typicalRange": ["none", "fixed", "2D", "3D", "4D"] },
+      { "name": "recline_mechanism", "unit": "categorical", "direction": "target", "typicalRange": ["tilt-only", "synchro-tilt", "multi-position lock", "dynamic counter-balance"] },
+      { "name": "bifma_certified", "unit": "boolean", "direction": "binary", "target": true, "notes": "E1" },
+      { "name": "warranty_years", "unit": "years", "direction": "higher_is_better", "typicalRange": [2, 15] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [150, 2000] }
+    ],
+    "specNormalization": {
+      "warranty_years": { "regex": "(\\d+)[- ]?year", "unit": "years" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "ergonomic design", "reality": "Not a standardized claim. Check specific ergonomic features (4D arms, adjustable lumbar, seat depth adjust, synchro-tilt).", "verdict": "unverifiable", "checkPrompt": "What specific adjustable features does the chair have?" },
+      { "pattern": "premium mesh", "reality": "Mesh quality (weave density, nylon-vs-elastomer composition) varies widely. Herman Miller and Haworth grade mesh is objectively different from budget mesh that sags in 6 months.", "verdict": "misleading", "checkPrompt": "What mesh type and composition is cited?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Herman Miller Aeron listed >50% off from non-authorized seller", "action": "flag as counterfeit or salvaged" }
+    ],
+    "compatibilityQuestions": [
+      "Body size? Some chairs (e.g. Aeron sizes A/B/C) require selection by body dimensions.",
+      "Flooring? Casters differ for carpet vs hardwood.",
+      "Hours per day seated? Premium chairs justify cost over 6+ hrs/day use."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Replacement casters / gas cylinders", "annualCostUsd": [20, 80], "frequency": "every few years" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "furniture", "typicalPartsAvailability": "high", "notes": "Herman Miller parts available for 12+ years. Budget chairs often have no parts market." }
+  }
+}

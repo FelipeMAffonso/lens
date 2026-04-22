@@ -1,0 +1,50 @@
+{
+  "slug": "category/supplements",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Dietary supplements",
+  "summary": "Vitamins, minerals, herbal supplements, and nutraceuticals.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Under DSHEA (1994), dietary supplements are NOT pre-approved by the FDA for safety or efficacy; manufacturer claims need only a disclaimer ('this statement has not been evaluated by the FDA').", "sourceUrl": "https://www.fda.gov/food/dietary-supplements-guidance-documents-regulatory-information", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "USP Verified and NSF Certified are the two most rigorous third-party certifications for supplement quality, testing for contaminants and label accuracy. ConsumerLab and Informed-Sport are additional respected third-party tests.", "sourceUrl": "https://www.usp.org/verification-services/usp-verified-mark", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["supplement", "vitamins", "supplements", "dietary supplement", "nutraceutical"],
+    "productTags": ["supplement", "health", "wellness"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "third_party_certified", "unit": "categorical", "direction": "target", "typicalRange": ["none", "USP Verified", "NSF Certified", "Informed-Sport", "ConsumerLab tested"], "notes": "E2: certifications significantly reduce contaminant and dosage risk." },
+      { "name": "dosage_per_serving", "unit": "mg_or_iu", "direction": "target", "typicalRange": [0, 10000], "notes": "Match against evidence-based effective dose for the specific compound." },
+      { "name": "bioavailability", "unit": "categorical", "direction": "target", "typicalRange": ["low", "standard", "enhanced"] },
+      { "name": "price_per_serving", "unit": "USD", "direction": "lower_is_better", "typicalRange": [0.1, 5] }
+    ],
+    "specNormalization": {
+      "dosage_per_serving": { "regex": "(\\d+)\\s*(?:mg|mcg|IU|g)", "unit": "mg" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "clinically proven to boost immunity", "reality": "Supplement claims are not pre-approved by FDA (E1). 'Clinically proven' without cited peer-reviewed study is marketing.", "verdict": "misleading", "checkPrompt": "Is there a cited peer-reviewed study supporting the specific claim at the specific dosage?" },
+      { "pattern": "doctor recommended", "reality": "No verification standard. 'Doctor recommended' may refer to paid endorsements, a small survey, or be unsourced.", "verdict": "misleading", "checkPrompt": "Which doctors, based on what methodology?" },
+      { "pattern": "all-natural / pure", "reality": "Does not mean safe, effective, or free of contaminants. USP Verified or NSF Certified are the meaningful quality marks (E2).", "verdict": "misleading", "checkPrompt": "Is the product USP Verified or NSF Certified?" },
+      { "pattern": "proprietary blend", "reality": "Proprietary blends list total weight of ingredients but not individual amounts, masking whether any ingredient is at effective dose.", "verdict": "misleading", "checkPrompt": "Is the full per-ingredient dosage disclosed, or hidden behind a proprietary-blend label?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Price significantly below mainstream brands from marketplace seller", "action": "flag as potentially under-dosed, contaminated, or counterfeit" }
+    ],
+    "compatibilityQuestions": [
+      "What's the specific health goal? Most supplements have thin evidence for generic claims.",
+      "Are you on prescription medication? Many supplements have drug interactions (St. John's Wort, grapefruit, etc.)."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Multiple supplements add up", "annualCostUsd": [120, 1200], "frequency": "monthly" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Consumable." }
+  }
+}

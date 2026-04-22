@@ -1,0 +1,48 @@
+{
+  "slug": "category/running-shoes",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Running shoes",
+  "summary": "Road and trail running shoes, $80-$280.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Running shoes typically lose midsole cushioning after 300-500 miles; beyond this lifespan, injury risk increases regardless of outsole wear.", "sourceUrl": "https://www.runnersworld.com/advanced/a20813175/when-should-you-replace-your-running-shoes/", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["running shoes", "running shoe", "trail runners", "road running"],
+    "productTags": ["running-shoes", "footwear"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "stack_height_mm", "unit": "mm", "direction": "target", "typicalRange": [18, 42], "notes": "High-stack (>35mm) favors long slow distance; low-stack (<20mm) favors speed and ground feel." },
+      { "name": "heel_toe_drop_mm", "unit": "mm", "direction": "target", "typicalRange": [0, 12] },
+      { "name": "weight_oz", "unit": "oz", "direction": "lower_is_better", "typicalRange": [6, 12] },
+      { "name": "cushioning_type", "unit": "categorical", "direction": "target", "typicalRange": ["firm", "balanced", "soft", "plated"] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [80, 280] }
+    ],
+    "specNormalization": {
+      "weight_oz": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:oz|ounce)", "unit": "oz" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "reduces injury risk", "reality": "No running shoe has been shown in controlled studies to reduce injury rates; injury risk correlates more with training load than shoe type.", "verdict": "misleading", "checkPrompt": "Is there cited research supporting an injury-reduction claim?" },
+      { "pattern": "PEBA super-foam", "reality": "PEBA foams do show superior energy return in lab testing, but only meaningfully in racing-shoe contexts. Training-shoe PEBA claims are frequently marketing.", "verdict": "misleading", "checkPrompt": "Is this a racing shoe or a training shoe? Lab energy-return is only notable in racing context." }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Nike ZoomX or Alphafly listed >30% below retail from non-authorized seller", "action": "flag as likely counterfeit" }
+    ],
+    "compatibilityQuestions": [
+      "Pronation: overpronator, neutral, or supinator? Affects stability need.",
+      "Typical weekly mileage? High mileage favors more cushioning; shoes last 300-500 miles (E1)."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Replacement shoes (300-500 miles)", "annualCostUsd": [130, 400], "frequency": "every 3-12 months" }
+    ],
+    "regulatoryLinks": [],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Consumable product." }
+  }
+}
