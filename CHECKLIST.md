@@ -84,7 +84,7 @@
 | S4-W22 | Dark-pattern checkout scan (wire /passive-scan) | ✅ | `BLOCKS/S4-W22-passive-scan.md` | `59bd662` |
 | S4-W23 | Compatibility check | ✅ | `BLOCKS/S4-W23-compatibility-check.md` | `32f7b1f` |
 | S4-W24 | True-total-cost reveal | ✅ | `BLOCKS/S4-W24-true-total-cost.md` | `4d7a693` |
-| S4-W25 | Data-disclosure audit | ⬜ | 🔬 | |
+| S4-W25 | Data-disclosure audit | ✅ | `BLOCKS/S4-W25-privacy-audit.md` | `32df2a8` |
 | S4-W26 | Breach history | ✅ | `BLOCKS/S4-W26-breach-history.md` | `e6cef91` |
 | S4-W27 | Scam / fraud detection | ✅ | `BLOCKS/S4-W27-scam-fraud-detection.md` | `0a99bb6` |
 | S4-W28 | Checkout-readiness summary | ✅ | `BLOCKS/S4-W28-checkout-readiness.md` | `6c1da79` |
@@ -237,6 +237,7 @@
 - 2026-04-22: S4-W26 ✅ — /breach-history public endpoint. 15-breach curated fixture dataset (Target 2013, Home Depot 2014, Yahoo 2013, Anthem 2015, Uber 2016, Equifax 2017, Marriott 2018, Facebook 2019, Capital One 2019, T-Mobile 2021+2023, LastPass 2022, Okta 2022, Dropbox 2012, Adobe 2013). Deterministic score 0-100 with severity weights + recency multiplier (0 beyond 10y) + SSN/card/password bonuses. 5 bands. HIBP scaffold gated on HIBP_API_KEY. KV 24h cache. 32 new tests (748/748 green, +32). Live smoke: target.com → score 0 (breach 12.35y old, honestly decayed); equifax.com → score 10 band "low" (8.63y old + SSN exposure). Commit `e6cef91`.
 - 2026-04-22: S4-W28 ✅ — /checkout/summary composite verdict LIVE. Pure aggregator folds the 6 S4-* + S3-W16 per-signal summaries the extension has already computed into proceed/hesitate/rethink with ordered rationale + one-sentence recommendation. Transparent deltas (fake-sale -25, incompatible -40, critical breach -30, etc.), clamp [0,100], blocker dominance rule demotes proceed→hesitate when any blocker fires, signalCount surfaces for UI honesty. 29 new tests (777/777 green, +29). Live smoke: Marriott-style (1 warn passive + low breach + flat total) → proceed/90; (critical breach + incompatible + fake-sale) → rethink/5. Commit `6c1da79`.
 - 2026-04-22: S4-W27 ✅ — /scam/assess LIVE. Five deterministic signals (no LLM): domain-age fixture WHOIS, typosquat via Levenshtein vs 40+ brand allowlist WITH hyphen-token splitting (catches "amaz0n-deals" → "amaz0n" → distance-1 to "amazon"), HTTPS presence, verified-retailer trust-signal (-15 bonus), price-too-low vs category floors. 3-band verdict (safe < 20, caution < 55, scam ≥ 55). 32 new tests (811/811 green, +34). Live smoke: amaz0n-deals.com → scam/80 (typosquat+new-domain both fail); target.com → safe/0 (32y old + verified). Stage-4 track: 7 of 8 ✅. Commit `0a99bb6`.
+- 2026-04-22: S4-W25 ✅ — /privacy-audit closes Stage-4 at 8 of 8. Opus 4.7 structured JSON extraction of {dataCollected, sharedWithThirdParties, retention, deletion, consentDarkPatterns, regulatoryFrameworks} + graceful heuristic fallback (15 data-type + 6 third-party + 8 regulatory-framework + 6 dark-pattern regex rules). Transparency score 0-100 with 3 bands, robust JSON parser mirrors S4-W22 Stage-2 shape. 33 new tests (844/844 green, +33). Live smoke on apple.com/legal/privacy → source:"opus", band:"high", score:90, 7 data categories + 2 frameworks extracted faithfully. Commit `32df2a8`.
 
 ---
 
