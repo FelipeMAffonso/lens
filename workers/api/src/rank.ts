@@ -15,10 +15,11 @@ export async function rankCandidates(
   candidates: Candidate[],
 ): Promise<Candidate[]> {
   const safeCandidates = candidates.filter((c): c is Candidate => !!c && typeof c.name === "string");
-  const safeCriteria =
-    intent.criteria && intent.criteria.length > 0
-      ? intent.criteria
-      : [{ name: "overall_quality", weight: 1, direction: "higher_is_better" as const }];
+  const DEFAULT_CRITERION = { name: "overall_quality", weight: 1, direction: "higher_is_better" as const };
+  const usableFromIntent = (intent.criteria ?? []).filter(
+    (c) => c && typeof c.name === "string" && c.name.length > 0,
+  );
+  const safeCriteria = usableFromIntent.length > 0 ? usableFromIntent : [DEFAULT_CRITERION];
 
   const scored = safeCandidates.map((cand) => {
     const breakdown = safeCriteria.map((crit) => {
@@ -93,6 +94,7 @@ function lookupSpec(
 }
 
 function aliasSet(name: string): string[] {
+  if (typeof name !== "string" || name.length === 0) return [];
   const out = new Set<string>();
   // Normalize common suffix swaps
   const base = name

@@ -116,6 +116,37 @@ describe("rankCandidates", () => {
     expect(ranked).toHaveLength(2);
   });
 
+  it("survives criterion objects missing a name (Opus freelance output)", async () => {
+    // Regression: Opus can return a criterion without a name for categories without a pack
+    // (e.g. "women's underwear"). Rank must filter those out and fall back to the default
+    // rather than crashing on `.replace()` of undefined.
+    const intent = {
+      category: "womens-underwear",
+      criteria: [
+        { weight: 0.5, direction: "higher_is_better" } as unknown as { name: string; weight: number; direction: "higher_is_better" },
+        { name: "", weight: 0.3, direction: "higher_is_better" as const },
+        { name: "comfort", weight: 0.2, direction: "higher_is_better" as const },
+      ],
+      rawCriteriaText: "",
+    } as unknown as UserIntent;
+    const ranked = await rankCandidates(intent, [
+      candidate("A", { comfort: 5 }),
+      candidate("B", { comfort: 9 }),
+    ]);
+    expect(ranked).toHaveLength(2);
+    expect(ranked[0]!.name).toBe("B");
+  });
+
+  it("survives intent.criteria being entirely invalid and falls back to default", async () => {
+    const intent = {
+      category: "x",
+      criteria: [{ weight: 1 } as unknown as { name: string; weight: number; direction: "higher_is_better" }],
+      rawCriteriaText: "",
+    } as unknown as UserIntent;
+    const ranked = await rankCandidates(intent, [candidate("A", {}), candidate("B", {})]);
+    expect(ranked).toHaveLength(2);
+  });
+
   it("filters out undefined candidates safely", async () => {
     const intent: UserIntent = {
       category: "test",

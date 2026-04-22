@@ -88,11 +88,12 @@ export async function runAuditPipeline(
   console.log("[rank] top=%s score=%s", ranked[0]?.name ?? "?", ranked[0]?.utilityScore.toFixed(3));
   emit("rank:done", { top: ranked[0] });
 
-  const aiPickName = extract.aiRecommendation.pickedProduct.name.toLowerCase();
-  const aiPickCandidate =
-    ranked.find(
-      (c) => c.name.toLowerCase().includes(aiPickName) || aiPickName.includes(c.name.toLowerCase()),
-    ) ?? null;
+  const aiPickName = extract.aiRecommendation.pickedProduct?.name?.toLowerCase() ?? "";
+  const aiPickCandidate = aiPickName
+    ? ranked.find(
+        (c) => c.name.toLowerCase().includes(aiPickName) || aiPickName.includes(c.name.toLowerCase()),
+      ) ?? null
+    : null;
 
   const tTotal = Date.now();
 
