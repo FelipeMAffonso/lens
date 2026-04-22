@@ -1,0 +1,51 @@
+{
+  "slug": "category/pet-food",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Pet food (dog/cat)",
+  "summary": "Dry and wet foods for dogs and cats — high-involvement consumable with regulatory claims.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "AAFCO (Association of American Feed Control Officials) sets the de facto US standard for nutritional adequacy statements on pet food. Claims like 'complete and balanced' require AAFCO feeding-trial or formulation-to-nutrient-profile validation.", "sourceUrl": "https://www.aafco.org/consumers/", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "FDA Center for Veterinary Medicine regulates pet food labeling; terms like 'natural,' 'premium,' and 'holistic' have no defined regulatory meaning for pet food.", "sourceUrl": "https://www.fda.gov/animal-veterinary/animal-health-literacy/pet-food-labels-general", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E3", "claim": "FDA has investigated potential links between grain-free / legume-heavy pet foods and dilated cardiomyopathy (DCM) in dogs; research is ongoing, no causal certainty as of 2024.", "sourceUrl": "https://www.fda.gov/animal-veterinary/outbreaks-and-advisories/fda-investigation-potential-link-between-certain-diets-and-canine-dilated-cardiomyopathy", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["pet food", "dog food", "cat food", "kibble", "wet food", "pet nutrition"],
+    "productTags": ["pet-food", "pets"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "aafco_statement", "unit": "categorical", "direction": "target", "target": "complete_and_balanced", "typicalRange": ["none", "supplemental", "complete_and_balanced_adult", "complete_and_balanced_all_life_stages"], "notes": "Look for the AAFCO statement: 'X is formulated to meet the nutritional levels established by the AAFCO... profiles for [life stage]' (E1)." },
+      { "name": "protein_source_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "Named meat (chicken, beef, salmon) > 'meat meal' > 'meat by-products' > 'animal digest.'" },
+      { "name": "price_per_kcal", "unit": "USD_per_1000_kcal", "direction": "lower_is_better", "typicalRange": [0.5, 5.0] },
+      { "name": "recall_history", "unit": "count_last_5_years", "direction": "lower_is_better", "typicalRange": [0, 10] }
+    ],
+    "specNormalization": {},
+    "confabulationPatterns": [
+      { "pattern": "natural / holistic / premium", "reality": "None of these terms has regulatory meaning under FDA or AAFCO (E2). Marketing vocabulary only.", "verdict": "misleading", "checkPrompt": "Is the claim backed by AAFCO certification or just marketing language?" },
+      { "pattern": "human-grade ingredients", "reality": "Meaningful only when the entire product is produced in an FDA-inspected human-food facility — rare. Typically it means individual ingredients were once human-food-grade before downstream processing.", "verdict": "misleading", "checkPrompt": "Is the entire product human-grade, or only some ingredients?" },
+      { "pattern": "grain-free", "reality": "FDA has investigated potential link to DCM in dogs; not proven causal but not recommended-by-default (E3). Grain-free may be appropriate for specific allergies but should not be assumed superior.", "verdict": "misleading", "checkPrompt": "Is there a documented grain allergy in this animal?" },
+      { "pattern": "veterinarian recommended", "reality": "Frequently a paid partnership or trade-show relationship, not peer-reviewed clinical recommendation. Ask: which veterinarians, in what context?", "verdict": "misleading", "checkPrompt": "Is the vet endorsement from independent clinical review or a branded marketing arrangement?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Bulk pet food sold below manufacturer's wholesale rate from non-retailer seller", "action": "flag as possible recalled lot or expired stock" }
+    ],
+    "compatibilityQuestions": [
+      "Life stage — puppy, adult, senior? AAFCO profile must match.",
+      "Any known allergies or medical conditions? These drive ingredient exclusions.",
+      "Single-pet or multi-pet household? Multi-pet may require different foods."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Auto-ship subscription markups (sometimes 10-20% over retail)", "annualCostUsd": [0, 400], "frequency": "ongoing" },
+      { "name": "Recall-related vet costs if contaminated lot consumed", "annualCostUsd": [0, 2000], "frequency": "conditional" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Consumable." }
+  }
+}

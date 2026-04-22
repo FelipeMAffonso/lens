@@ -1,0 +1,49 @@
+{
+  "slug": "category/kitchen-knives",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Kitchen knives",
+  "summary": "Chef knives, santokus, and knife sets for home cooking.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Rockwell hardness (HRC) for kitchen knives ranges ~55-65; harder steel holds an edge longer but is more brittle. Japanese knives typically 60-64 HRC; German/Western knives typically 55-58 HRC.", "sourceUrl": "https://www.chefknivestogo.com/knivesteelhardness.html", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["chef knife", "kitchen knife", "knives", "knife set"],
+    "productTags": ["knife", "kitchen"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "steel_hardness_hrc", "unit": "HRC", "direction": "target", "typicalRange": [55, 65], "notes": "Japanese 60-64 holds edge longer; German/Western 55-58 more forgiving (E1)." },
+      { "name": "blade_length_inches", "unit": "inches", "direction": "target", "typicalRange": [6, 10] },
+      { "name": "forged_vs_stamped", "unit": "categorical", "direction": "target", "typicalRange": ["stamped", "forged"] },
+      { "name": "full_tang", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [20, 400] }
+    ],
+    "specNormalization": {
+      "steel_hardness_hrc": { "regex": "HRC\\s*(\\d+)", "unit": "HRC" },
+      "blade_length_inches": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:inch|\")", "unit": "inches" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "Damascus steel", "reality": "Modern 'Damascus' is typically pattern-welded cladding over a mono-steel core; the pattern is decorative. Edge performance depends on the core steel, not the cladding.", "verdict": "misleading", "checkPrompt": "What is the core steel composition? Pattern is aesthetic, not performance." },
+      { "pattern": "Japanese steel", "reality": "Vague claim. 'Japanese steel' can mean VG-10, AUS-8, AUS-10, or others with very different properties. Specific steel matters far more than 'Japanese.'", "verdict": "misleading", "checkPrompt": "What is the specific steel alloy (VG-10, AUS-10, SG2, etc.)?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Right or left-handed? Some Japanese knives have single-bevel edges handed.",
+      "Do you maintain a whetstone? Harder steels require more skill to sharpen."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Honing rod", "annualCostUsd": [15, 80], "frequency": "one-time" },
+      { "name": "Whetstone / sharpener", "annualCostUsd": [30, 200], "frequency": "one-time" },
+      { "name": "Professional sharpening service", "annualCostUsd": [10, 50], "frequency": "bi-annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "high", "notes": "Professional sharpening services can resurrect most knives." }
+  }
+}

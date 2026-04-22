@@ -1,0 +1,48 @@
+{
+  "slug": "category/blenders",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Blenders",
+  "summary": "Countertop blenders for smoothies, soups, and food prep.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Horsepower (HP) claims on blenders are peak HP (brief-burst maximum draw) not running HP. Running HP is typically 40-60% of peak HP.", "sourceUrl": "https://www.consumerreports.org/blenders/buying-guide/", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["blender", "blenders", "high-speed blender", "smoothie blender"],
+    "productTags": ["blender", "kitchen-appliance"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "motor_running_hp", "unit": "HP", "direction": "higher_is_better", "typicalRange": [0.5, 3.0], "notes": "Running HP, not peak HP (E1)." },
+      { "name": "jar_capacity_oz", "unit": "oz", "direction": "higher_is_better", "typicalRange": [32, 96] },
+      { "name": "noise_db", "unit": "dB", "direction": "lower_is_better", "typicalRange": [70, 105] },
+      { "name": "programmed_modes", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "warranty_years", "unit": "years", "direction": "higher_is_better", "typicalRange": [1, 10] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [40, 700] }
+    ],
+    "specNormalization": {
+      "motor_running_hp": { "regex": "(\\d+(?:\\.\\d+)?)\\s*HP", "unit": "HP" },
+      "jar_capacity_oz": { "regex": "(\\d+)\\s*(?:oz|ounces)", "unit": "oz" },
+      "warranty_years": { "regex": "(\\d+)[- ]?year", "unit": "years" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "1500 watts / 3 peak HP", "reality": "Peak figures; running HP is typically 40-60% of peak (E1). Wattage and HP claims don't directly translate to blending performance; blade design and jar shape matter.", "verdict": "misleading", "checkPrompt": "Is the HP figure running or peak? Running HP is the fair comparator." },
+      { "pattern": "commercial-grade", "reality": "No defined standard. Vitamix and Blendtec commercial-line blenders are different products from their consumer lines; 'commercial-grade' on consumer models is marketing.", "verdict": "misleading", "checkPrompt": "Is this an actual commercial-line blender, or a consumer blender with 'commercial-grade' marketing copy?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Primary use: smoothies (need 1+ running HP), food prep (jar shape matters), nut butters (need strong motor + tamper)?"
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Replacement jars and blade assemblies", "annualCostUsd": [30, 150], "frequency": "conditional" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "blender", "typicalPartsAvailability": "moderate", "notes": "Vitamix and Blendtec have strong parts markets; cheap blenders are replace-don't-repair." }
+  }
+}

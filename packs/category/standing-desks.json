@@ -1,0 +1,52 @@
+{
+  "slug": "category/standing-desks",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Standing desks",
+  "summary": "Motorized height-adjustable standing desks for home and office use.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "BIFMA X5.5 is the industry standard for standing desk stability, measured by deflection at standing height under specified loads. Few manufacturers publish BIFMA test results.", "sourceUrl": "https://www.bifma.org/page/standards", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["standing desk", "height-adjustable desk", "sit-stand desk"],
+    "productTags": ["standing-desk", "furniture", "office"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "height_range_inches", "unit": "range_inches", "direction": "target", "typicalRange": [[22, 48], [25, 51]], "notes": "Lower minimum is better for shorter users (<5'4''); higher max is better for tall users (>6'2'')." },
+      { "name": "weight_capacity_lbs", "unit": "lbs", "direction": "higher_is_better", "typicalRange": [150, 400] },
+      { "name": "stability_score", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "Sway at standing height under load. BIFMA X5.5 is the rigorous standard (E1)." },
+      { "name": "lift_speed_inches_per_second", "unit": "inches_per_second", "direction": "higher_is_better", "typicalRange": [0.8, 2.3] },
+      { "name": "noise_db", "unit": "dB", "direction": "lower_is_better", "typicalRange": [38, 55] },
+      { "name": "warranty_years", "unit": "years", "direction": "higher_is_better", "typicalRange": [1, 15] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [250, 2000] }
+    ],
+    "specNormalization": {
+      "weight_capacity_lbs": { "regex": "(\\d+)\\s*(?:lbs|lb|pounds?)", "unit": "lbs" },
+      "warranty_years": { "regex": "(\\d+)[- ]?year", "unit": "years" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "commercial-grade stability", "reality": "Not a defined term. BIFMA X5.5 testing is rigorous; few consumer desks actually pass (E1). Look for cited BIFMA or third-party stability data, not marketing.", "verdict": "misleading", "checkPrompt": "Is BIFMA X5.5 certification or third-party stability testing cited?" },
+      { "pattern": "supports 300 lbs", "reality": "Maximum capacity figures assume centered static load; dynamic stability at standing height is a different test. A desk rated to 300 lbs may wobble noticeably at the 30\" extended height under a 150 lb actual load.", "verdict": "misleading", "checkPrompt": "Is the load rating static or dynamic? Does it match stability at extended height?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Height: below 5'4''? Ensure low-end range is <25 inches.",
+      "Planning to add monitor arms? Weight capacity and desktop area matter.",
+      "Hard floor vs carpet? Stability perception changes."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Desktop (if frame-only purchase)", "annualCostUsd": [80, 500], "frequency": "one-time" },
+      { "name": "Anti-fatigue mat", "annualCostUsd": [30, 150], "frequency": "one-time" },
+      { "name": "Shipping + assembly (DIY vs pro install)", "annualCostUsd": [0, 300], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "variable", "notes": "Uplift and Fully have strong parts support. Budget brands have limited parts." }
+  }
+}

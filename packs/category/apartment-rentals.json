@@ -1,0 +1,57 @@
+{
+  "slug": "category/apartment-rentals",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Apartment rentals",
+  "summary": "Residential rental listings (apartments, condos, houses) — high-stakes, fee-heavy category.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "The White House and CFPB called attention in 2024 to 'junk fees' in rental housing, including application fees, amenity fees, and convenience fees that may lack basis in actual cost.", "sourceUrl": "https://www.whitehouse.gov/briefing-room/statements-releases/2024/07/23/fact-sheet-biden-harris-administration-takes-new-actions-to-lower-housing-costs-by-cutting-renter-junk-fees/", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["apartment", "apartments", "rental", "rentals", "for rent", "apartment listing"],
+    "productTags": ["rental", "housing"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "true_monthly_cost", "unit": "USD", "direction": "lower_is_better", "typicalRange": [500, 10000], "notes": "Rent + mandatory fees + utilities if not included. Exclude optional/amenity fees the user can opt out of." },
+      { "name": "square_feet", "unit": "sqft", "direction": "higher_is_better", "typicalRange": [300, 3500] },
+      { "name": "bedrooms", "unit": "count", "direction": "target", "typicalRange": [0, 5] },
+      { "name": "distance_from_target_miles", "unit": "miles", "direction": "lower_is_better", "typicalRange": [0, 30] },
+      { "name": "lease_flexibility", "unit": "categorical", "direction": "target", "typicalRange": ["12-month-fixed", "month-to-month", "6-month", "flexible"] }
+    ],
+    "specNormalization": {
+      "square_feet": { "regex": "(\\d+(?:,\\d+)?)\\s*(?:sq\\s*ft|sqft|square feet)", "unit": "sqft" },
+      "bedrooms": { "regex": "(\\d+)\\s*(?:bedroom|br|bd)", "unit": "count" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "starting at $X/mo", "reality": "Often excludes mandatory amenity fees, parking fees, pet fees, utility passthroughs. True monthly cost can be 10-30% higher (E1).", "verdict": "misleading", "checkPrompt": "What is the total monthly cost including ALL mandatory fees (amenity, trash, valet-trash, required renter's insurance, utility minimums)?" },
+      { "pattern": "luxury amenities", "reality": "Not a standardized term. Any pool or gym qualifies as 'luxury' in marketing.", "verdict": "unverifiable", "checkPrompt": "What specific amenities are included, and at what quality level?" },
+      { "pattern": "pet-friendly", "reality": "Pet-friendly often includes pet deposits, monthly pet rent, breed restrictions, and weight caps. Read the pet policy.", "verdict": "misleading", "checkPrompt": "What are the pet deposit, monthly pet rent, breed restrictions, and weight limits?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Listing price far below neighborhood market + landlord unreachable by phone/in-person", "action": "flag as potential rental scam — common Craigslist/Facebook Marketplace pattern" }
+    ],
+    "compatibilityQuestions": [
+      "Credit score? Most managed buildings require 650+.",
+      "Do you have pets? Deposits and monthly fees vary widely.",
+      "Commute target? Drive/transit time matters more than raw distance."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Application fee (often non-refundable, $40-$200)", "annualCostUsd": [40, 200], "frequency": "one-time" },
+      { "name": "Security deposit (1-2 months rent)", "annualCostUsd": [500, 20000], "frequency": "one-time-refundable" },
+      { "name": "Amenity fee (often mandatory; $20-$100/mo)", "annualCostUsd": [240, 1200], "frequency": "monthly" },
+      { "name": "Pet deposit + monthly pet rent", "annualCostUsd": [300, 1200], "frequency": "monthly" },
+      { "name": "Renter's insurance (often required)", "annualCostUsd": [120, 300], "frequency": "annual" },
+      { "name": "Parking fee in urban areas", "annualCostUsd": [600, 3600], "frequency": "monthly" },
+      { "name": "Move-in / move-out / admin fees", "annualCostUsd": [100, 800], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-ftc-junk-fees"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Service." }
+  }
+}

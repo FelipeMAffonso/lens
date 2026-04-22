@@ -1,0 +1,52 @@
+{
+  "slug": "category/hiking-backpacks",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Hiking backpacks",
+  "summary": "Day-hike and multi-day backpacking packs, 20L-80L.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Backpack volume is measured in liters; literage claims are manufacturer-stated and sometimes inflated by including external pockets. Real usable volume is often 10-15% less than stated.", "sourceUrl": "https://www.rei.com/learn/expert-advice/backpack-packing-tips.html", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["hiking backpack", "backpack", "backpacking pack", "daypack"],
+    "productTags": ["backpack", "outdoor"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "volume_liters", "unit": "liters", "direction": "target", "typicalRange": [10, 85], "notes": "Day hikes 18-30L; overnight 40-50L; multi-day 55-75L. Subtract 10-15% for real usable volume (E1)." },
+      { "name": "base_weight_oz", "unit": "oz", "direction": "lower_is_better", "typicalRange": [14, 120] },
+      { "name": "max_load_rating_lbs", "unit": "lbs", "direction": "higher_is_better", "typicalRange": [15, 50] },
+      { "name": "hipbelt_load_transfer", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "Critical for >25 lb loads." },
+      { "name": "ventilation", "unit": "categorical", "direction": "target", "typicalRange": ["contact-back", "suspended-mesh", "channeled-foam"] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [60, 450] }
+    ],
+    "specNormalization": {
+      "volume_liters": { "regex": "(\\d+(?:\\.\\d+)?)\\s*L\\b", "unit": "liters" },
+      "base_weight_oz": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:oz|ounces?)", "unit": "oz" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "ultralight 65L", "reality": "'Ultralight' is loose; for 65L volume, under 2 lbs is ultralight (Hyperlite, ZPacks); 3-4 lbs is 'lightweight'; over 4 lbs is conventional. Always check base weight in oz.", "verdict": "misleading", "checkPrompt": "Is the ultralight claim supported by a sub-32 oz weight spec?" },
+      { "pattern": "comfortable up to 50 lbs", "reality": "Most hipbelts fail to transfer loads effectively above 35-40 lbs regardless of claimed rating. Load-transfer quality matters more than rating.", "verdict": "misleading", "checkPrompt": "Is the heavy-load rating paired with a load-transfer score or just a capacity claim?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Osprey / Gregory pack below 40% of retailer price from marketplace seller", "action": "flag as potential counterfeit" }
+    ],
+    "compatibilityQuestions": [
+      "Torso length — fit matters more than size. Measure spine C7 to iliac crest.",
+      "Trip type: day-hikes (18-30L), overnight (40-55L), multi-day (55-75L).",
+      "Are you carrying bear cannister / climbing rope / photography gear? Volume adders."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Rain cover (if not included)", "annualCostUsd": [20, 60], "frequency": "one-time" },
+      { "name": "Hydration bladder", "annualCostUsd": [25, 60], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "bag", "typicalPartsAvailability": "variable", "notes": "Osprey has a lifetime 'All-Mighty Guarantee'. Gregory, Deuter also strong. Budget brands often replace-don't-repair." }
+  }
+}

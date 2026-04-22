@@ -1,0 +1,54 @@
+{
+  "slug": "category/auto-insurance",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Auto insurance",
+  "summary": "Personal auto insurance policies — one of the highest-welfare-delta categories.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "State DMV websites and state insurance commissioners publish required minimum coverage; these vary widely by state (e.g. California 15/30/5 vs Maine 50/100/25).", "sourceUrl": "https://content.naic.org/consumer.htm", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "'Bundling' auto+home often saves 10-25% but not always; comparison quoting is necessary because bundling discount may be offset by a weaker underlying rate.", "sourceUrl": "https://www.consumerreports.org/cars/car-insurance/", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["auto insurance", "car insurance", "vehicle insurance", "auto policy"],
+    "productTags": ["insurance", "auto"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "annual_premium", "unit": "USD", "direction": "lower_is_better", "typicalRange": [400, 4000] },
+      { "name": "coverage_liability_bodily", "unit": "USD_per_person", "direction": "higher_is_better", "typicalRange": [25000, 500000] },
+      { "name": "coverage_liability_property", "unit": "USD", "direction": "higher_is_better", "typicalRange": [10000, 500000] },
+      { "name": "deductible_collision", "unit": "USD", "direction": "lower_is_better", "typicalRange": [0, 2500] },
+      { "name": "uninsured_motorist_coverage", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "company_financial_rating", "unit": "AM_Best_rating", "direction": "higher_is_better", "typicalRange": ["B+", "A-", "A", "A+"] },
+      { "name": "claims_response_time_rating", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.4, 1.0] }
+    ],
+    "specNormalization": {},
+    "confabulationPatterns": [
+      { "pattern": "save $500 when you switch", "reality": "Savings are individualized; '$500' is a top-quartile figure, not typical. Actual savings may be negative for a given driver profile.", "verdict": "misleading", "checkPrompt": "Is the savings figure individualized or average-across-quartile?" },
+      { "pattern": "full coverage", "reality": "Not a defined policy tier. 'Full coverage' colloquially means liability + collision + comprehensive but specific limits vary. Always check the liability limits.", "verdict": "misleading", "checkPrompt": "What are the specific coverage limits (liability bodily, liability property, collision deductible, comprehensive deductible)?" },
+      { "pattern": "bundle and save", "reality": "Bundling discounts (10-25%) are real but may be offset by higher standalone rates (E2). Always quote separately and compare.", "verdict": "misleading", "checkPrompt": "Has the user compared bundled vs unbundled quotes from multiple carriers?" },
+      { "pattern": "no-claims bonus guaranteed", "reality": "Rate increases after at-fault claims are policy-specific; 'accident forgiveness' typically excludes major claims or adds to premium.", "verdict": "misleading", "checkPrompt": "What claims trigger rate changes, and what is the exact accident-forgiveness scope?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Policy from non-A.M.-Best-rated carrier at significantly below market rate", "action": "flag — may indicate financial instability or nonstandard carrier" }
+    ],
+    "compatibilityQuestions": [
+      "What state do you live in? Required minimum coverage varies widely (E1).",
+      "What's your annual mileage? Usage-based insurance may be cheaper.",
+      "Do you have a clean driving record or recent tickets/accidents? Massive pricing differences."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Policy fees and installment fees", "annualCostUsd": [20, 150], "frequency": "annual" },
+      { "name": "Rental reimbursement if not included (~$30/day if accident)", "annualCostUsd": [0, 900], "frequency": "conditional" },
+      { "name": "Gap insurance if financing a new car", "annualCostUsd": [300, 600], "frequency": "annual" }
+    ],
+    "regulatoryLinks": [],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Financial product." }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "slug": "category/baby-car-seats",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Baby car seats",
+  "summary": "Infant, convertible, and booster car seats for children — safety-critical category with federal regulation.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "NHTSA FMVSS 213 is the federal safety standard for child restraint systems. All car seats sold in the US must meet it; no seat is 'safer' than another on the base standard because all pass the same test.", "sourceUrl": "https://www.nhtsa.gov/equipment/car-seats-and-booster-seats", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "NHTSA Ease-of-Use ratings (1-5 stars) rate how straightforward the seat is to install and use correctly; seats with high Ease-of-Use ratings correlate with reduced misuse rates in real-world installation.", "sourceUrl": "https://www.nhtsa.gov/equipment/ease-use-ratings-car-seats", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E3", "claim": "Car seat expiration dates are manufacturer-stated, typically 6-10 years from date of manufacture. Material degradation (plastic, foam) is the primary concern.", "sourceUrl": "https://www.safekids.org/tip/car-seat-expiration-dates", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["car seat", "baby car seat", "child car seat", "infant car seat", "booster seat"],
+    "productTags": ["car-seat", "baby", "safety"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "nhtsa_fmvss_213_certified", "unit": "boolean", "direction": "binary", "target": true, "notes": "All US-sold seats must meet this (E1). Required, not differentiator." },
+      { "name": "nhtsa_ease_of_use_rating", "unit": "stars_1_5", "direction": "higher_is_better", "typicalRange": [2, 5], "notes": "Lower rating correlates with installation errors (E2)." },
+      { "name": "seat_type", "unit": "categorical", "direction": "target", "typicalRange": ["infant", "convertible", "all-in-one", "booster-high-back", "booster-backless"] },
+      { "name": "weight_range_lbs", "unit": "range_lbs", "direction": "target", "typicalRange": [[4, 35], [5, 65], [25, 120]] },
+      { "name": "latch_vs_seatbelt", "unit": "categorical", "direction": "target", "typicalRange": ["LATCH", "seatbelt", "both"] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [60, 700] }
+    ],
+    "specNormalization": {},
+    "confabulationPatterns": [
+      { "pattern": "safest car seat on the market", "reality": "All US-sold car seats meet the same federal safety standard FMVSS 213 (E1). 'Safest' is marketing; correct installation matters far more than brand.", "verdict": "false", "checkPrompt": "Is the 'safest' claim framed as surpassing FMVSS 213? No US seat legally sold is less safe than another on the base standard." },
+      { "pattern": "European safety standard (ECE R44 / R129)", "reality": "European standards are different from US FMVSS 213 but are not inherently superior; each is valid in its jurisdiction. A US-imported ECE-only seat is NOT legal for US highway use.", "verdict": "misleading", "checkPrompt": "Is the seat FMVSS 213 certified for US use, or only ECE certified?" },
+      { "pattern": "longest-lasting / most years of use", "reality": "Car seats expire 6-10 years from manufacture date (E3). Longer 'usable years' in marketing does not mean longer-lasting materials; it may just mean the seat is a convertible / all-in-one.", "verdict": "misleading", "checkPrompt": "Is the 'longest' claim about expiration, about weight-range coverage, or about general durability?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Car seat from marketplace seller below retailer price by >25%", "action": "flag — counterfeit seats lack crash certification and are actively dangerous" },
+      { "signal": "Used car seat from private seller with unknown history", "action": "flag — unknown crash history invalidates safety" }
+    ],
+    "compatibilityQuestions": [
+      "Child's current weight and height — determines appropriate seat type.",
+      "Vehicle make/model — some car seats don't fit certain vehicles. Check manufacturer's vehicle-fit list.",
+      "LATCH or seatbelt install — LATCH has weight limits and may not work for all seat/car combos."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Replacement after moderate-or-severe crash (insurance often covers)", "annualCostUsd": [0, 500], "frequency": "conditional" },
+      { "name": "Upgrade seats as child grows (3+ seats typical birth-to-12)", "annualCostUsd": [300, 1000], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "manufacturer-only", "notes": "Do not use aftermarket parts — invalidates FMVSS certification." }
+  }
+}
