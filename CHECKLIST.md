@@ -18,7 +18,7 @@
 | F3 | Workflow engine (DAG + bus + DO) | ✅ | `BLOCKS/F3-workflow-engine.md` | `2a96393` |
 | F4 | Cron + scheduler primitives | ⬜ | 🔬 | |
 | F5 | Event bus + webhook surface | ⬜ | 🔬 | |
-| F6 | Extension inline sidebar infra | ⬜ | 🔬 | |
+| F6 | Extension inline sidebar infra | ✅ | `BLOCKS/F6-extension-sidebar.md` | `653e7ce` |
 | F7 | Extension overlay + badge system | ⬜ | 🔬 | |
 | F8 | Extension content-script router | ⬜ | 🔬 | |
 | F9 | PWA web + mobile layout | ⬜ | 🔬 | |
