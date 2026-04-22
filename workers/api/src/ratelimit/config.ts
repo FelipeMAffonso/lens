@@ -29,6 +29,11 @@ export const POLICIES: RateLimitPolicy[] = [
   // V-EXT-INLINE-f judge P0-2: extension fires /checkout/summary on every
   // cart page view. Compose-only (no LLM) but still rate-limit.
   { route: "checkout-summary", windowSeconds: 3600, anonLimit: 120, userLimit: 1200 },
+  // CJ-W53: chat elicitor fires Opus on each clarifier turn. Several calls
+  // per shopping session, so tighter than /clarify's 20/hr.
+  { route: "chat-clarify", windowSeconds: 3600, anonLimit: 60, userLimit: 600 },
+  // CJ-W53: follow-up uses 1M-context (heavier). Much lower anon ceiling.
+  { route: "chat-followup", windowSeconds: 3600, anonLimit: 40, userLimit: 400 },
 ];
 
 export function findPolicy(route: string): RateLimitPolicy | undefined {

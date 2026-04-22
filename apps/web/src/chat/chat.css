@@ -1,0 +1,203 @@
+/* CJ-W53 — chat surface. Coral accent #DA7756, system type stack, 14px/1.55.
+   Consumes existing --accent, --fg, --bg, --border tokens when available. */
+
+:root {
+  --lc-accent: #DA7756;
+  --lc-bot-bg: #f4f6f8;
+  --lc-bot-fg: #1a1a1a;
+  --lc-user-bg: #DA7756;
+  --lc-user-fg: #ffffff;
+  --lc-rotator-bg: #fafbfc;
+  --lc-rotator-fg: #4a5260;
+  --lc-radius: 16px;
+  --lc-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lc-root {
+  display: flex;
+  flex-direction: column;
+  max-width: 680px;
+  margin: 24px auto;
+  padding: 0 16px;
+  font: 14px/1.55 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1a1a1a;
+}
+
+.lc-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 0 12px;
+  min-height: 280px;
+}
+
+.lc-bubble {
+  display: flex;
+  max-width: 86%;
+  animation: lc-slide-in 180ms var(--lc-ease);
+}
+.lc-bubble-user {
+  align-self: flex-end;
+  justify-content: flex-end;
+}
+.lc-bubble-bot {
+  align-self: flex-start;
+  justify-content: flex-start;
+}
+.lc-bubble-body {
+  padding: 10px 14px;
+  border-radius: var(--lc-radius);
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.lc-bubble-user .lc-bubble-body {
+  background: var(--lc-user-bg);
+  color: var(--lc-user-fg);
+  border-bottom-right-radius: 4px;
+}
+.lc-bubble-bot .lc-bubble-body {
+  background: var(--lc-bot-bg);
+  color: var(--lc-bot-fg);
+  border-bottom-left-radius: 4px;
+}
+.lc-bubble strong { font-weight: 700; }
+
+.lc-bubble-typing .lc-bubble-body {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 12px 16px;
+}
+.lc-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8a95a3;
+  opacity: 0.45;
+  animation: lc-dot-pulse 1.3s var(--lc-ease) infinite;
+}
+.lc-dot:nth-child(2) { animation-delay: 0.15s; }
+.lc-dot:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes lc-slide-in {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes lc-dot-pulse {
+  0%, 60%, 100% { opacity: 0.3; transform: scale(0.85); }
+  30% { opacity: 0.95; transform: scale(1.15); }
+}
+
+.lc-composer {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px 0 24px;
+  border-top: 1px solid rgba(15,20,30,0.06);
+}
+.lc-composer-input {
+  flex: 1 1 auto;
+  min-height: 44px;
+  resize: none;
+  padding: 12px 14px;
+  border: 1px solid rgba(15,20,30,0.14);
+  border-radius: 12px;
+  font: 14px/1.55 inherit;
+  background: #fff;
+  color: inherit;
+  transition: border-color 150ms var(--lc-ease), box-shadow 150ms var(--lc-ease);
+}
+.lc-composer-input:focus {
+  outline: none;
+  border-color: var(--lc-accent);
+  box-shadow: 0 0 0 3px rgba(218,119,86,0.16);
+}
+.lc-composer-send {
+  border: 0;
+  padding: 0 18px;
+  min-height: 44px;
+  border-radius: 12px;
+  background: var(--lc-accent);
+  color: #fff;
+  font: 600 14px/1 inherit;
+  cursor: pointer;
+  transition: background 150ms var(--lc-ease), transform 150ms var(--lc-ease);
+}
+.lc-composer-send:hover:not(:disabled) { background: #c86a4a; }
+.lc-composer-send:active:not(:disabled) { transform: scale(0.97); }
+.lc-composer-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lc-rotator {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 10px 0;
+  background: var(--lc-rotator-bg);
+  color: var(--lc-rotator-fg);
+  border: 1px solid rgba(15,20,30,0.08);
+  border-radius: 12px;
+  font-size: 13px;
+  align-self: flex-start;
+  max-width: 86%;
+}
+.lc-rotator-spinner {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(218,119,86,0.25);
+  border-top-color: var(--lc-accent);
+  animation: lc-spin 800ms linear infinite;
+}
+.lc-rotator-text {
+  transition: opacity 180ms var(--lc-ease);
+}
+.lc-rotator-text-out { opacity: 0; }
+.lc-rotator-done {
+  background: #ecfaf2;
+  color: #247a50;
+  border-color: #b7e2c7;
+}
+.lc-rotator-done .lc-rotator-spinner {
+  border-color: #b7e2c7;
+  border-top-color: #247a50;
+  animation: none;
+}
+@keyframes lc-spin { to { transform: rotate(360deg); } }
+
+.lc-seed-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 0 12px;
+}
+.lc-chip {
+  font: 500 12px/1.2 inherit;
+  background: #fff;
+  color: #1a1a1a;
+  border: 1px solid rgba(15,20,30,0.14);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: border-color 150ms var(--lc-ease), background 150ms var(--lc-ease);
+}
+.lc-chip:hover { border-color: var(--lc-accent); background: rgba(218,119,86,0.06); }
+
+@media (max-width: 480px) {
+  .lc-root { margin: 12px auto; padding: 0 10px; }
+  .lc-transcript { min-height: 200px; }
+  .lc-bubble { max-width: 94%; }
+  .lc-composer-input { min-height: 40px; padding: 10px 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lc-bubble { animation: none; }
+  .lc-rotator-text { transition: none; }
+  .lc-rotator-spinner { animation: none; }
+}

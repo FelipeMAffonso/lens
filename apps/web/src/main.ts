@@ -1,4 +1,5 @@
 import type { AuditResult, HostAI, Candidate, Claim } from "@lens/shared";
+import "./chat/chat.css";
 
 const API_BASE = import.meta.env.VITE_LENS_API_URL ?? "https://lens-api.webmarinelli.workers.dev";
 
@@ -287,7 +288,7 @@ function humanizeCriterion(raw: string): string {
     .join(" ");
 }
 
-function renderResult(r: AuditResult): void {
+export function renderResult(r: AuditResult): void {
   const el = $("result");
   el.hidden = false;
   const body = $("result-body");
@@ -905,6 +906,38 @@ $("audit-btn").addEventListener("click", () => {
   void runAudit();
 });
 void loadPackStats();
+
+// CJ-W53 — chat-first dispatch. Flag via ?chat=1 OR localStorage.lens.ui.v2="chat"
+// OR by default (first Sunday of the hackathon — chat is the primary surface;
+// legacy paste-box remains reachable via ?chat=0 for direct comparison).
+(function maybeMountChat(): void {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const flag = params.get("chat");
+    const stored = (typeof localStorage !== "undefined" && localStorage.getItem("lens.ui.v2")) || "";
+    const off = flag === "0" || stored === "legacy";
+    const on = flag === "1" || stored === "chat" || !off; // default ON
+    if (!on) return;
+    // Lazy-import so the legacy bundle stays small when chat is disabled.
+    void import("./chat/ChatView.js").then(({ mountChatView }) => {
+      const mount = document.getElementById("chat-view");
+      const hero = document.querySelector<HTMLElement>(".hero");
+      const pasteBox = document.querySelector<HTMLElement>(".paste-box");
+      const modeSwitch = document.querySelector<HTMLElement>(".mode-switch");
+      const streamEl = document.getElementById("stream");
+      const result = document.getElementById("result");
+      if (!mount || !result) return;
+      mount.hidden = false;
+      if (hero) hero.style.display = "none";
+      if (pasteBox) pasteBox.style.display = "none";
+      if (modeSwitch) modeSwitch.style.display = "none";
+      if (streamEl) streamEl.hidden = true;
+      mountChatView({ mount, resultMount: result });
+    });
+  } catch (err) {
+    console.warn("[main] chat mount failed:", (err as Error).message);
+  }
+})();
 
 // ---- F1 auth wiring (vanilla) ----
 import { runCallbackIfPresent } from "./auth/callback.js";

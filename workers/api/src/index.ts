@@ -86,6 +86,8 @@ import {
 import { handleCompare } from "./compare/handler.js";
 import { handleDiscover as handleAccessoryDiscover } from "./accessories/handler.js";
 import { handleClarify, handleClarifyApply } from "./clarify/handler.js";
+import { handleChatClarify } from "./chat/clarify.js";
+import { handleChatFollowup } from "./chat/followup.js";
 import { handleRepairabilityLookup } from "./repairability/handler.js";
 import { handleLockinCompute } from "./lockin/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
@@ -480,6 +482,12 @@ app.post("/accessories/discover", (c) => handleAccessoryDiscover(c as never));
 // S1-W8 — Layer-2 adaptive preference clarification. Public (no auth).
 app.post("/clarify", (c) => handleClarify(c as never));
 app.post("/clarify/apply", (c) => handleClarifyApply(c as never));
+
+// CJ-W53 — Study-3 style conversational elicitor. Public (no auth).
+// /chat/clarify returns the next bot turn (a Q or READY); /chat/followup
+// answers a post-audit user question using 1M-context + the audit result.
+app.post("/chat/clarify", (c) => handleChatClarify(c as never));
+app.post("/chat/followup", (c) => handleChatFollowup(c as never));
 
 // S7-W41 — Repairability lookup. Public; iFixit-powered with fixture fallback.
 app.post("/repairability/lookup", (c) => handleRepairabilityLookup(c as never));

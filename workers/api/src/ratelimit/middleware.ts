@@ -35,6 +35,8 @@ export function routeFromPath(path: string): string | null {
   if (path.startsWith("/lockin")) return "lockin"; // S7-W40
   if (path.startsWith("/price-history")) return "price-history"; // V-EXT-INLINE-g judge P0-4
   if (path.startsWith("/checkout/summary")) return "checkout-summary"; // V-EXT-INLINE-f judge P0-2
+  if (path.startsWith("/chat/clarify")) return "chat-clarify"; // CJ-W53
+  if (path.startsWith("/chat/followup")) return "chat-followup"; // CJ-W53
   return null;
 }
 
