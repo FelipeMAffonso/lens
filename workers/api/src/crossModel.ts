@@ -13,6 +13,17 @@ export async function runCrossModelCheck(
   rec: AIRecommendation,
   env: Env,
 ): Promise<CrossModelCheck[]> {
+  // USER DIRECTIVE (2026-04-22): "stop using openai api. stop using google
+  // api. we will build this only with opus. only when this is ready and fully
+  // working with opus we can try something else". Short-circuit every
+  // non-Anthropic path when LENS_DISABLE_CROSS_MODEL is truthy (default in
+  // wrangler.toml). Flipping back to "0" or unsetting re-enables the
+  // original fan-out after the full-Opus build is hardened.
+  if (env.LENS_DISABLE_CROSS_MODEL === "1" || env.LENS_DISABLE_CROSS_MODEL === "true") {
+    console.log("[crossModel] disabled via LENS_DISABLE_CROSS_MODEL — returning []");
+    return [];
+  }
+
   // If the Managed Agent endpoint is configured, delegate there.
   // This is the hand-off to workers/cross-model/src/index.ts — the "Best use
   // of Claude Managed Agents" submission surface. The agent Worker owns the

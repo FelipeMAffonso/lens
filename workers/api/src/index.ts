@@ -87,6 +87,7 @@ import { handleCompare } from "./compare/handler.js";
 import { handleDiscover as handleAccessoryDiscover } from "./accessories/handler.js";
 import { handleClarify, handleClarifyApply } from "./clarify/handler.js";
 import { handleRepairabilityLookup } from "./repairability/handler.js";
+import { handleLockinCompute } from "./lockin/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -115,6 +116,8 @@ export interface Env {
    * regression tests against known inputs.
    */
   LENS_SEARCH_MODE?: "real" | "fixture";
+  // User directive 2026-04-22: use Opus only.
+  LENS_DISABLE_CROSS_MODEL?: string;
   // F1 auth
   LENS_D1?: D1Database;
   JWT_SECRET?: string;
@@ -480,6 +483,9 @@ app.post("/clarify/apply", (c) => handleClarifyApply(c as never));
 
 // S7-W41 — Repairability lookup. Public; iFixit-powered with fixture fallback.
 app.post("/repairability/lookup", (c) => handleRepairabilityLookup(c as never));
+
+// S7-W40 — Lock-in cost tracking. Public; ecosystem-fixture accumulator.
+app.post("/lockin/compute", (c) => handleLockinCompute(c as never));
 
 // CJ-W48 — gift-buying shared-link flow.
 app.post("/gift/requests", (c) => handleGiftCreate(c as never));

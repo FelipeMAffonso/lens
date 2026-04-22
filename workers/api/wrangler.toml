@@ -8,6 +8,10 @@ compatibility_flags = ["nodejs_compat"]
 # Every audit now runs Opus 4.7 web_search_20260209 and merges with pack representativeSkus.
 # "fixture" = escape hatch for CI regression tests only — seeds-only, no network.
 LENS_SEARCH_MODE = "real"
+# User directive 2026-04-22: use Opus only; no OpenAI / Google / OpenRouter
+# until the full-Opus build is hardened. Flip to "0" to re-enable cross-model
+# fan-out after the Opus-only baseline is locked.
+LENS_DISABLE_CROSS_MODEL = "1"
 MAGIC_LINK_BASE_URL = "https://lens-b1h.pages.dev"
 RESEND_FROM_EMAIL = "Lens <no-reply@lens.example>"
 

@@ -73,8 +73,50 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
       retry: { maxAttempts: 2, backoffMs: 1500 },
       handler: async (input, ctx) => {
         const env = ctx.env as unknown as Env;
-        const { intent } = input as ExtractOut;
-        const out = await searchCandidates(intent, env);
+        const { intent, aiRecommendation } = input as ExtractOut;
+        let out = await searchCandidates(intent, env);
+        // USER-REPORTED FIX (2026-04-22): URL mode was silently dropping the
+        // pasted product when web_search returned empty — leaving verify with
+        // nothing to cross-reference and rank with "(no candidates available)".
+        // Always prepend the extracted pickedProduct as a candidate when it
+        // has a real name so the user sees their product AT MINIMUM, even if
+        // live web_search fails/times-out.
+        const rec = aiRecommendation;
+        const pp = rec.pickedProduct;
+        const hasPasted =
+          pp &&
+          typeof pp.name === "string" &&
+          pp.name.trim().length > 0 &&
+          !pp.name.toLowerCase().startsWith("(no ai");
+        if (hasPasted) {
+          const already = out.some(
+            (c) => c.name.toLowerCase() === pp.name.toLowerCase(),
+          );
+          if (!already) {
+            const seeded = {
+              name: pp.name,
+              brand: pp.brand ?? "",
+              price: typeof pp.price === "number" ? pp.price : null,
+              currency: pp.currency ?? "USD",
+              ...(pp.url ? { url: pp.url } : {}),
+              // Convert any typed spec-ish claims into spec fields so rank
+              // has numeric data to work with.
+              specs: rec.claims.reduce<Record<string, string | number | boolean>>((acc, claim) => {
+                const key = (claim.attribute ?? "").toLowerCase().replace(/\s+/g, "_");
+                if (!key) return acc;
+                const val = claim.statedValue;
+                if (val === undefined || val === null || val === "") return acc;
+                acc[key] = val;
+                return acc;
+              }, {}),
+              attributeScores: {},
+              utilityScore: 0,
+              utilityBreakdown: [],
+            };
+            out = [seeded, ...out];
+            ctx.log("info", "search:seeded-from-paste", { name: pp.name });
+          }
+        }
         await ctx.writeState(tsKey("search"), Date.now());
         ctx.log("info", "search:done", { candidates: out.length });
         return out;
