@@ -12,6 +12,7 @@ import { watchForResponses } from "./content/observer.js";
 import { canStage2, askForConsent, getConsent } from "./content/consent.js";
 import { upgradeBadge, findBadgeByBrignullId, type BadgeConfirmation } from "./content/overlay/badge.js";
 import { bootPriceHistory } from "./content/retail/price-history-badge.js";
+import { bootCheckoutSummary, isCartOrCheckout } from "./content/retail/cart-summary-badge.js";
 
 type HostAI = "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
 
@@ -153,6 +154,25 @@ const boot = (): void => {
   // on a supported retailer product page. Top-frame only.
   if (window === window.top) {
     void bootPriceHistory();
+    // V-EXT-INLINE-f: cart/checkout-summary badge. Runs after a short delay so
+    // the passive-scan hit-list stabilizes first; composes the hits into a
+    // single checkout-readiness verdict.
+    if (isCartOrCheckout()) {
+      setTimeout(() => {
+        try {
+          const hits = scanDocument();
+          const topPattern = hits[0]?.brignullId;
+          const signal = {
+            confirmedCount: hits.length,
+            ...(topPattern ? { topPattern } : {}),
+            ran: "heuristic-only" as const,
+          };
+          void bootCheckoutSummary(signal);
+        } catch (e) {
+          console.error("[Lens] cart-summary boot error:", e);
+        }
+      }, 1200);
+    }
   }
 };
 if (document.readyState === "complete" || document.readyState === "interactive") {
@@ -164,15 +184,31 @@ if (document.readyState === "complete" || document.readyState === "interactive")
 // Late-bind for SPA-style apps that render after initial paint
 setTimeout(boot, 2500);
 
-// V-EXT-INLINE-g judge P1-5: SPA reattach. Walmart/Target/Amazon all pushState
-// between product pages. Re-run the retailer price-history boot on nav events.
-window.addEventListener("popstate", () => {
-  if (window === window.top) setTimeout(() => void bootPriceHistory(), 400);
-});
+// V-EXT-INLINE-g + V-EXT-INLINE-f judge P0-3: SPA reattach. Walmart/Target/
+// Amazon pushState between product + cart pages. Re-run both retail boots.
+function retailReboot(): void {
+  if (window !== window.top) return;
+  void bootPriceHistory();
+  if (isCartOrCheckout()) {
+    try {
+      const hits = scanDocument();
+      const topPattern = hits[0]?.brignullId;
+      const signal = {
+        confirmedCount: hits.length,
+        ...(topPattern ? { topPattern } : {}),
+        ran: "heuristic-only" as const,
+      };
+      void bootCheckoutSummary(signal);
+    } catch (e) {
+      console.error("[Lens] cart-summary reboot error:", e);
+    }
+  }
+}
+window.addEventListener("popstate", () => setTimeout(retailReboot, 400));
 const _origPushState = history.pushState.bind(history);
 history.pushState = function (...args: Parameters<typeof _origPushState>): void {
   _origPushState(...args);
-  if (window === window.top) setTimeout(() => void bootPriceHistory(), 400);
+  setTimeout(retailReboot, 400);
 };
 
 // Popup message handler (legacy popup still works)

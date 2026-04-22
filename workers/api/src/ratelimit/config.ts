@@ -26,6 +26,9 @@ export const POLICIES: RateLimitPolicy[] = [
   // V-EXT-INLINE-g judge P0-4: the extension calls /price-history on every
   // product-page visit. Rate-limit to protect Keepa quota + KV writes.
   { route: "price-history", windowSeconds: 3600, anonLimit: 120, userLimit: 1200 },
+  // V-EXT-INLINE-f judge P0-2: extension fires /checkout/summary on every
+  // cart page view. Compose-only (no LLM) but still rate-limit.
+  { route: "checkout-summary", windowSeconds: 3600, anonLimit: 120, userLimit: 1200 },
 ];
 
 export function findPolicy(route: string): RateLimitPolicy | undefined {
