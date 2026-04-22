@@ -14,7 +14,9 @@ describe("callTool", () => {
   });
 
   it("lens.pack_list proxies GET /packs/stats", async () => {
-    const fetchMock = vi.fn(async () => new Response('{"totalPacks":116}', { status: 200 }));
+    const fetchMock = vi.fn((_u: unknown, _i?: unknown) =>
+      Promise.resolve(new Response('{"totalPacks":116}', { status: 200 })),
+    );
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     const r = await callTool("lens.pack_list", {}, { LENS_API_URL: "https://x" });
     expect(r.isError).toBeUndefined();
@@ -28,15 +30,22 @@ describe("callTool", () => {
   });
 
   it("lens.pack_get proxies GET /packs/:slug", async () => {
-    const fetchMock = vi.fn(async (u) => new Response(`{"slug":"${new URL(u as string).pathname.split("/").slice(-2).join("/")}"}`, { status: 200 }));
+    const fetchMock = vi.fn((u: unknown, _i?: unknown) =>
+      Promise.resolve(
+        new Response(
+          `{"slug":"${new URL(u as string).pathname.split("/").slice(-2).join("/")}"}`,
+          { status: 200 },
+        ),
+      ),
+    );
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     await callTool("lens.pack_get", { slug: "category/espresso-machines" }, { LENS_API_URL: "https://x" });
     expect(fetchMock.mock.calls[0]![0]).toContain("/packs/category%2Fespresso-machines");
   });
 
   it("lens.audit proxies POST /audit with JSON body", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response('{"id":"run_abc"}', { status: 200 }),
+    const fetchMock = vi.fn((_u: unknown, _i?: unknown) =>
+      Promise.resolve(new Response('{"id":"run_abc"}', { status: 200 })),
     );
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     await callTool(
@@ -50,7 +59,9 @@ describe("callTool", () => {
   });
 
   it("lens.spec_optimal shapes params into a query audit", async () => {
-    const fetchMock = vi.fn(async () => new Response('{}', { status: 200 }));
+    const fetchMock = vi.fn((_u: unknown, _i?: unknown) =>
+      Promise.resolve(new Response("{}", { status: 200 })),
+    );
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     await callTool(
       "lens.spec_optimal",

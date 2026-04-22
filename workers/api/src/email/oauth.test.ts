@@ -53,16 +53,18 @@ describe("exchangeCode", () => {
   });
 
   it("POSTs to Google token endpoint on happy path", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(
-        JSON.stringify({
-          access_token: "at_123",
-          refresh_token: "rt_456",
-          expires_in: 3600,
-          scope: "x",
-          token_type: "Bearer",
-        }),
-        { status: 200 },
+    const fetchMock = vi.fn((_u: unknown, _i?: unknown) =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({
+            access_token: "at_123",
+            refresh_token: "rt_456",
+            expires_in: 3600,
+            scope: "x",
+            token_type: "Bearer",
+          }),
+          { status: 200 },
+        ),
       ),
     );
     globalThis.fetch = fetchMock as unknown as typeof fetch;

@@ -83,7 +83,7 @@ export function darkPatternsPrompt(packs: DarkPatternPack[]): string {
   const lines = ["DARK PATTERNS TO CHECK (Brignull canonical taxonomy + FTC 2022 report):"];
   for (const p of packs) {
     lines.push(
-      `- ${p.body.canonicalName} (${p.slug}, severity=${p.body.severity}): ${p.body.description} Detection: ${p.body.llmVerifyPrompt}`,
+      `- slug=${p.slug} — ${p.body.canonicalName} (severity=${p.body.severity}): ${p.body.description} Detection: ${p.body.llmVerifyPrompt}`,
     );
   }
   return truncate(lines.join("\n"), CAP_DARK_PATTERNS);
@@ -101,7 +101,7 @@ export function regulationsPrompt(packs: RegulationPack[]): string {
       ? ` (vacated ${r.body.vacatedDate} by ${r.body.vacatedBy})`
       : ` (effective ${r.body.effectiveDate})`;
     lines.push(
-      `- ${r.body.officialName} (${r.body.citation})${dates}\n  Scope: ${r.body.scopeSummary}\n  User rights: ${r.body.userRightsPlainLanguage}`,
+      `- slug=${r.slug} — ${r.body.officialName} (${r.body.citation})${dates}\n  Scope: ${r.body.scopeSummary}\n  User rights: ${r.body.userRightsPlainLanguage}`,
     );
   }
   return truncate(lines.join("\n"), CAP_REGULATIONS);

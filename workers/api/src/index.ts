@@ -24,6 +24,8 @@ import {
 } from "./auth/magic-link.js";
 import { authMiddleware, type AuthVars } from "./auth/middleware.js";
 import { rateLimitMiddleware } from "./ratelimit/middleware.js";
+import { handlePassiveScan } from "./passive-scan/handler.js";
+import { registry as packRegistry } from "./packs/registry.js";
 export { RateLimitCounter } from "./ratelimit/counter-do.js";
 
 export interface Env {
@@ -312,6 +314,23 @@ app.post("/review-scan", async (c) => {
   }
   const result = scanReviews(parsed.data);
   return c.json(result);
+});
+
+// S4-W22 — Stage-2 dark-pattern verification. Extension posts Stage-1 hits;
+// worker runs Opus 4.7 against matched packs and returns per-hit verdicts
+// with regulation citations + intervention suggestions.
+app.post("/passive-scan", (c) => handlePassiveScan(c as never, packRegistry));
+
+// Per-host dark-pattern aggregate count — used by the public ticker UI
+// to surface "marriott.com flagged 847 times in 90 days".
+app.get("/passive-scan/aggregates", async (c) => {
+  const { getAggregatesForHost } = await import("./passive-scan/repo.js");
+  const host = c.req.query("host");
+  if (!host || !/^[a-z0-9.-]+$/i.test(host)) {
+    return c.json({ error: "invalid_host" }, 400);
+  }
+  const rows = await getAggregatesForHost(c.env.LENS_D1 as never, host);
+  return c.json({ host, aggregates: rows });
 });
 
 // F4 — Cloudflare Cron Trigger handler. Exported alongside `default` so

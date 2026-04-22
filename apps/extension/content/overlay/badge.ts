@@ -1,10 +1,39 @@
 // F7 — Shadow-DOM-isolated dark-pattern badge. Pinned near the matched element,
 // Apple-motion smooth, dismissible, per-host learned suppression.
+//
+// S4-W22 extends this with an upgradeBadge(host, confirmation) call that
+// repaints the pill when the Stage-2 verifier returns a regulatory citation.
 
 import type { HeuristicHit } from "../../darkPatterns.js";
 import { shouldSuppress, recordDismissal } from "./suppression.js";
 
 const BADGE_ATTR = "data-lens-badge";
+
+export interface BadgeConfirmation {
+  packSlug: string;
+  brignullId: string;
+  verdict: "confirmed" | "uncertain";
+  llmExplanation: string;
+  regulatoryCitation?: {
+    packSlug: string;
+    officialName: string;
+    citation: string;
+    status: "in-force" | "delayed" | "vacated" | "superseded" | "preempted";
+    effectiveDate: string;
+    userRightsPlainLanguage?: string;
+  };
+  suggestedInterventions?: Array<{ packSlug: string; canonicalName: string }>;
+  feeBreakdown?: { label: string; amountUsd?: number; frequency?: string };
+}
+
+/**
+ * Per-host registry so content.ts can find the badge for a given hit when the
+ * Stage-2 verdict lands. Weakly keyed by the host span returned to the caller.
+ */
+const BADGE_REGISTRY = new WeakMap<
+  HTMLElement,
+  { shadow: ShadowRoot; hit: HeuristicHit }
+>();
 
 const TEMPLATE = `
 <style>
@@ -100,7 +129,63 @@ export function attachDarkPatternBadge(
 
   anchor.append(host);
   anchor.setAttribute(BADGE_ATTR, hit.brignullId);
+  BADGE_REGISTRY.set(host, { shadow, hit });
   return host;
+}
+
+/**
+ * S4-W22 — upgrade an existing badge with Stage-2 confirmation data.
+ * Swaps the red-warning visual for a slate-confirmed visual, injects the
+ * regulation citation into the tooltip, and adds a "Draft complaint" button
+ * when an intervention is available.
+ */
+export function upgradeBadge(host: HTMLElement, confirmation: BadgeConfirmation): void {
+  const entry = BADGE_REGISTRY.get(host);
+  if (!entry) return;
+  const { shadow, hit } = entry;
+  const pill = shadow.querySelector<HTMLButtonElement>(".pill");
+  const dot = shadow.querySelector<HTMLSpanElement>(".dot");
+  const tooltip = shadow.querySelector<HTMLSpanElement>(".tooltip");
+  if (!pill || !dot || !tooltip) return;
+
+  // Confirmed pattern = green-slate dot + "Confirmed" prefix.
+  if (confirmation.verdict === "confirmed") {
+    dot.style.background = "#1f7a55"; // green-slate, not alarmist
+    pill.setAttribute("aria-label", "Dark pattern confirmed by Lens Stage 2");
+  } else {
+    // Uncertain stays amber-ish but softer than the original red.
+    dot.style.background = "#c98a1a";
+    pill.setAttribute("aria-label", "Possible dark pattern flagged by Lens");
+  }
+
+  // Build the enriched tooltip.
+  const parts: string[] = [];
+  parts.push(confirmation.llmExplanation || hit.matchedElement.text.slice(0, 120));
+  if (confirmation.regulatoryCitation) {
+    const c = confirmation.regulatoryCitation;
+    parts.push(`\n${c.officialName} · ${c.citation}${c.status === "in-force" ? "" : ` (${c.status})`}.`);
+    if (c.userRightsPlainLanguage) parts.push(c.userRightsPlainLanguage.slice(0, 240));
+  }
+  if (confirmation.feeBreakdown?.amountUsd) {
+    const f = confirmation.feeBreakdown;
+    const freq = f.frequency ? ` ${f.frequency}` : "";
+    parts.push(`\nFee: ${f.label} — $${f.amountUsd}${freq}.`);
+  }
+  tooltip.textContent = parts.join(" ");
+}
+
+/**
+ * S4-W22 — lookup the registered hit + host pair for a given
+ * (brignullId, host-url). Used by content.ts after it receives a batch of
+ * confirmations back from the background worker.
+ */
+export function findBadgeByBrignullId(brignullId: string): HTMLElement | null {
+  const all = document.querySelectorAll<HTMLElement>(`[${BADGE_ATTR}='${brignullId}']`);
+  for (const anchor of all) {
+    const host = anchor.querySelector<HTMLElement>("[data-lens='badge-host']");
+    if (host) return host;
+  }
+  return null;
 }
 
 function labelFor(id: string): string {

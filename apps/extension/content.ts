@@ -3,10 +3,14 @@
 //   - host detection (AI-chat hosts get the ◉ Lens pill + sidebar)
 //   - ESC / click-outside sidebar close (handled in injector)
 //   - MutationObserver for dynamic AI responses
+// S4-W22 — gates Stage-2 dark-pattern verification behind per-host consent
+// and upgrades badges in place when confirmations arrive from the Worker.
 
 import { scanDocument, renderBadges } from "./darkPatterns.js";
 import { adapterForUrl } from "./content/hosts/registry.js";
 import { watchForResponses } from "./content/observer.js";
+import { canStage2, askForConsent, getConsent } from "./content/consent.js";
+import { upgradeBadge, findBadgeByBrignullId, type BadgeConfirmation } from "./content/overlay/badge.js";
 
 type HostAI = "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
 
@@ -49,18 +53,79 @@ function extractLastAssistantText(host: HostAI): string {
   }
 }
 
+// Page-type classifier — maps URL to the server's PageTypeEnum.
+function classifyPageType(): string {
+  const u = location.href.toLowerCase();
+  if (u.includes("/checkout") || u.includes("/booking/confirm") || u.includes("/payment"))
+    return "checkout";
+  if (u.includes("/cart")) return "cart";
+  if (u.includes("/product") || u.includes("/dp/") || u.includes("/p/")) return "product";
+  if (u.includes("/review")) return "review";
+  if (u.includes("/marketplace") || u.includes("/seller") || u.includes("/sp/")) return "marketplace";
+  return "other";
+}
+
 // Passive dark-pattern scan on initial load + after 1.5s + on DOM changes.
+// S4-W22: after Stage 1 fires, gate Stage 2 escalation on per-host consent.
 function runPassiveScan(): void {
   try {
     const hits = scanDocument();
-    if (hits.length > 0) {
-      console.log("[Lens] detected", hits.length, "dark pattern hits:", hits);
-      renderBadges(hits);
-      chrome.runtime.sendMessage({ type: "LENS_SCAN_HITS", hits });
+    if (hits.length === 0) return;
+    console.log("[Lens] detected", hits.length, "dark pattern hits:", hits);
+    renderBadges(hits);
+
+    const host = location.host;
+    const pageType = classifyPageType();
+    // Send Stage-1 hits to the background regardless (for telemetry + popup).
+    chrome.runtime.sendMessage({
+      type: "LENS_SCAN_HITS",
+      hits,
+      host,
+      pageType,
+      url: location.origin + location.pathname, // query + fragment stripped
+      stage2: false,
+    });
+
+    // Gate Stage 2 on per-host consent. "always" → fire immediately;
+    // null | "ask" → render a consent modal for the most severe hit;
+    // "never" → skip Stage 2 entirely (badges stay in heuristic styling).
+    if (canStage2(host)) {
+      chrome.runtime.sendMessage({
+        type: "LENS_SCAN_HITS",
+        hits,
+        host,
+        pageType,
+        url: location.origin + location.pathname,
+        stage2: true,
+      });
+      return;
     }
+    if (getConsent(host) === "never") return;
+    // Ask once; pick the most severe hit as the representative pattern.
+    const top = pickMostSevere(hits);
+    const patternName = top.brignullId.replace(/-/g, " ");
+    void askForConsent(host, patternName).then((decision) => {
+      if (decision === "always") {
+        chrome.runtime.sendMessage({
+          type: "LENS_SCAN_HITS",
+          hits,
+          host,
+          pageType,
+          url: location.origin + location.pathname,
+          stage2: true,
+        });
+      }
+      // "ask" and "never" → do nothing this time.
+    });
   } catch (e) {
     console.error("[Lens] scan error:", e);
   }
+}
+
+function pickMostSevere(hits: ReturnType<typeof scanDocument>): ReturnType<typeof scanDocument>[number] {
+  const order = ["illegal-in-jurisdiction", "deceptive", "manipulative", "nuisance"] as const;
+  const sorted = hits.slice().sort((a, b) => order.indexOf(a.severity) - order.indexOf(b.severity));
+  return sorted[0]!;
 }
 
 // F6 ambient pill attachment on AI-chat hosts.
@@ -104,4 +169,32 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     runPassiveScan();
     sendResponse({ ok: true });
   }
+  if (msg?.type === "LENS_STAGE2_CONFIRMED") {
+    applyStage2Confirmations(msg.result as {
+      confirmed: BadgeConfirmation[];
+      dismissed: Array<{ packSlug: string; reason: string }>;
+      ran: "opus" | "heuristic-only";
+    });
+    sendResponse({ ok: true });
+  }
 });
+
+/**
+ * S4-W22 — upgrade existing badges in place with Stage-2 confirmation data.
+ * If the server dismissed a hit as a false positive, remove that badge.
+ */
+function applyStage2Confirmations(result: {
+  confirmed: BadgeConfirmation[];
+  dismissed: Array<{ packSlug: string; reason: string }>;
+}): void {
+  for (const c of result.confirmed ?? []) {
+    const host = findBadgeByBrignullId(c.brignullId);
+    if (host) upgradeBadge(host, c);
+  }
+  // Dismissed: hide the badge for that pattern.
+  for (const d of result.dismissed ?? []) {
+    const brignullId = d.packSlug.replace(/^dark-pattern\//, "");
+    const host = findBadgeByBrignullId(brignullId);
+    if (host) host.remove();
+  }
+}
