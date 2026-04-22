@@ -30,7 +30,7 @@
 | F15 | Public Lens Score API | ✅ | `BLOCKS/F15-score-api.md` | `f5669ee` |
 | F16 | Public disagreement ticker | ✅ | `BLOCKS/F16-ticker.md` | `ab19963` |
 | F17 | Observability (logs + traces) | ✅ | `BLOCKS/F17-observability.md` | `8ab4ab3` |
-| F18 | Authenticated rate limiting | ⬜ | 🔬 | |
+| F18 | Authenticated rate limiting | ✅ | `BLOCKS/F18-rate-limit.md` | `35a9ca9` |
 | F19 | Secrets + env parity | ⬜ | 🔬 | |
 | F20 | Testing infrastructure | ✅ | `BLOCKS/F20-testing-infra.md` | `d6569a5` |
 
@@ -102,7 +102,7 @@
 | # | Workflow | Status | File | Commit |
 |---|---|---|---|---|
 | S6-W32 | Welfare-delta (server migrate) | 🟡 | 🔬 | |
-| S6-W33 | Recall monitoring | ⬜ | 🔬 | |
+| S6-W33 | Recall monitoring | ✅ | `BLOCKS/S6-W33-recall-watch.md` | `35a9ca9` |
 | S6-W34 | Price-drop refund trigger | ⬜ | 🔬 | |
 | S6-W35 | Returns / warranty assistance | ⬜ | 🔬 | |
 | S6-W36 | Subscription audit & cancel | ⬜ | 🔬 | |
