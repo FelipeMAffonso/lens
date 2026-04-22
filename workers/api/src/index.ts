@@ -55,6 +55,7 @@ import {
 } from "./source-weighting/handler.js";
 import { handleBreachHistory } from "./breach/handler.js";
 import { handleCheckoutSummary } from "./checkout-summary/handler.js";
+import { handleScamAssess } from "./scam/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -402,6 +403,9 @@ app.get("/breach-history", (c) => handleBreachHistory(c as never));
 
 // S4-W28 — checkout-readiness summary (composes S4 signals into proceed/hesitate/rethink).
 app.post("/checkout/summary", (c) => handleCheckoutSummary(c as never));
+
+// S4-W27 — scam / fraud detection. Public (no auth).
+app.post("/scam/assess", (c) => handleScamAssess(c as never));
 
 // ─── F2 — history + preferences + watchers + interventions endpoints ──────
 // Every row-level write still flows through the workflow engine; these
