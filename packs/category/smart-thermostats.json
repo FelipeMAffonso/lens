@@ -1,0 +1,46 @@
+{
+  "slug": "category/smart-thermostats",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Smart thermostats",
+  "summary": "Wi-Fi connected learning thermostats, $100-$300.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "ENERGY STAR certified smart thermostats save on average 8% on heating/cooling bills relative to programmable baselines (manufacturer claims of 15-20% savings typically compare to manual-only thermostat baselines).", "sourceUrl": "https://www.energystar.gov/products/smart_thermostats", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["smart thermostat", "thermostat", "nest thermostat", "ecobee"],
+    "productTags": ["thermostat", "smart-home"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "hvac_compatibility", "unit": "categorical", "direction": "target", "typicalRange": ["gas-forced-air", "heat-pump", "dual-fuel", "multi-stage", "radiant", "mini-split"] },
+      { "name": "energy_star_certified", "unit": "boolean", "direction": "binary", "target": true, "notes": "ENERGY STAR: ~8% savings vs programmable baseline (E1)." },
+      { "name": "remote_sensor_support", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "c_wire_required", "unit": "boolean", "direction": "binary", "target": false, "notes": "Older homes lack C-wire; models without the requirement are simpler to install." },
+      { "name": "works_without_cloud", "unit": "boolean", "direction": "binary", "target": true, "notes": "Some 'smart' thermostats brick when the cloud is down — verify local-only fallback." },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [100, 300] }
+    ],
+    "specNormalization": {},
+    "confabulationPatterns": [
+      { "pattern": "save 20% on heating bills", "reality": "Manufacturer claims of 15-20% compare to manual-only thermostats; relative to programmable thermostats, savings are ~8% (E1). Real savings depend on your current HVAC setup and weather patterns.", "verdict": "misleading", "checkPrompt": "What's the baseline comparison for the savings claim — manual or programmable?" },
+      { "pattern": "works with all smart home platforms", "reality": "Platform support is frequently tiered: some features work in one ecosystem but not others (e.g. occupancy data exclusive to Nest + Google Home).", "verdict": "misleading", "checkPrompt": "Which specific platforms have full feature parity?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Do you have a C-wire? Nest can use non-C-wire adapters; Ecobee requires C-wire (or their PEK adapter).",
+      "Heat pump, gas furnace, or combined? Compatibility varies."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "C-wire adapter or electrician install", "annualCostUsd": [30, 200], "frequency": "one-time" },
+      { "name": "Additional remote sensors (~$40 each)", "annualCostUsd": [0, 200], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "thermostat", "typicalPartsAvailability": "low", "notes": "Replace-don't-repair for most issues. Warranty replacement is common." }
+  }
+}

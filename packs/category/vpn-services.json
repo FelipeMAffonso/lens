@@ -1,0 +1,52 @@
+{
+  "slug": "category/vpn-services",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "VPN services",
+  "summary": "Consumer VPN subscription services — high marketing claim/reality gap.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Independent audits of 'no-logs' claims vary in rigor; court-subpoena tests and third-party PwC/Deloitte audits are the credible gold standards. Many VPN marketing 'no-logs' claims have no independent verification.", "sourceUrl": "https://www.eff.org/deeplinks/2023/vpn-safety", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "'Military-grade encryption' (AES-256) is a marketing phrase; AES-256 is the consumer-standard encryption used by most major products, not a premium feature.", "sourceUrl": "https://www.nist.gov/publications/advanced-encryption-standard-aes", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["vpn", "vpn service", "virtual private network", "nordvpn", "expressvpn", "mullvad"],
+    "productTags": ["vpn", "privacy"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "independent_audit", "unit": "categorical", "direction": "target", "target": "third-party-audited", "typicalRange": ["no-audit", "self-reported", "third-party-audited", "court-tested"] },
+      { "name": "jurisdiction", "unit": "categorical", "direction": "target", "typicalRange": ["14-eyes", "9-eyes", "5-eyes", "outside-intel-alliances"] },
+      { "name": "server_count", "unit": "count", "direction": "higher_is_better", "typicalRange": [100, 10000], "notes": "Sheer count matters less than location + reliability; marketing-inflated figure." },
+      { "name": "simultaneous_connections", "unit": "count", "direction": "higher_is_better", "typicalRange": [1, "unlimited"] },
+      { "name": "price_per_month_annual_plan", "unit": "USD", "direction": "lower_is_better", "typicalRange": [2, 15] },
+      { "name": "open_source", "unit": "boolean", "direction": "binary", "target": true }
+    ],
+    "specNormalization": {
+      "price_per_month_annual_plan": { "regex": "\\$(\\d+(?:\\.\\d+)?)\\s*/\\s*mo", "unit": "USD" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "military-grade encryption", "reality": "AES-256 is consumer-standard encryption (E2). Every reputable VPN and your bank use it. Not a differentiator.", "verdict": "misleading", "checkPrompt": "Is 'military-grade' framed as exclusive or superior? It's baseline." },
+      { "pattern": "no-logs policy", "reality": "Only meaningful if independently audited (PwC, Deloitte, Cure53) or court-tested (E1). Most 'no-logs' claims are self-declared.", "verdict": "misleading", "checkPrompt": "Is the no-logs claim backed by a specific independent audit report or court case?" },
+      { "pattern": "100% anonymous browsing", "reality": "VPN hides IP from websites but doesn't make browsing anonymous — cookies, browser fingerprinting, logged-in sessions all defeat anonymity. 'Anonymous' is overstated.", "verdict": "false", "checkPrompt": "Does the marketing claim conflate IP-hiding with actual anonymity?" },
+      { "pattern": "unblock Netflix globally", "reality": "Streaming services detect and block major VPN IP ranges; 'unblock' claims have a ~50% success rate that degrades as services refine detection.", "verdict": "misleading", "checkPrompt": "Is the streaming-unblock claim time-limited or specific to particular services?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Lifetime VPN deal below $50", "action": "flag — legitimate VPNs don't offer sustainable lifetime access; often indicates startup with funding shortfall" }
+    ],
+    "compatibilityQuestions": [
+      "Primary threat model: ISP tracking, public WiFi, geo-unblock, or genuine anonymity? Different VPNs optimize differently.",
+      "Will you use it on every device in your household? Simultaneous connection limits matter."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Renewal price spike (often 200-400% over intro offer)", "annualCostUsd": [40, 200], "frequency": "annual" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-ftc-endorsement-guides"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Service." }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "slug": "category/electric-toothbrushes",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Electric toothbrushes",
+  "summary": "Rechargeable electric toothbrushes — subscription-heavy consumable category.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "ADA Seal of Acceptance is the credible third-party endorsement for toothbrushes; Oral-B and Philips Sonicare have most models certified.", "sourceUrl": "https://www.ada.org/resources/research/science-and-research-institute/ada-seal-of-acceptance", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Replacement brush heads at manufacturer prices run $5-$15 each; 3-month replacement cycle means $20-$60/year per user — can exceed the brush handle's annual depreciation.", "sourceUrl": "https://www.consumerreports.org/oral-care/electric-toothbrushes/", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["electric toothbrush", "sonicare", "oral-b", "rotating toothbrush"],
+    "productTags": ["dental", "personal-care"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "brush_type", "unit": "categorical", "direction": "target", "typicalRange": ["sonic", "rotating-oscillating", "ionic"] },
+      { "name": "ada_seal", "unit": "boolean", "direction": "binary", "target": true, "notes": "Third-party endorsement (E1)." },
+      { "name": "pressure_sensor", "unit": "boolean", "direction": "binary", "target": true },
+      { "name": "battery_days", "unit": "days", "direction": "higher_is_better", "typicalRange": [7, 30] },
+      { "name": "annual_replacement_head_cost", "unit": "USD", "direction": "lower_is_better", "typicalRange": [20, 80] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [25, 400] }
+    ],
+    "specNormalization": {
+      "battery_days": { "regex": "(\\d+)\\s*days?", "unit": "days" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "7x better than manual", "reality": "Cochrane 2014 meta-analysis found electric toothbrushes reduce plaque ~11% and gingivitis ~6% over 1-3 months vs manual. '7x' figures are marketing.", "verdict": "misleading", "checkPrompt": "Is the '7x' claim sourced to independent research?" },
+      { "pattern": "dentist recommended", "reality": "Generic claim. Look for ADA Seal of Acceptance or specific endorsements from accredited dental associations (E1).", "verdict": "unverifiable", "checkPrompt": "Is the 'dentist recommended' claim specific (ADA Seal) or generic?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Brush head 4-pack at 70% off manufacturer price from unauthorized seller", "action": "flag — counterfeit brush heads have been reported to cause gum irritation due to inconsistent bristle quality" }
+    ],
+    "compatibilityQuestions": [
+      "Do you want in-app coaching, or a simple timer? Sonicare/Oral-B app features vary.",
+      "Braces or sensitive gums? Some models have gentler modes."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Replacement brush heads every 3 months (E2)", "annualCostUsd": [20, 80], "frequency": "quarterly" },
+      { "name": "Travel case / secondary charger", "annualCostUsd": [20, 60], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "toothbrush", "typicalPartsAvailability": "low", "notes": "Battery typically not user-replaceable; rechargeable handles are replace-don't-repair." }
+  }
+}

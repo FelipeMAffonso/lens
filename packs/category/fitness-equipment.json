@@ -1,0 +1,55 @@
+{
+  "slug": "category/fitness-equipment",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Home fitness equipment",
+  "summary": "Treadmills, bikes, ellipticals, rowers, connected-fitness bikes — high-price, high-return-rate, subscription-entangled category.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Peloton, NordicTrack, Tonal and similar connected-fitness equipment require active subscription to unlock most features; bricks without subscription average $15-40/month.", "sourceUrl": "https://www.consumerreports.org/fitness/home-gyms-and-equipment/", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["treadmill", "exercise bike", "peloton", "rowing machine", "elliptical", "home gym"],
+    "productTags": ["fitness", "exercise"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "motor_chp", "unit": "CHP", "direction": "higher_is_better", "typicalRange": [1.5, 5.0], "notes": "Continuous horsepower for treadmills. 'Peak' HP is marketing — CHP is the durability metric." },
+      { "name": "weight_capacity_lbs", "unit": "lbs", "direction": "higher_is_better", "typicalRange": [250, 450] },
+      { "name": "subscription_required", "unit": "boolean", "direction": "binary", "target": false, "notes": "Critical: Peloton/NordicTrack/Tonal require subscription to unlock features (E1)." },
+      { "name": "subscription_monthly_usd", "unit": "USD", "direction": "lower_is_better", "typicalRange": [0, 45] },
+      { "name": "footprint_sqft", "unit": "sqft", "direction": "lower_is_better", "typicalRange": [4, 20] },
+      { "name": "warranty_years_frame", "unit": "years", "direction": "higher_is_better", "typicalRange": [1, 25] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [300, 4500] }
+    ],
+    "specNormalization": {
+      "weight_capacity_lbs": { "regex": "(\\d+)\\s*(?:lbs|pounds?)", "unit": "lbs" },
+      "warranty_years_frame": { "regex": "(\\d+)[- ]?year.*(?:frame)", "unit": "years" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "5 HP peak motor", "reality": "'Peak HP' is instantaneous max draw; CHP (Continuous Horsepower) is the sustained metric that matters for treadmill durability under real running loads.", "verdict": "misleading", "checkPrompt": "Is the cited HP Peak or Continuous? Continuous is the fair number for heavy use." },
+      { "pattern": "no subscription required", "reality": "Often technically true — equipment works without subscription — but most features (classes, leaderboard, trainers, metrics) are paywalled (E1). Real usability depends on the subscription.", "verdict": "misleading", "checkPrompt": "What specific features work WITHOUT subscription? Often limited to 'just a screen showing speed/time'." },
+      { "pattern": "world-class instructors", "reality": "Subjective claim. Class library depth and instructor availability vary by time zone and day. Check the free class catalog before subscribing." }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Peloton Bike+ listed >40% off from marketplace seller", "action": "flag — used models require subscription re-enrollment" }
+    ],
+    "compatibilityQuestions": [
+      "Flooring type and ceiling height? Treadmills need 7ft+ clearance; weights/rowers can impact downstairs neighbors.",
+      "Will you actually use it? High return rates ~30%; measure floor space for the unopened-return scenario."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "All-Access / Peloton / iFit subscription", "annualCostUsd": [180, 540], "frequency": "monthly" },
+      { "name": "Delivery + assembly ($100-$300)", "annualCostUsd": [100, 300], "frequency": "one-time" },
+      { "name": "Flooring mat, bike shoes, heart-rate monitor", "annualCostUsd": [80, 250], "frequency": "one-time" },
+      { "name": "Return shipping if unhappy (often $250+ for treadmills)", "annualCostUsd": [0, 500], "frequency": "conditional" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "exercise-equipment", "typicalPartsAvailability": "moderate", "notes": "NordicTrack / Peloton have authorized service. Consumer-grade treadmills often have 90-day motor warranty only." }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "slug": "category/home-insurance",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Home / renter insurance",
+  "summary": "Homeowner and renter insurance policies.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Replacement Cost Value (RCV) coverage pays to rebuild at current prices; Actual Cash Value (ACV) pays depreciated value — major difference on older homes / roofs.", "sourceUrl": "https://content.naic.org/consumer_alert/homeowners-insurance", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Standard homeowner policies typically exclude: flood (need NFIP or private flood), earthquake, mold above caps, sewer backup, wind in some coastal areas.", "sourceUrl": "https://www.iii.org/article/homeowners-insurance-basics", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["home insurance", "homeowner insurance", "renter insurance", "dwelling insurance"],
+    "productTags": ["insurance", "home"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "annual_premium", "unit": "USD", "direction": "lower_is_better", "typicalRange": [300, 4000] },
+      { "name": "dwelling_coverage", "unit": "USD", "direction": "target", "typicalRange": [100000, 2000000], "notes": "Should match rebuild cost, not market price." },
+      { "name": "personal_property_coverage", "unit": "USD", "direction": "higher_is_better", "typicalRange": [10000, 500000] },
+      { "name": "liability_coverage", "unit": "USD", "direction": "higher_is_better", "typicalRange": [100000, 1000000] },
+      { "name": "deductible", "unit": "USD", "direction": "lower_is_better", "typicalRange": [500, 5000] },
+      { "name": "rcv_vs_acv", "unit": "categorical", "direction": "target", "target": "RCV", "typicalRange": ["ACV", "RCV"], "notes": "RCV pays at current prices; ACV pays depreciated (E1)." },
+      { "name": "company_am_best_rating", "unit": "AM_Best_rating", "direction": "higher_is_better", "typicalRange": ["B+", "A-", "A", "A+"] }
+    ],
+    "specNormalization": {},
+    "confabulationPatterns": [
+      { "pattern": "comprehensive coverage", "reality": "Standard policies exclude flood, earthquake, and often sewer backup or mold (E2). 'Comprehensive' is a feel-word with no defined meaning in this category.", "verdict": "misleading", "checkPrompt": "Does the policy include flood, earthquake, sewer backup, and mold? These are commonly excluded." },
+      { "pattern": "full replacement coverage", "reality": "RCV covers dwelling/contents at current prices but typically caps at policy limit. If the limit doesn't match actual rebuild cost, the homeowner eats the gap. Get a current rebuild estimate (E1).", "verdict": "misleading", "checkPrompt": "Has the dwelling coverage limit been set to match a current rebuild estimate (not market value)?" },
+      { "pattern": "multi-policy discount saves 25%", "reality": "Bundling discounts vary; the same carrier may offer 5-25%. Always quote standalone home + auto separately and compare to bundled.", "verdict": "misleading", "checkPrompt": "Has the user compared bundled vs standalone quotes from multiple carriers?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Flood risk? Standard policy does NOT cover flood (E2). FEMA zones require NFIP or private flood policy.",
+      "Wildfire / hurricane area? Some carriers are non-renewing policies in California, Florida, Louisiana.",
+      "High-value items (jewelry, art, instruments)? May need scheduled personal property rider."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Flood insurance (separate policy)", "annualCostUsd": [400, 2500], "frequency": "annual" },
+      { "name": "Earthquake insurance (separate, in CA)", "annualCostUsd": [500, 3000], "frequency": "annual" },
+      { "name": "Scheduled items rider (jewelry/art)", "annualCostUsd": [50, 500], "frequency": "annual" },
+      { "name": "Umbrella policy (for >$500k liability)", "annualCostUsd": [150, 500], "frequency": "annual" }
+    ],
+    "regulatoryLinks": [],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Financial product." }
+  }
+}

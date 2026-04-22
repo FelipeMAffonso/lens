@@ -1,0 +1,52 @@
+{
+  "slug": "category/wearables",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Smartwatches and fitness trackers",
+  "summary": "Smartwatches and fitness bands — Apple Watch, Garmin, Fitbit, WHOOP.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Consumer wearable heart-rate accuracy within ~5-10% of ECG during steady-state; accuracy degrades during high-intensity or cold-hand conditions.", "sourceUrl": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7725530/", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "SpO2 and blood-oxygen features on Apple Watch and Fitbit are cleared by FDA as consumer wellness products — not medical diagnostic devices.", "sourceUrl": "https://www.fda.gov/consumers/health-fraud/medical-device-user-fees-and-refunds/general-wellness-products", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["smartwatch", "fitness tracker", "apple watch", "garmin", "fitbit", "whoop"],
+    "productTags": ["wearable", "fitness"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "battery_life_days", "unit": "days", "direction": "higher_is_better", "typicalRange": [1, 30], "notes": "Apple Watch ~1-2 days; Garmin 14-30 days; WHOOP 4-5 days." },
+      { "name": "accuracy_heart_rate", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.6, 0.95], "notes": "Typical consumer accuracy ~85-95% vs ECG at steady-state (E1)." },
+      { "name": "os_platform", "unit": "categorical", "direction": "target", "typicalRange": ["watchOS", "wearOS", "garmin-os", "fitbit-os", "whoop-os"] },
+      { "name": "subscription_required_for_full_features", "unit": "boolean", "direction": "binary", "target": false, "notes": "WHOOP, Oura, Fitbit Premium paywall key features." },
+      { "name": "ingress_protection", "unit": "ip_rating", "direction": "target", "typicalRange": ["IP67", "IP68", "5ATM", "10ATM"] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [100, 900] }
+    ],
+    "specNormalization": {
+      "battery_life_days": { "regex": "(\\d+(?:\\.\\d+)?)\\s*days?\\s*battery", "unit": "days" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "medical-grade heart monitoring", "reality": "Consumer wearables are FDA-cleared as wellness products, not medical diagnostic devices (E2). 'Medical-grade' is marketing; ECG features require additional FDA clearance and specific claims.", "verdict": "misleading", "checkPrompt": "Is the device cleared for specific medical diagnoses (ECG for AFib) or just wellness monitoring?" },
+      { "pattern": "continuous health monitoring", "reality": "Sampling intervals vary. 'Continuous' typically means every 1-5 minutes; true continuous (sub-second) is rare outside clinical devices.", "verdict": "misleading", "checkPrompt": "What's the actual sensor sampling interval?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "Apple Watch priced >25% below Apple price from non-authorized seller", "action": "flag as likely counterfeit or refurbished-sold-as-new" }
+    ],
+    "compatibilityQuestions": [
+      "iOS or Android? Apple Watch is iOS-only; wearOS prefers Android.",
+      "Primary use: notifications, fitness, sleep, or health monitoring? Different devices optimize differently."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Subscription (Fitbit Premium, WHOOP, Oura)", "annualCostUsd": [60, 300], "frequency": "annual" },
+      { "name": "Replacement bands (proprietary for Apple)", "annualCostUsd": [20, 200], "frequency": "occasional" },
+      { "name": "AppleCare / extended warranty", "annualCostUsd": [50, 150], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "smartwatch", "typicalPartsAvailability": "low", "notes": "Most smartwatches are glued and non-repairable; battery replacement is often service-only." }
+  }
+}
