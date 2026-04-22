@@ -1,0 +1,39 @@
+{
+  "slug": "regulation/us-ca-ccpa",
+  "type": "regulation",
+  "version": "1.0.0",
+  "name": "California Consumer Privacy Act (CCPA / CPRA)",
+  "summary": "California privacy law — right to know, delete, correct, limit sharing, and opt out of sale.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "CCPA (as amended by CPRA, effective Jan 1, 2023) gives California consumers rights to know, delete, correct, and limit sharing of personal information, and to opt out of sale or sharing.", "sourceUrl": "https://oag.ca.gov/privacy/ccpa", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Businesses with gross revenue >$25M OR >100,000 consumers OR 50% revenue from selling personal info must comply with CCPA.", "sourceUrl": "https://cppa.ca.gov/regulations/", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "jurisdiction": "us-state/ca",
+    "productCategories": [],
+    "businessScope": { "appliesTo": ["data-collection", "data-sharing", "data-sale"], "userResidency": "california" }
+  },
+  "body": {
+    "officialName": "California Consumer Privacy Act of 2018 (as amended by California Privacy Rights Act of 2020)",
+    "citation": "Cal. Civ. Code §§ 1798.100-1798.199",
+    "status": "in-force",
+    "effectiveDate": "2020-01-01",
+    "vacatedDate": null,
+    "vacatedBy": null,
+    "supersededBy": null,
+    "supersedes": null,
+    "scopeSummary": "California consumers have the right to: know what personal information is collected; delete personal information; correct inaccurate personal information; limit use of sensitive personal information; opt out of the sale or sharing of personal information; non-discrimination for exercising rights. Enforced by California Privacy Protection Agency + CA Attorney General.",
+    "userRightsPlainLanguage": "If you're a California resident, any business with >$25M revenue, >100,000 consumers, or >50% revenue from selling your data must honor your rights to know what they have, delete it, correct it, limit its use, and opt out of sale. They can't retaliate if you exercise these rights. 'Do Not Sell My Personal Information' links on websites exist because of this law.",
+    "enforcementSignals": [
+      { "action": "cppa-complaint", "url": "https://cppa.ca.gov/webapplications/apex/ConsumerComplaints", "description": "File a complaint with the California Privacy Protection Agency." },
+      { "action": "state-ag-complaint", "url": "https://oag.ca.gov/consumers/general", "description": "California Attorney General consumer complaint portal." }
+    ],
+    "evidenceRefs": ["E1", "E2"]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "slug": "fee/bnpl-interest",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Buy Now Pay Later interest / late fees",
+  "summary": "Deferred-payment plans from Affirm, Klarna, Afterpay, PayPal Pay-in-4 — hidden costs beyond the advertised 0% APR.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "CFPB 2023 findings: 'Pay-in-4' BNPL products advertised as '0% APR' frequently charge late fees, account fees, and high-interest deferred-payment products within the same app that are not clearly differentiated.", "sourceUrl": "https://www.consumerfinance.gov/about-us/newsroom/cfpb-takes-action-to-ensure-buy-now-pay-later-lenders-adhere-to-consumer-protections/", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "categoryContext": [], "pageTypes": ["checkout", "cart"] },
+  "body": {
+    "canonicalName": "BNPL interest + late fees",
+    "description": "Buy Now Pay Later (BNPL) plans advertise 0% APR on 4-installment plans, but longer-term plans on the same app charge 10-30%+ APR, and missed payments trigger late fees ($7-$25) that are not prominently disclosed (E1).",
+    "typicalRange": { "min": 0, "max": 35, "unit": "percent_APR_or_USD_late_fee", "frequency": "per-missed-payment" },
+    "identificationSignals": [
+      { "kind": "text-match", "patterns": ["pay in 4", "pay later", "klarna", "affirm", "afterpay", "sezzle", "0% APR"], "caseSensitive": false },
+      { "kind": "dom", "selector": "[data-bnpl], .payment-method-bnpl" }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "us-federal", "regulationSlug": null, "requirement": "CFPB 2024 interpretive rule treats BNPL providers as credit-card-like; Truth-in-Lending disclosures apply for some BNPL products (E1)." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "sometimes",
+      "typicalSuccessRate": 0.3,
+      "script": "I noticed a late fee on my Pay-in-4 installment. This is my first late payment; can you waive it?"
+    },
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

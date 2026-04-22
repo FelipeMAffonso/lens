@@ -13,14 +13,27 @@ export async function runCrossModelCheck(
   rec: AIRecommendation,
   env: Env,
 ): Promise<CrossModelCheck[]> {
-  // If a Managed Agent endpoint is configured, delegate.
+  // If the Managed Agent endpoint is configured, delegate there.
+  // This is the hand-off to workers/cross-model/src/index.ts — the "Best use
+  // of Claude Managed Agents" submission surface. The agent Worker owns the
+  // rate-limit state per provider and runs the Opus 4.7 synthesis step.
   if (env.CROSS_MODEL_AGENT_URL) {
-    const res = await fetch(env.CROSS_MODEL_AGENT_URL, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ intent, recommendation: rec }),
-    });
-    if (res.ok) return (await res.json()) as CrossModelCheck[];
+    try {
+      const res = await fetch(env.CROSS_MODEL_AGENT_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ intent, recommendation: rec }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { results?: CrossModelCheck[]; synthesis?: string };
+        console.log("[crossModel:managed-agent] results=%d synthesis=%s", data.results?.length ?? 0, (data.synthesis ?? "").slice(0, 80));
+        return data.results ?? [];
+      }
+      console.error("[crossModel:managed-agent] HTTP %d", res.status);
+    } catch (e) {
+      console.error("[crossModel:managed-agent] throw:", (e as Error).message);
+    }
+    // fall through to inline fan-out
   }
 
   const question = [

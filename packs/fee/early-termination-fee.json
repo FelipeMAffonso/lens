@@ -1,0 +1,34 @@
+{
+  "slug": "fee/early-termination-fee",
+  "type": "fee",
+  "version": "1.0.0",
+  "name": "Early termination fee",
+  "summary": "Fees charged for ending a contract (cellular, fitness, gym, fiber) before its stated term.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Cellular ETFs were largely eliminated by the major US carriers (Verizon, T-Mobile, AT&T) by 2018 due to switch-incentive programs; however, device-financing ETFs still apply for unpaid phone balances.", "sourceUrl": "https://www.fcc.gov/consumers/guides/cell-phone-contracts-and-early-termination-fees", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "categoryContext": ["cellular", "fitness", "gym", "internet", "cable"], "pageTypes": ["signup", "contract"] },
+  "body": {
+    "canonicalName": "Early termination fee",
+    "description": "Contract fee for cancelling before the stated term ends. Common in gym memberships ($50-$500), fiber/cable contracts ($100-$400 declining), and device-financing plans (remaining balance, which can be $500+). Traditional cellular ETFs mostly eliminated (E1).",
+    "typicalRange": { "min": 50, "max": 500, "unit": "USD", "frequency": "one-time-on-cancellation" },
+    "identificationSignals": [
+      { "kind": "text-match", "patterns": ["early termination fee", "ETF", "cancellation fee", "contract break fee"], "caseSensitive": false }
+    ],
+    "disclosureLegality": [
+      { "jurisdiction": "us-federal", "regulationSlug": null, "requirement": "Must be disclosed at contract signing per FTC. Excessive ETFs have been ruled unconscionable by some state courts." }
+    ],
+    "negotiability": {
+      "waivableOnRequest": "sometimes",
+      "typicalSuccessRate": 0.4,
+      "script": "I need to cancel my service. I understand you have an ETF, but [reason for cancellation — moving, job loss, deployment, etc.]. Can you waive or prorate the ETF as a loyalty retention?"
+    },
+    "interventionLinks": ["intervention/surface-and-warn"]
+  }
+}

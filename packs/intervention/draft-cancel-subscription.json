@@ -1,0 +1,47 @@
+{
+  "slug": "intervention/draft-cancel-subscription",
+  "type": "intervention",
+  "version": "1.0.0",
+  "name": "Draft subscription-cancellation request",
+  "summary": "Generate a cancellation letter citing the user's click-to-cancel rights in applicable jurisdictions.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "CA SB-313 requires online-signup subscriptions to permit online cancellation; NY, IL, VT have analogous state laws. Federal FTC Click-to-Cancel Rule was vacated July 2025.", "sourceUrl": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=17602.&lawCode=BPC", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": { "triggerTypes": ["user-initiated-cancellation", "roach-motel-detected", "forced-continuity-detected"] },
+  "body": {
+    "canonicalName": "Draft subscription-cancellation request with jurisdictional citations",
+    "description": "Generate a plain-text or email cancellation request citing the user's click-to-cancel rights (CA SB-313, NY/IL/VT analogs) if applicable. Also generates a dispute-route to the state AG or CFPB if the business refuses compliant cancellation (E1).",
+    "executionType": "draft-offer",
+    "consentTier": "explicit-per-action",
+    "prerequisites": [
+      { "kind": "subscription-identified", "description": "User has named the service they want to cancel" },
+      { "kind": "user-state-known", "description": "User's state of residence determines which law to cite" }
+    ],
+    "template": {
+      "format": "email",
+      "subject": "Cancellation request — {service_name}",
+      "bodyTemplate": "Dear {service_name},\n\nI am requesting cancellation of my subscription effective {cancel_date}.\n\nAccount details:\n  Email / username: {user_identifier}\n  Subscription: {plan_name}\n  Signup date: {signup_date}\n\n{state_law_citation}\n\nPlease confirm cancellation in writing within 5 business days. If you require any additional identity verification, please state what is needed. No further action will be required from me after your confirmation.\n\nIf cancellation is not completed, I reserve the right to file a complaint with {enforcement_agency} and dispute any subsequent charges with my payment provider.\n\nSincerely,\n{user_name}",
+      "stateLawSnippets": {
+        "CA": "Under California Business & Professions Code §17602 (SB-313), my online-signup subscription is entitled to online cancellation through the same channel I signed up.",
+        "NY": "Under New York General Business Law §527-a, my online-signup subscription is entitled to online cancellation.",
+        "IL": "Under the Illinois Automatic Contract Renewal Act, online-signup subscriptions must provide an online cancellation mechanism.",
+        "VT": "Under Vermont 9 V.S.A. §2454a, online subscription services must provide online cancellation.",
+        "DEFAULT": "I request cancellation through a simple online mechanism matching the signup channel, consistent with consumer-protection standards emerging in US state law."
+      }
+    },
+    "successSignals": [
+      { "kind": "confirmation-email-received", "within": "5 business days" },
+      { "kind": "no-subsequent-charge", "within": "next billing cycle" }
+    ],
+    "failureFallback": {
+      "nextIntervention": "intervention/file-ftc-complaint"
+    },
+    "regulatoryBasis": ["regulation/us-ca-sb-313-click-to-cancel"]
+  }
+}

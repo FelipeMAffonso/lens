@@ -1,0 +1,52 @@
+{
+  "slug": "category/software-subscriptions",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Software subscriptions (SaaS)",
+  "summary": "Consumer software subscriptions — productivity, streaming, security, cloud storage.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Average US household spends $273/month on subscriptions but estimates their subscription spend at ~$86/month — a 3x underestimate. Forgotten or unused subscriptions drive the gap.", "sourceUrl": "https://www.chase.com/personal/banking/education/budgeting-saving/subscription-services-hidden-costs", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "California SB-313 requires online-signup subscriptions to permit online cancellation; NY, IL, VT have similar laws. Federal FTC Click-to-Cancel Rule was vacated July 2025.", "sourceUrl": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=17602.&lawCode=BPC", "retrieved": "2026-04-21", "primary": true }
+  ],
+  "applicability": {
+    "categoryAliases": ["software subscription", "SaaS", "subscription service", "streaming service", "cloud storage"],
+    "productTags": ["software", "subscription"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "monthly_cost", "unit": "USD", "direction": "lower_is_better", "typicalRange": [2, 100] },
+      { "name": "annual_cost_if_yearly_plan", "unit": "USD", "direction": "lower_is_better", "typicalRange": [20, 1000], "notes": "Yearly plans typically save 15-20% but lock funds." },
+      { "name": "feature_fit", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "cancellation_ease", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.0, 1.0], "notes": "In CA/NY/IL/VT, online-signup mandates online-cancel (E2). Elsewhere, check experience before buying." },
+      { "name": "data_ownership", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.2, 1.0], "notes": "Can you export your data if you cancel? Lock-in risk." },
+      { "name": "free_tier_sufficient", "unit": "boolean", "direction": "binary", "target": true }
+    ],
+    "specNormalization": {
+      "monthly_cost": { "regex": "\\$(\\d+(?:\\.\\d+)?)\\s*/\\s*(?:mo|month)", "unit": "USD" },
+      "annual_cost_if_yearly_plan": { "regex": "\\$(\\d+(?:\\.\\d+)?)\\s*/\\s*(?:yr|year|annual)", "unit": "USD" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "30-day free trial", "reality": "Free trials require a payment method at signup 90% of the time and auto-convert silently. Calendar the end-date (E1, forced-continuity dark pattern).", "verdict": "misleading", "checkPrompt": "Is a payment method required upfront? When does auto-charge begin?" },
+      { "pattern": "cancel anytime", "reality": "'Anytime' frequently means 'after navigating through a roach-motel'. Check for online-cancel availability before signing up.", "verdict": "misleading", "checkPrompt": "Can the subscription be cancelled in <5 clicks online?" },
+      { "pattern": "save 20% with annual billing", "reality": "Annual billing does save money, but locks in ~12 months of commitment. If the service is discontinued or features remove, you cannot pro-rate refund.", "verdict": "misleading", "checkPrompt": "Will the user use the service for all 12 months? If any doubt, monthly is safer." }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Will you use it enough to justify? Households overestimate subscription usage by 2-3x on average (E1).",
+      "Jurisdiction: CA/NY/IL/VT residents have click-to-cancel legal rights; elsewhere, check cancellation UX first."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Forgotten subscriptions (3x underestimate — E1)", "annualCostUsd": [200, 2000], "frequency": "ongoing" },
+      { "name": "Price hikes on renewal", "annualCostUsd": [10, 300], "frequency": "annual" },
+      { "name": "Feature tier escalation (start basic, upsell to premium)", "annualCostUsd": [60, 600], "frequency": "ongoing" }
+    ],
+    "regulatoryLinks": ["regulation/us-ca-sb-313-click-to-cancel", "regulation/us-federal-ftc-click-to-cancel-vacated"],
+    "repairability": { "ifixitCategoryId": null, "typicalPartsAvailability": "none", "notes": "Service." }
+  }
+}

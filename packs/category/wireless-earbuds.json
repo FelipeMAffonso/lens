@@ -1,0 +1,59 @@
+{
+  "slug": "category/wireless-earbuds",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Wireless earbuds",
+  "summary": "True wireless in-ear headphones, $40-$350, with and without ANC.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "Earbud battery claims typically state 'total with case' — the earbuds themselves typically run 4-8 hours; the case provides 3-5 full recharges.", "sourceUrl": "https://www.rtings.com/headphones/reviews/best/truly-wireless-earbuds", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "IPX4 rating is sweat-resistant (splash-resistant); IPX7 is waterproof to 1m for 30 min; IP68 is full immersion. Marketing copy often conflates.", "sourceUrl": "https://en.wikipedia.org/wiki/IP_code", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["wireless earbuds", "earbuds", "true wireless earbuds", "airpods", "bluetooth earbuds"],
+    "productTags": ["earbuds", "audio"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "battery_earbuds_hours", "unit": "hours", "direction": "higher_is_better", "typicalRange": [4, 10], "notes": "Earbuds alone, not 'with case' total (E1)." },
+      { "name": "anc_effectiveness", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.0, 1.0] },
+      { "name": "fit_security", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "mic_quality", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0] },
+      { "name": "ingress_protection", "unit": "ip_rating", "direction": "target", "typicalRange": ["IPX4", "IPX5", "IPX7", "IP67", "IP68"] },
+      { "name": "codec_support", "unit": "categorical", "direction": "target", "target": "LDAC", "typicalRange": ["SBC", "AAC", "aptX", "aptX Adaptive", "LDAC", "LC3"] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [40, 350] }
+    ],
+    "specNormalization": {
+      "battery_earbuds_hours": { "regex": "(\\d+(?:\\.\\d+)?)\\s*(?:hrs?|hours?)\\b(?!.*case)", "unit": "hours" },
+      "ingress_protection": { "regex": "IP\\s*[X0-9]{1,2}", "unit": "ip_rating" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "up to 30 hours of battery", "reality": "Total-with-case figure. Earbuds themselves run 5-8 hours; rest comes from 3-4 case recharges (E1). For 'won't die during my commute' durability, the earbud-only figure is what matters.", "verdict": "misleading", "checkPrompt": "Does the battery figure specify earbud-only vs total-with-case?" },
+      { "pattern": "waterproof for workouts", "reality": "IPX4 = sweat-resistant only; splash from water bottle OK but immersion not. True waterproof is IPX7+ (E2). For pools or shower, need IPX7+.", "verdict": "misleading", "checkPrompt": "What specific IP rating? Anything <IPX7 is not waterproof." },
+      { "pattern": "best-in-class sound", "reality": "Not measurable. Codec support, EQ customization, and driver type matter more. LDAC on Android + AirPods-level ANC is the current frontier.", "verdict": "unverifiable", "checkPrompt": "Is 'best-in-class' substantiated with frequency response or codec support?" }
+    ],
+    "counterfeitSignals": [
+      { "signal": "AirPods Pro listed >30% below Apple price from marketplace seller", "action": "flag — counterfeit AirPods are widespread; serial number verification on Apple's site is required" }
+    ],
+    "compatibilityQuestions": [
+      "iOS or Android? AAC codec is iOS-optimal; LDAC/aptX is Android-optimal.",
+      "Will you work out / shower / swim with them? Determines IP rating requirement.",
+      "Do you wear glasses? Some earbud shapes fit poorly under glasses arms."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Replacement ear tips (sizes for better fit)", "annualCostUsd": [10, 30], "frequency": "one-time" },
+      { "name": "Case replacement if lost", "annualCostUsd": [80, 200], "frequency": "conditional" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": {
+      "ifixitCategoryId": "earbuds",
+      "typicalPartsAvailability": "very-low",
+      "notes": "Almost no earbuds are serviceable. Battery-replacement programs exist for AirPods at ~$49 but most brands are replace-don't-repair."
+    }
+  }
+}

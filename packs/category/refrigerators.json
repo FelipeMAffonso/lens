@@ -1,0 +1,52 @@
+{
+  "slug": "category/refrigerators",
+  "type": "category",
+  "version": "1.0.0",
+  "name": "Refrigerators",
+  "summary": "Full-size residential refrigerators, $700-$5000.",
+  "status": "published",
+  "authors": [{ "name": "Felipe Affonso", "affiliation": "Oklahoma State University" }],
+  "reviewers": [],
+  "lastVerified": "2026-04-21",
+  "retirementDate": null,
+  "retirementReason": null,
+  "evidence": [
+    { "ref": "E1", "claim": "ENERGY STAR refrigerators use ~9% less energy than non-certified models; savings over a 15-year lifetime average $220-$290.", "sourceUrl": "https://www.energystar.gov/products/refrigerators", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "Average refrigerator lifespan is 13-17 years; major brand repair rates within the first 5 years run 15-35% depending on brand.", "sourceUrl": "https://www.consumerreports.org/appliances/refrigerators/", "retrieved": "2026-04-21", "primary": false }
+  ],
+  "applicability": {
+    "categoryAliases": ["refrigerator", "fridge", "refrigerators", "french door refrigerator", "side by side refrigerator"],
+    "productTags": ["refrigerator", "kitchen-appliance"]
+  },
+  "body": {
+    "criteria": [
+      { "name": "capacity_cu_ft", "unit": "cu_ft", "direction": "target", "typicalRange": [18, 30] },
+      { "name": "annual_energy_kwh", "unit": "kWh", "direction": "lower_is_better", "typicalRange": [400, 800] },
+      { "name": "energy_star_certified", "unit": "boolean", "direction": "binary", "target": true, "notes": "~9% savings vs non-certified (E1)." },
+      { "name": "style", "unit": "categorical", "direction": "target", "typicalRange": ["top-freezer", "bottom-freezer", "french-door", "side-by-side", "counter-depth"] },
+      { "name": "predicted_reliability", "unit": "score_0_1", "direction": "higher_is_better", "typicalRange": [0.3, 1.0], "notes": "Consumer Reports Reliability rating (E2)." },
+      { "name": "warranty_years", "unit": "years", "direction": "higher_is_better", "typicalRange": [1, 10] },
+      { "name": "price", "unit": "USD", "direction": "lower_is_better", "typicalRange": [700, 5000] }
+    ],
+    "specNormalization": {
+      "capacity_cu_ft": { "regex": "(\\d+(?:\\.\\d+)?)\\s*cu\\.?\\s*ft", "unit": "cu_ft" },
+      "warranty_years": { "regex": "(\\d+)[- ]?year", "unit": "years" }
+    },
+    "confabulationPatterns": [
+      { "pattern": "lifetime warranty on sealed system", "reality": "Sealed-system warranties (compressor, condenser) are 'lifetime parts only' — labor is usually 1 year. Practical lifetime repair cost is $300-$800 in labor (E2).", "verdict": "misleading", "checkPrompt": "Does the warranty cover labor or only parts? For how long?" },
+      { "pattern": "smart fridge with AI food management", "reality": "Camera + app integrations have short support lifecycles (3-5 years typical); features may be deprecated mid-lifetime. Non-smart fridges last longer functionally.", "verdict": "misleading", "checkPrompt": "What's the manufacturer's committed support horizon for the smart features?" }
+    ],
+    "counterfeitSignals": [],
+    "compatibilityQuestions": [
+      "Measure kitchen opening AND doorway path — many fridges don't fit through standard doorways without removing doors.",
+      "Need ice/water dispenser? Requires water line connection."
+    ],
+    "typicalHiddenCosts": [
+      { "name": "Delivery + installation + haul-away", "annualCostUsd": [150, 400], "frequency": "one-time" },
+      { "name": "Water filter replacements (for dispenser models)", "annualCostUsd": [50, 150], "frequency": "bi-annual" },
+      { "name": "Extended warranty (often poor value)", "annualCostUsd": [100, 400], "frequency": "one-time" }
+    ],
+    "regulatoryLinks": ["regulation/us-federal-magnuson-moss"],
+    "repairability": { "ifixitCategoryId": "refrigerator", "typicalPartsAvailability": "high", "notes": "Sub-Zero, Bosch have strong parts/service. Most major brands serviceable for 10-12 years." }
+  }
+}
