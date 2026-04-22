@@ -182,30 +182,55 @@ async function extractFromUrl(
   input: Extract<AuditInput, { kind: "url" }>,
   env: Env,
 ): Promise<{ intent: UserIntent; aiRecommendation: AIRecommendation }> {
-  let fetched = "";
+  let rawHtml = "";
   try {
     const res = await fetch(input.url, {
       redirect: "follow",
       headers: { "user-agent": "Mozilla/5.0 Lens/1.0" },
     });
     if (res.ok) {
-      const raw = await res.text();
-      // Cheap HTML-to-text stripper
-      fetched = raw
-        .replace(/<script[\s\S]*?<\/script>/gi, "")
-        .replace(/<style[\s\S]*?<\/style>/gi, "")
-        .replace(/<[^>]+>/g, " ")
-        .replace(/\s+/g, " ")
-        .slice(0, 20_000);
+      rawHtml = (await res.text()).slice(0, 300_000);
     }
   } catch (e) {
     console.error("[extract:url] fetch failed:", (e as Error).message);
   }
 
+  // S3-W15 — structured parser runs first. When we get a confident parse,
+  // skip the Opus round-trip and build the AIRecommendation deterministically.
+  const { parseProduct, isConfident } = await import("./parsers/parse.js");
+  const structured = parseProduct(rawHtml, input.url);
+  if (isConfident(structured)) {
+    console.log(
+      "[extract:url] structured parse OK host=%s name=%s price=%s source=%s",
+      structured.host ?? "?",
+      structured.name,
+      structured.price,
+      structured.sources?.name ?? "?",
+    );
+    return buildFromStructured(structured, input);
+  }
+
+  // Fallback: strip HTML → text, hand to Opus to interpret (previous behavior).
+  const fetched = rawHtml
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .slice(0, 20_000);
+
+  const hint = structured.name || structured.brand
+    ? `PARTIAL STRUCTURED HINT:\n${JSON.stringify({
+        name: structured.name,
+        brand: structured.brand,
+        price: structured.price,
+        currency: structured.currency,
+      })}\n\n`
+    : "";
+
   const userContent = [
     {
       type: "text" as const,
-      text: `URL: ${input.url}\n\n${input.userPrompt ? `USER CRITERIA: ${input.userPrompt}\n\n` : ""}${input.category ? `CATEGORY HINT: ${input.category}\n\n` : ""}PAGE CONTENT (truncated):\n${fetched || "(fetch returned empty; extract product from the URL itself if possible)"}`,
+      text: `URL: ${input.url}\n\n${input.userPrompt ? `USER CRITERIA: ${input.userPrompt}\n\n` : ""}${input.category ? `CATEGORY HINT: ${input.category}\n\n` : ""}${hint}PAGE CONTENT (truncated):\n${fetched || "(fetch returned empty; extract product from the URL itself if possible)"}`,
     },
   ];
 
@@ -216,6 +241,63 @@ async function extractFromUrl(
     effort: "high",
   });
   return parseExtractJson(text, input.userPrompt);
+}
+
+/**
+ * Build a UserIntent + AIRecommendation directly from a structured parse, so
+ * a reliable product page doesn't require an Opus round-trip on extraction.
+ */
+function buildFromStructured(
+  structured: import("./parsers/types.js").ProductParse,
+  input: Extract<AuditInput, { kind: "url" }>,
+): { intent: UserIntent; aiRecommendation: AIRecommendation } {
+  const intent: UserIntent = {
+    category: input.category ?? inferCategoryFromName(structured.name ?? "") ?? "product",
+    criteria: [
+      { name: "price", weight: 0.4, direction: "lower_is_better" },
+      { name: "overall_quality", weight: 0.6, direction: "higher_is_better" },
+    ],
+    rawCriteriaText: input.userPrompt ?? "",
+  };
+  const claims: AIRecommendation["claims"] = [];
+  if (structured.features && structured.features.length > 0) {
+    for (const f of structured.features.slice(0, 6)) {
+      claims.push({ attribute: "feature", statedValue: f });
+    }
+  }
+  if (structured.sku) claims.push({ attribute: "sku", statedValue: structured.sku });
+  if (structured.rating !== undefined) {
+    claims.push({ attribute: "rating", statedValue: String(structured.rating) });
+  }
+  const aiRecommendation: AIRecommendation = {
+    host: "unknown",
+    pickedProduct: {
+      name: structured.name ?? "(unknown product)",
+      ...(structured.brand ? { brand: structured.brand } : {}),
+      ...(structured.price !== undefined ? { price: structured.price } : {}),
+      ...(structured.currency ? { currency: structured.currency } : {}),
+    },
+    claims,
+    reasoningTrace:
+      structured.description ??
+      `Structured extraction from ${structured.host ?? "page"} (source=${structured.sources?.name ?? "unknown"}).`,
+  };
+  return { intent, aiRecommendation };
+}
+
+function inferCategoryFromName(name: string): string | undefined {
+  const n = name.toLowerCase();
+  const hits: Array<[RegExp, string]> = [
+    [/\bespresso\b|\bbarista\b/, "espresso machines"],
+    [/\blaptop\b|\bmacbook\b|\bthinkpad\b|\bnotebook\b/, "laptops"],
+    [/\bheadphone\b|\bearbuds?\b|\bin-?ears?\b/, "headphones"],
+    [/\btv\b|\bsmart television\b|\boled\b|\bqled\b/, "televisions"],
+    [/\bvacuum\b|\broborock\b|\bdyson\b/, "vacuums"],
+    [/\bblender\b|\bvitamix\b|\bninja\b/, "blenders"],
+    [/\bcamera\b|\bdslr\b|\bmirrorless\b/, "cameras"],
+  ];
+  for (const [re, slug] of hits) if (re.test(n)) return slug;
+  return undefined;
 }
 
 /**
