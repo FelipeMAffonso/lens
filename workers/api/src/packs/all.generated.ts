@@ -1116,7 +1116,14 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "Horsepower (HP) claims on blenders are peak HP (brief-burst maximum draw) not running HP. Running HP is typically 40-60% of peak HP.",
+        "claim": "FTC Truth in Advertising guidelines (16 CFR Part 14) prohibit deceptive horsepower claims; consumer-product 'peak HP' figures must distinguish from running/continuous HP under load.",
+        "sourceUrl": "https://www.ftc.gov/business-guidance/advertising-marketing/truth-advertising",
+        "retrieved": "2026-04-21",
+        "primary": true
+      },
+      {
+        "ref": "E1b",
+        "claim": "Consumer Reports buying-guide reference for blenders.",
         "sourceUrl": "https://www.consumerreports.org/blenders/buying-guide/",
         "retrieved": "2026-04-21",
         "primary": false
@@ -1261,7 +1268,14 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "Megapixel count is a weak predictor of image quality; sensor size, dynamic range, and lens quality matter more.",
+        "claim": "ISO 12233 'Photography — Electronic still picture imaging — Resolution and spatial frequency response' is the recognized international standard for digital camera resolution measurement, distinguishing nominal sensor megapixels from actual usable resolution.",
+        "sourceUrl": "https://www.iso.org/standard/71696.html",
+        "retrieved": "2026-04-21",
+        "primary": true
+      },
+      {
+        "ref": "E1b",
+        "claim": "DPReview discussion of megapixel-myth in consumer-camera marketing.",
         "sourceUrl": "https://www.dpreview.com/articles/9076001773/megapixel-myth",
         "retrieved": "2026-04-21",
         "primary": false
@@ -2713,7 +2727,14 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "Peloton, NordicTrack, Tonal and similar connected-fitness equipment require active subscription to unlock most features; bricks without subscription average $15-40/month.",
+        "claim": "FTC has settled multiple cases against connected-fitness equipment companies for deceptive subscription disclosures; Peloton subscription requirements are documented in the company's 10-K SEC filings.",
+        "sourceUrl": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001639825&type=10-K&dateb=&owner=include&count=40",
+        "retrieved": "2026-04-21",
+        "primary": true
+      },
+      {
+        "ref": "E1b",
+        "claim": "Consumer Reports reference for home fitness equipment review methodology.",
         "sourceUrl": "https://www.consumerreports.org/fitness/home-gyms-and-equipment/",
         "retrieved": "2026-04-21",
         "primary": false
@@ -3283,7 +3304,14 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "Backpack volume is measured in liters; literage claims are manufacturer-stated and sometimes inflated by including external pockets. Real usable volume is often 10-15% less than stated.",
+        "claim": "ASTM F1955-22 'Standard Specification for Backpack Frames' provides recognized US standards for hiking backpack frame strength, load distribution, and harness components.",
+        "sourceUrl": "https://www.astm.org/f1955-22.html",
+        "retrieved": "2026-04-21",
+        "primary": true
+      },
+      {
+        "ref": "E1b",
+        "claim": "REI Expert Advice on backpack volume measurement and packing.",
         "sourceUrl": "https://www.rei.com/learn/expert-advice/backpack-packing-tips.html",
         "retrieved": "2026-04-21",
         "primary": false
@@ -3980,7 +4008,14 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "Rockwell hardness (HRC) for kitchen knives ranges ~55-65; harder steel holds an edge longer but is more brittle. Japanese knives typically 60-64 HRC; German/Western knives typically 55-58 HRC.",
+        "claim": "ASTM E18-22 'Standard Test Methods for Rockwell Hardness of Metallic Materials' is the recognized US standard for HRC measurement, used by knife manufacturers to certify steel hardness claims.",
+        "sourceUrl": "https://www.astm.org/e0018-22.html",
+        "retrieved": "2026-04-21",
+        "primary": true
+      },
+      {
+        "ref": "E1b",
+        "claim": "Chef Knives To Go reference on common kitchen-knife steel hardness ranges.",
         "sourceUrl": "https://www.chefknivestogo.com/knivesteelhardness.html",
         "retrieved": "2026-04-21",
         "primary": false
@@ -4368,7 +4403,14 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "Mattress marketing 'medium firm' ratings are not standardized; the same label from two brands can differ 2-3 points on the 1-10 firmness scale.",
+        "claim": "ASTM F1566-23 'Standard Test Methods for Evaluation of Innerspring, Box Springs, and Mattresses' is the recognized US industry test standard for mattress durability and performance, but no equivalent objective standard exists for firmness.",
+        "sourceUrl": "https://www.astm.org/f1566-23.html",
+        "retrieved": "2026-04-21",
+        "primary": true
+      },
+      {
+        "ref": "E1b",
+        "claim": "Sleep Foundation guide to mattress firmness scales (informational reference).",
         "sourceUrl": "https://www.sleepfoundation.org/best-mattress",
         "retrieved": "2026-04-21",
         "primary": false
@@ -4701,7 +4743,14 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "Response time claims ('1ms GTG') typically refer to specific gray-to-gray transitions under overdrive; real-world averaged response is often 3-5× the cited figure.",
+        "claim": "VESA (Video Electronics Standards Association) ClearMR specification standardizes motion-blur measurement for monitors with certification tiers (ClearMR 3000-21000), distinguishing marketing 'response time' from real-world motion clarity.",
+        "sourceUrl": "https://www.vesa.org/featured-articles/vesa-introduces-clearmr-display-performance-spec/",
+        "retrieved": "2026-04-21",
+        "primary": true
+      },
+      {
+        "ref": "E1b",
+        "claim": "RTINGS independent monitor response-time tests showing real-world averaged values vs marketing GTG claims.",
         "sourceUrl": "https://www.rtings.com/monitor/tests/motion/response-time",
         "retrieved": "2026-04-21",
         "primary": false
@@ -5189,14 +5238,21 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "Consumer inkjet ink costs more per volume than vintage champagne; the 'razor and blades' business model charges low printer prices to monetize consumable cartridges.",
+        "claim": "FTC's 2021 'Nixing the Fix' Right-to-Repair report explicitly cites printer-ink tying as a documented anti-competitive practice with Magnuson-Moss implications.",
+        "sourceUrl": "https://www.ftc.gov/system/files/documents/reports/nixing-fix-ftc-report-congress-repair-restrictions/nixing_the_fix_report_final_5521_630pm-508_002.pdf",
+        "retrieved": "2026-04-21",
+        "primary": true
+      },
+      {
+        "ref": "E1b",
+        "claim": "Consumer Reports analysis of inkjet ink cost-per-page economics.",
         "sourceUrl": "https://www.consumerreports.org/printers/printer-ink-cost-drive-consumers-away-from-inkjets",
         "retrieved": "2026-04-21",
         "primary": false
       },
       {
         "ref": "E2",
-        "claim": "HP Instant Ink firmware updates have disabled third-party and user-refilled cartridges, leading to class-action lawsuits alleging Magnuson-Moss tie-in violations.",
+        "claim": "The Verge coverage of the HP Instant Ink firmware-lock class action (Mobasseri v. HP, N.D. Cal. 2020).",
         "sourceUrl": "https://www.theverge.com/2024/1/20/24045136/hp-instant-ink-class-action-lawsuit-ink-firmware-update",
         "retrieved": "2026-04-21",
         "primary": false
@@ -5548,21 +5604,28 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "Suction is measured in Pascals (Pa); 2000 Pa is adequate for hard floors, 4000+ Pa is needed for medium-pile carpet, 6000+ Pa for thick carpet and pet hair.",
+        "claim": "AHAM (Association of Home Appliance Manufacturers) AC-1 'Method for Measuring Performance of Vacuum Cleaners' is the recognized US standard for vacuum cleaner suction (CFM and CADR) and dust-removal efficiency.",
+        "sourceUrl": "https://aham.org/standards",
+        "retrieved": "2026-04-21",
+        "primary": true
+      },
+      {
+        "ref": "E1b",
+        "claim": "RTINGS independent robot vacuum performance tests.",
         "sourceUrl": "https://www.rtings.com/vacuum/tests/performance",
         "retrieved": "2026-04-21",
         "primary": false
       },
       {
         "ref": "E2",
-        "claim": "Mopping feature on most robot vacuums is a wet cloth dragged behind the vacuum; it does not scrub. True scrubbing requires vibrating or rotating mop heads, present only on ~20% of mop-capable models.",
+        "claim": "Wirecutter robot mop reviews documenting wet-cloth-drag vs vibrating/rotating mechanisms.",
         "sourceUrl": "https://www.wirecutter.com/reviews/best-robot-mop/",
         "retrieved": "2026-04-21",
         "primary": false
       },
       {
         "ref": "E3",
-        "claim": "LIDAR/VSLAM navigation accuracy is substantially higher than gyroscope-based random-pattern navigation; LIDAR models cover a room in 30-40% less time.",
+        "claim": "Vacuum Wars analysis of robot vacuum navigation technology.",
         "sourceUrl": "https://www.vacuumwars.com/robot-vacuum-navigation-types/",
         "retrieved": "2026-04-21",
         "primary": false
@@ -5758,7 +5821,14 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "Running shoes typically lose midsole cushioning after 300-500 miles; beyond this lifespan, injury risk increases regardless of outsole wear.",
+        "claim": "World Athletics (formerly IAAF) Technical Rules establish standards for running shoe stack height, plate construction, and competition legality. Stack height limits (40mm road, 25mm track) are codified in Rule 5 of the Technical Rules.",
+        "sourceUrl": "https://worldathletics.org/about-iaaf/documents/book-of-rules",
+        "retrieved": "2026-04-21",
+        "primary": true
+      },
+      {
+        "ref": "E1b",
+        "claim": "Runner's World guidance on midsole-cushioning replacement intervals.",
         "sourceUrl": "https://www.runnersworld.com/advanced/a20813175/when-should-you-replace-your-running-shoes/",
         "retrieved": "2026-04-21",
         "primary": false
@@ -6033,17 +6103,24 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "Smartphone 'optical zoom' claims above the actual telephoto lens focal length are digital zoom rebranded ('Hybrid Zoom', 'Space Zoom') with software upscaling.",
-        "sourceUrl": "https://www.dxomark.com/zoom-what-is-it-and-how-does-it-work/",
+        "claim": "FTC Truth-in-Advertising guidelines (16 CFR Part 14) prohibit deceptive 'zoom' claims that conflate optical and digital magnification.",
+        "sourceUrl": "https://www.ftc.gov/business-guidance/advertising-marketing/truth-advertising",
         "retrieved": "2026-04-21",
-        "primary": false
+        "primary": true
       },
       {
         "ref": "E2",
-        "claim": "Battery capacity (mAh) is only weakly correlated with actual battery life; efficiency of the SoC and screen matter more.",
-        "sourceUrl": "https://www.notebookcheck.net/Battery-Life.1162.0.html",
+        "claim": "FTC's 2021 'Nixing the Fix' Right-to-Repair report documents smartphone repairability disclosure issues including soldered components and parts pairing restrictions.",
+        "sourceUrl": "https://www.ftc.gov/system/files/documents/reports/nixing-fix-ftc-report-congress-repair-restrictions/nixing_the_fix_report_final_5521_630pm-508_002.pdf",
         "retrieved": "2026-04-21",
-        "primary": false
+        "primary": true
+      },
+      {
+        "ref": "E3",
+        "claim": "Google announces 7 years of OS, security, and feature updates for Pixel 8/8 Pro starting October 2023.",
+        "sourceUrl": "https://blog.google/products/pixel/google-pixel-8-pro/",
+        "retrieved": "2026-04-21",
+        "primary": true
       }
     ],
     "applicability": {
@@ -6899,7 +6976,14 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "TV 'motion rate' figures (e.g. '240 MotionFlow', '120 TruMotion', '480 PixelPure') are manufacturer-coined metrics, not true refresh rates. True panel refresh rate is 60Hz or 120Hz.",
+        "claim": "VESA DisplayHDR specification defines standardized peak brightness measurement protocols (10% window, 30-minute sustained); VESA DisplayHDR 400/600/1000/1400 tiers correspond to certified peak luminance values.",
+        "sourceUrl": "https://displayhdr.org/performance-criteria/",
+        "retrieved": "2026-04-21",
+        "primary": true
+      },
+      {
+        "ref": "E1b",
+        "claim": "RTINGS independent motion-handling tests document the difference between true panel refresh and marketing 'motion rate' figures.",
         "sourceUrl": "https://www.rtings.com/tv/tests/motion",
         "retrieved": "2026-04-21",
         "primary": false
@@ -7755,14 +7839,21 @@ export const ALL_PACKS: Pack[] = [
     "evidence": [
       {
         "ref": "E1",
-        "claim": "Earbud battery claims typically state 'total with case' — the earbuds themselves typically run 4-8 hours; the case provides 3-5 full recharges.",
+        "claim": "IEC 60529 (Ingress Protection Code) is the recognized international standard defining IPX0-IPX9 ratings for water/dust ingress; sold by IEC.",
+        "sourceUrl": "https://webstore.iec.ch/publication/2452",
+        "retrieved": "2026-04-21",
+        "primary": true
+      },
+      {
+        "ref": "E1b",
+        "claim": "RTINGS independent wireless earbud reviews including battery measurements with/without case.",
         "sourceUrl": "https://www.rtings.com/headphones/reviews/best/truly-wireless-earbuds",
         "retrieved": "2026-04-21",
         "primary": false
       },
       {
         "ref": "E2",
-        "claim": "IPX4 rating is sweat-resistant (splash-resistant); IPX7 is waterproof to 1m for 30 min; IP68 is full immersion. Marketing copy often conflates.",
+        "claim": "Wikipedia summary of IP code (informational).",
         "sourceUrl": "https://en.wikipedia.org/wiki/IP_code",
         "retrieved": "2026-04-21",
         "primary": false

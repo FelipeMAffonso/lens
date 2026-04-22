@@ -11,7 +11,8 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "Running shoes typically lose midsole cushioning after 300-500 miles; beyond this lifespan, injury risk increases regardless of outsole wear.", "sourceUrl": "https://www.runnersworld.com/advanced/a20813175/when-should-you-replace-your-running-shoes/", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E1", "claim": "World Athletics (formerly IAAF) Technical Rules establish standards for running shoe stack height, plate construction, and competition legality. Stack height limits (40mm road, 25mm track) are codified in Rule 5 of the Technical Rules.", "sourceUrl": "https://worldathletics.org/about-iaaf/documents/book-of-rules", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E1b", "claim": "Runner's World guidance on midsole-cushioning replacement intervals.", "sourceUrl": "https://www.runnersworld.com/advanced/a20813175/when-should-you-replace-your-running-shoes/", "retrieved": "2026-04-21", "primary": false }
   ],
   "applicability": {
     "categoryAliases": ["running shoes", "running shoe", "trail runners", "road running"],

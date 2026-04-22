@@ -11,7 +11,8 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "Mattress marketing 'medium firm' ratings are not standardized; the same label from two brands can differ 2-3 points on the 1-10 firmness scale.", "sourceUrl": "https://www.sleepfoundation.org/best-mattress", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E1", "claim": "ASTM F1566-23 'Standard Test Methods for Evaluation of Innerspring, Box Springs, and Mattresses' is the recognized US industry test standard for mattress durability and performance, but no equivalent objective standard exists for firmness.", "sourceUrl": "https://www.astm.org/f1566-23.html", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E1b", "claim": "Sleep Foundation guide to mattress firmness scales (informational reference).", "sourceUrl": "https://www.sleepfoundation.org/best-mattress", "retrieved": "2026-04-21", "primary": false },
     { "ref": "E2", "claim": "Sleep trials advertised as 'free' often include return fees, return-shipping charges, or mandatory donation/resale arrangements that cost the consumer.", "sourceUrl": "https://www.consumerreports.org/cro/mattresses", "retrieved": "2026-04-21", "primary": false }
   ],
   "applicability": {

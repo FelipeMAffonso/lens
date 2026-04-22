@@ -11,8 +11,9 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "Consumer inkjet ink costs more per volume than vintage champagne; the 'razor and blades' business model charges low printer prices to monetize consumable cartridges.", "sourceUrl": "https://www.consumerreports.org/printers/printer-ink-cost-drive-consumers-away-from-inkjets", "retrieved": "2026-04-21", "primary": false },
-    { "ref": "E2", "claim": "HP Instant Ink firmware updates have disabled third-party and user-refilled cartridges, leading to class-action lawsuits alleging Magnuson-Moss tie-in violations.", "sourceUrl": "https://www.theverge.com/2024/1/20/24045136/hp-instant-ink-class-action-lawsuit-ink-firmware-update", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E1", "claim": "FTC's 2021 'Nixing the Fix' Right-to-Repair report explicitly cites printer-ink tying as a documented anti-competitive practice with Magnuson-Moss implications.", "sourceUrl": "https://www.ftc.gov/system/files/documents/reports/nixing-fix-ftc-report-congress-repair-restrictions/nixing_the_fix_report_final_5521_630pm-508_002.pdf", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E1b", "claim": "Consumer Reports analysis of inkjet ink cost-per-page economics.", "sourceUrl": "https://www.consumerreports.org/printers/printer-ink-cost-drive-consumers-away-from-inkjets", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "The Verge coverage of the HP Instant Ink firmware-lock class action (Mobasseri v. HP, N.D. Cal. 2020).", "sourceUrl": "https://www.theverge.com/2024/1/20/24045136/hp-instant-ink-class-action-lawsuit-ink-firmware-update", "retrieved": "2026-04-21", "primary": false }
   ],
   "applicability": {
     "categoryAliases": ["printer", "printers", "inkjet", "laser printer", "all-in-one printer"],

@@ -11,7 +11,8 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "Peloton, NordicTrack, Tonal and similar connected-fitness equipment require active subscription to unlock most features; bricks without subscription average $15-40/month.", "sourceUrl": "https://www.consumerreports.org/fitness/home-gyms-and-equipment/", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E1", "claim": "FTC has settled multiple cases against connected-fitness equipment companies for deceptive subscription disclosures; Peloton subscription requirements are documented in the company's 10-K SEC filings.", "sourceUrl": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001639825&type=10-K&dateb=&owner=include&count=40", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E1b", "claim": "Consumer Reports reference for home fitness equipment review methodology.", "sourceUrl": "https://www.consumerreports.org/fitness/home-gyms-and-equipment/", "retrieved": "2026-04-21", "primary": false }
   ],
   "applicability": {
     "categoryAliases": ["treadmill", "exercise bike", "peloton", "rowing machine", "elliptical", "home gym"],

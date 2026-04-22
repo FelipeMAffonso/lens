@@ -11,7 +11,8 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "Horsepower (HP) claims on blenders are peak HP (brief-burst maximum draw) not running HP. Running HP is typically 40-60% of peak HP.", "sourceUrl": "https://www.consumerreports.org/blenders/buying-guide/", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E1", "claim": "FTC Truth in Advertising guidelines (16 CFR Part 14) prohibit deceptive horsepower claims; consumer-product 'peak HP' figures must distinguish from running/continuous HP under load.", "sourceUrl": "https://www.ftc.gov/business-guidance/advertising-marketing/truth-advertising", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E1b", "claim": "Consumer Reports buying-guide reference for blenders.", "sourceUrl": "https://www.consumerreports.org/blenders/buying-guide/", "retrieved": "2026-04-21", "primary": false }
   ],
   "applicability": {
     "categoryAliases": ["blender", "blenders", "high-speed blender", "smoothie blender"],

@@ -11,7 +11,8 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "Megapixel count is a weak predictor of image quality; sensor size, dynamic range, and lens quality matter more.", "sourceUrl": "https://www.dpreview.com/articles/9076001773/megapixel-myth", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E1", "claim": "ISO 12233 'Photography — Electronic still picture imaging — Resolution and spatial frequency response' is the recognized international standard for digital camera resolution measurement, distinguishing nominal sensor megapixels from actual usable resolution.", "sourceUrl": "https://www.iso.org/standard/71696.html", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E1b", "claim": "DPReview discussion of megapixel-myth in consumer-camera marketing.", "sourceUrl": "https://www.dpreview.com/articles/9076001773/megapixel-myth", "retrieved": "2026-04-21", "primary": false }
   ],
   "applicability": {
     "categoryAliases": ["camera", "cameras", "dslr", "mirrorless", "interchangeable lens"],

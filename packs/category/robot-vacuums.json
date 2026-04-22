@@ -11,9 +11,10 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "Suction is measured in Pascals (Pa); 2000 Pa is adequate for hard floors, 4000+ Pa is needed for medium-pile carpet, 6000+ Pa for thick carpet and pet hair.", "sourceUrl": "https://www.rtings.com/vacuum/tests/performance", "retrieved": "2026-04-21", "primary": false },
-    { "ref": "E2", "claim": "Mopping feature on most robot vacuums is a wet cloth dragged behind the vacuum; it does not scrub. True scrubbing requires vibrating or rotating mop heads, present only on ~20% of mop-capable models.", "sourceUrl": "https://www.wirecutter.com/reviews/best-robot-mop/", "retrieved": "2026-04-21", "primary": false },
-    { "ref": "E3", "claim": "LIDAR/VSLAM navigation accuracy is substantially higher than gyroscope-based random-pattern navigation; LIDAR models cover a room in 30-40% less time.", "sourceUrl": "https://www.vacuumwars.com/robot-vacuum-navigation-types/", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E1", "claim": "AHAM (Association of Home Appliance Manufacturers) AC-1 'Method for Measuring Performance of Vacuum Cleaners' is the recognized US standard for vacuum cleaner suction (CFM and CADR) and dust-removal efficiency.", "sourceUrl": "https://aham.org/standards", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E1b", "claim": "RTINGS independent robot vacuum performance tests.", "sourceUrl": "https://www.rtings.com/vacuum/tests/performance", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "Wirecutter robot mop reviews documenting wet-cloth-drag vs vibrating/rotating mechanisms.", "sourceUrl": "https://www.wirecutter.com/reviews/best-robot-mop/", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E3", "claim": "Vacuum Wars analysis of robot vacuum navigation technology.", "sourceUrl": "https://www.vacuumwars.com/robot-vacuum-navigation-types/", "retrieved": "2026-04-21", "primary": false }
   ],
   "applicability": {
     "categoryAliases": ["robot vacuum", "robot vacuums", "robovac", "roomba", "autonomous vacuum"],

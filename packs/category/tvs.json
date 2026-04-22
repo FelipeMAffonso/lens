@@ -11,7 +11,8 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "TV 'motion rate' figures (e.g. '240 MotionFlow', '120 TruMotion', '480 PixelPure') are manufacturer-coined metrics, not true refresh rates. True panel refresh rate is 60Hz or 120Hz.", "sourceUrl": "https://www.rtings.com/tv/tests/motion", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E1", "claim": "VESA DisplayHDR specification defines standardized peak brightness measurement protocols (10% window, 30-minute sustained); VESA DisplayHDR 400/600/1000/1400 tiers correspond to certified peak luminance values.", "sourceUrl": "https://displayhdr.org/performance-criteria/", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E1b", "claim": "RTINGS independent motion-handling tests document the difference between true panel refresh and marketing 'motion rate' figures.", "sourceUrl": "https://www.rtings.com/tv/tests/motion", "retrieved": "2026-04-21", "primary": false },
     { "ref": "E2", "claim": "HDR peak brightness claims are short-duration peak (typically 10% window); sustained full-screen brightness is 30-60% of the peak figure.", "sourceUrl": "https://www.rtings.com/tv/tests/picture-quality/peak-brightness", "retrieved": "2026-04-21", "primary": false }
   ],
   "applicability": {

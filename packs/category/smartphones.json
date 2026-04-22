@@ -11,8 +11,9 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "Smartphone 'optical zoom' claims above the actual telephoto lens focal length are digital zoom rebranded ('Hybrid Zoom', 'Space Zoom') with software upscaling.", "sourceUrl": "https://www.dxomark.com/zoom-what-is-it-and-how-does-it-work/", "retrieved": "2026-04-21", "primary": false },
-    { "ref": "E2", "claim": "Battery capacity (mAh) is only weakly correlated with actual battery life; efficiency of the SoC and screen matter more.", "sourceUrl": "https://www.notebookcheck.net/Battery-Life.1162.0.html", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E1", "claim": "FTC Truth-in-Advertising guidelines (16 CFR Part 14) prohibit deceptive 'zoom' claims that conflate optical and digital magnification.", "sourceUrl": "https://www.ftc.gov/business-guidance/advertising-marketing/truth-advertising", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E2", "claim": "FTC's 2021 'Nixing the Fix' Right-to-Repair report documents smartphone repairability disclosure issues including soldered components and parts pairing restrictions.", "sourceUrl": "https://www.ftc.gov/system/files/documents/reports/nixing-fix-ftc-report-congress-repair-restrictions/nixing_the_fix_report_final_5521_630pm-508_002.pdf", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E3", "claim": "Google announces 7 years of OS, security, and feature updates for Pixel 8/8 Pro starting October 2023.", "sourceUrl": "https://blog.google/products/pixel/google-pixel-8-pro/", "retrieved": "2026-04-21", "primary": true }
   ],
   "applicability": {
     "categoryAliases": ["smartphone", "phone", "cell phone", "iphone", "android", "galaxy", "pixel"],

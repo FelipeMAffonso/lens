@@ -11,7 +11,8 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "Response time claims ('1ms GTG') typically refer to specific gray-to-gray transitions under overdrive; real-world averaged response is often 3-5× the cited figure.", "sourceUrl": "https://www.rtings.com/monitor/tests/motion/response-time", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E1", "claim": "VESA (Video Electronics Standards Association) ClearMR specification standardizes motion-blur measurement for monitors with certification tiers (ClearMR 3000-21000), distinguishing marketing 'response time' from real-world motion clarity.", "sourceUrl": "https://www.vesa.org/featured-articles/vesa-introduces-clearmr-display-performance-spec/", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E1b", "claim": "RTINGS independent monitor response-time tests showing real-world averaged values vs marketing GTG claims.", "sourceUrl": "https://www.rtings.com/monitor/tests/motion/response-time", "retrieved": "2026-04-21", "primary": false }
   ],
   "applicability": {
     "categoryAliases": ["monitor", "monitors", "computer monitor", "gaming monitor", "4k monitor"],

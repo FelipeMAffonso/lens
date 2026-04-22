@@ -11,7 +11,8 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "Rockwell hardness (HRC) for kitchen knives ranges ~55-65; harder steel holds an edge longer but is more brittle. Japanese knives typically 60-64 HRC; German/Western knives typically 55-58 HRC.", "sourceUrl": "https://www.chefknivestogo.com/knivesteelhardness.html", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E1", "claim": "ASTM E18-22 'Standard Test Methods for Rockwell Hardness of Metallic Materials' is the recognized US standard for HRC measurement, used by knife manufacturers to certify steel hardness claims.", "sourceUrl": "https://www.astm.org/e0018-22.html", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E1b", "claim": "Chef Knives To Go reference on common kitchen-knife steel hardness ranges.", "sourceUrl": "https://www.chefknivestogo.com/knivesteelhardness.html", "retrieved": "2026-04-21", "primary": false }
   ],
   "applicability": {
     "categoryAliases": ["chef knife", "kitchen knife", "knives", "knife set"],

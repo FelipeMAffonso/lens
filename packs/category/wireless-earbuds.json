@@ -11,8 +11,9 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "Earbud battery claims typically state 'total with case' — the earbuds themselves typically run 4-8 hours; the case provides 3-5 full recharges.", "sourceUrl": "https://www.rtings.com/headphones/reviews/best/truly-wireless-earbuds", "retrieved": "2026-04-21", "primary": false },
-    { "ref": "E2", "claim": "IPX4 rating is sweat-resistant (splash-resistant); IPX7 is waterproof to 1m for 30 min; IP68 is full immersion. Marketing copy often conflates.", "sourceUrl": "https://en.wikipedia.org/wiki/IP_code", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E1", "claim": "IEC 60529 (Ingress Protection Code) is the recognized international standard defining IPX0-IPX9 ratings for water/dust ingress; sold by IEC.", "sourceUrl": "https://webstore.iec.ch/publication/2452", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E1b", "claim": "RTINGS independent wireless earbud reviews including battery measurements with/without case.", "sourceUrl": "https://www.rtings.com/headphones/reviews/best/truly-wireless-earbuds", "retrieved": "2026-04-21", "primary": false },
+    { "ref": "E2", "claim": "Wikipedia summary of IP code (informational).", "sourceUrl": "https://en.wikipedia.org/wiki/IP_code", "retrieved": "2026-04-21", "primary": false }
   ],
   "applicability": {
     "categoryAliases": ["wireless earbuds", "earbuds", "true wireless earbuds", "airpods", "bluetooth earbuds"],

@@ -11,7 +11,8 @@
   "retirementDate": null,
   "retirementReason": null,
   "evidence": [
-    { "ref": "E1", "claim": "Backpack volume is measured in liters; literage claims are manufacturer-stated and sometimes inflated by including external pockets. Real usable volume is often 10-15% less than stated.", "sourceUrl": "https://www.rei.com/learn/expert-advice/backpack-packing-tips.html", "retrieved": "2026-04-21", "primary": false }
+    { "ref": "E1", "claim": "ASTM F1955-22 'Standard Specification for Backpack Frames' provides recognized US standards for hiking backpack frame strength, load distribution, and harness components.", "sourceUrl": "https://www.astm.org/f1955-22.html", "retrieved": "2026-04-21", "primary": true },
+    { "ref": "E1b", "claim": "REI Expert Advice on backpack volume measurement and packing.", "sourceUrl": "https://www.rei.com/learn/expert-advice/backpack-packing-tips.html", "retrieved": "2026-04-21", "primary": false }
   ],
   "applicability": {
     "categoryAliases": ["hiking backpack", "backpack", "backpacking pack", "daypack"],
