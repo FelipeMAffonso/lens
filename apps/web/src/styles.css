@@ -751,6 +751,12 @@ details[open] summary { color: var(--fg-dim); }
   border: 1px solid #e8e4dd;
   border-radius: 8px;
 }
+.agent-icon {
+  color: var(--accent);
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+.agent-icon svg { display: block; }
 .agent h4 { font-size: 14px; font-weight: 600; margin: 0 0 6px; color: #1a1a1a; }
 .agent p { font-size: 12px; color: #5a5a5a; line-height: 1.5; margin: 0 0 8px; }
 .agent code {
