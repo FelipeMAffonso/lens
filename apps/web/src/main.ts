@@ -508,13 +508,40 @@ function profileCard(): HTMLElement {
     </div>
     ${
       profileSlugs.length > 0
-        ? `<div style="margin-top:12px;display:grid;gap:6px;">${profileSlugs
-            .map(
-              (s) =>
-                `<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--fg-dim);"><span>${esc(s)}</span><span style="font-family:ui-monospace,monospace;font-size:11px;color:var(--fg-muted);">${profiles[s]?.criteria?.length ?? 0} criteria</span></div>`,
-            )
+        ? `<div style="margin-top:12px;display:grid;gap:10px;">${profileSlugs
+            .map((slug) => {
+              const p = profiles[slug];
+              const crits = p?.criteria ?? [];
+              const budget = p?.budget;
+              const criteriaHtml = crits
+                .sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0))
+                .map((c) => {
+                  const pct = Math.round((c.weight ?? 0) * 100);
+                  return `<div style="display:flex;align-items:center;gap:10px;font-size:12px;">
+                    <span style="flex:0 0 150px;color:var(--fg);">${esc(c.name)}</span>
+                    <span style="flex:1;height:4px;background:var(--bg);border-radius:999px;overflow:hidden;"><span style="display:block;height:100%;background:var(--accent);width:${pct}%"></span></span>
+                    <span style="flex:0 0 36px;text-align:right;font-family:ui-monospace,monospace;font-size:11px;color:var(--fg-muted);">${pct}%</span>
+                  </div>`;
+                })
+                .join("");
+              const budgetTxt = budget && (budget.min != null || budget.max != null)
+                ? `<div style="font-size:11px;color:var(--fg-muted);margin-top:4px;">Budget: ${budget.min ?? "?"} – ${budget.max ?? "?"} ${budget.currency ?? "USD"}</div>`
+                : "";
+              return `<details style="border:1px solid #e3dfd4;border-radius:8px;padding:10px 14px;background:#fff;">
+                <summary style="display:flex;justify-content:space-between;cursor:pointer;list-style:none;">
+                  <span style="font-weight:600;text-transform:capitalize;">${esc(slug.replace(/-/g, " "))}</span>
+                  <span style="font-family:ui-monospace,monospace;font-size:11px;color:var(--fg-muted);">${crits.length} criteria</span>
+                </summary>
+                <div style="margin-top:10px;display:grid;gap:6px;">${criteriaHtml || "<div class='muted' style='font-size:12px;'>No criteria recorded yet.</div>"}</div>
+                ${budgetTxt}
+                <div style="margin-top:10px;display:flex;gap:6px;">
+                  <button class="chip" data-profile-load="${esc(slug)}" style="font-size:11px;">Use for next audit →</button>
+                  <button class="chip" data-profile-delete="${esc(slug)}" style="font-size:11px;color:var(--warn);">Delete</button>
+                </div>
+              </details>`;
+            })
             .join("")}</div>`
-        : ""
+        : `<p class="muted" style="font-size:13px;margin-top:10px;">No saved preferences yet. After your first audit, Lens saves the inferred criteria + weights for that category so the next one is faster.</p>`
     }
   `;
   // Wire up handlers
@@ -551,6 +578,40 @@ function profileCard(): HTMLElement {
         localStorage.removeItem(HISTORY_KEY);
         location.reload();
       }
+    });
+    // Per-profile load + delete wiring
+    card.querySelectorAll<HTMLButtonElement>("[data-profile-load]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const slug = btn.dataset["profileLoad"];
+        if (!slug) return;
+        const all = loadProfiles();
+        const p = all[slug];
+        if (!p) return;
+        const crits = (p.criteria ?? [])
+          .sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0))
+          .map((c) => c.name)
+          .slice(0, 4)
+          .join(", ");
+        const budget = p.budget?.max ? ` under $${p.budget.max}` : "";
+        const filled = `${slug.replace(/-/g, " ")}${budget}, ${crits || "quality"} matter most`;
+        const input = document.getElementById("query-prompt") as HTMLTextAreaElement | null;
+        if (input) {
+          input.value = filled;
+          input.focus();
+          input.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+    });
+    card.querySelectorAll<HTMLButtonElement>("[data-profile-delete]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const slug = btn.dataset["profileDelete"];
+        if (!slug) return;
+        if (!confirm(`Delete saved preferences for "${slug}"?`)) return;
+        const all = loadProfiles();
+        delete all[slug];
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(all));
+        location.reload();
+      });
     });
   }, 0);
   return card;
