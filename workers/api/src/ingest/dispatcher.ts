@@ -21,6 +21,7 @@ import { epaFuelEconomyIngester } from "./sources/epa-fueleconomy.js";
 import { fccEquipmentIngester } from "./sources/fcc-equipment.js";
 import { fdaRecallsIngester } from "./sources/fda-recalls.js";
 import { fda510kIngester } from "./sources/fda-510k.js";
+import { fdaDrugEventsIngester } from "./sources/fda-drug-events.js";
 import { nhtsaRecallsIngester } from "./sources/nhtsa-recalls.js";
 import { euEprelIngester } from "./sources/eu-eprel.js";
 import { federalRegisterIngester } from "./sources/federal-register.js";
@@ -59,6 +60,7 @@ export const REGISTERED: Record<string, DatasetIngester> = {
   "nhtsa-recalls": nhtsaRecallsIngester,
   "fda-recalls": fdaRecallsIngester,
   "fda-510k": fda510kIngester,
+  "fda-drug-events": fdaDrugEventsIngester,
   "fcc-equipment": fccEquipmentIngester,
   "epa-energy-star": epaEnergyStarIngester,
   "epa-fueleconomy": epaFuelEconomyIngester,
