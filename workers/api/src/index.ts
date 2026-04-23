@@ -262,6 +262,20 @@ app.get("/architecture/sources/:id", async (c) => {
   }
 });
 
+// improve-B-session — /shopping-session/* — multi-page shopping journey capture.
+app.post("/shopping-session/start", async (c) => {
+  const { handleSessionStart } = await import("./shopping-session/handler.js");
+  return handleSessionStart(c as never);
+});
+app.post("/shopping-session/capture", async (c) => {
+  const { handleSessionCapture } = await import("./shopping-session/handler.js");
+  return handleSessionCapture(c as never);
+});
+app.get("/shopping-session/:id/summary", async (c) => {
+  const { handleSessionSummary } = await import("./shopping-session/handler.js");
+  return handleSessionSummary(c as never);
+});
+
 // improve-V-VISUAL — /visual-audit — Chrome extension screenshots full page,
 // Opus 4.7 3.75MP vision extracts structured product data, we persist it
 // into sku_catalog + sku_source_link so robots.txt-blocked pages and
