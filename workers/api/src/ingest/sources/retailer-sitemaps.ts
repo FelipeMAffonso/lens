@@ -197,11 +197,11 @@ function humanizeFromUrl(url: string): string {
 }
 
 async function readState(ctx: IngestionContext): Promise<{ retailerIndex: number; childIndex: number }> {
-  const row = await ctx.env.LENS_D1!.prepare("SELECT last_error FROM data_source WHERE id = ?")
+  const row = await ctx.env.LENS_D1!.prepare("SELECT cursor_json FROM data_source WHERE id = ?")
     .bind(SOURCE_ID)
-    .first<{ last_error: string | null }>();
+    .first<{ cursor_json: string | null }>();
   try {
-    const p = JSON.parse(row?.last_error ?? "{}");
+    const p = JSON.parse(row?.cursor_json ?? "{}");
     return {
       retailerIndex: typeof p.retailerIndex === "number" ? p.retailerIndex : 0,
       childIndex: typeof p.childIndex === "number" ? p.childIndex : 0,
@@ -212,7 +212,7 @@ async function readState(ctx: IngestionContext): Promise<{ retailerIndex: number
 }
 
 async function writeState(ctx: IngestionContext, s: { retailerIndex: number; childIndex: number }): Promise<void> {
-  await ctx.env.LENS_D1!.prepare("UPDATE data_source SET last_error = ? WHERE id = ?")
+  await ctx.env.LENS_D1!.prepare("UPDATE data_source SET cursor_json = ? WHERE id = ?")
     .bind(JSON.stringify(s), SOURCE_ID)
     .run();
 }

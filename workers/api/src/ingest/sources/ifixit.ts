@@ -106,11 +106,11 @@ export const ifixitIngester: DatasetIngester = {
 };
 
 async function readOffset(ctx: IngestionContext): Promise<number> {
-  const row = await ctx.env.LENS_D1!.prepare("SELECT last_error FROM data_source WHERE id = ?")
+  const row = await ctx.env.LENS_D1!.prepare("SELECT cursor_json FROM data_source WHERE id = ?")
     .bind(SOURCE_ID)
-    .first<{ last_error: string | null }>();
+    .first<{ cursor_json: string | null }>();
   try {
-    const p = JSON.parse(row?.last_error ?? "{}");
+    const p = JSON.parse(row?.cursor_json ?? "{}");
     return typeof p.offset === "number" ? p.offset : 0;
   } catch {
     return 0;
@@ -118,7 +118,7 @@ async function readOffset(ctx: IngestionContext): Promise<number> {
 }
 
 async function writeOffset(ctx: IngestionContext, offset: number): Promise<void> {
-  await ctx.env.LENS_D1!.prepare("UPDATE data_source SET last_error = ? WHERE id = ?")
+  await ctx.env.LENS_D1!.prepare("UPDATE data_source SET cursor_json = ? WHERE id = ?")
     .bind(JSON.stringify({ offset }), SOURCE_ID)
     .run();
 }

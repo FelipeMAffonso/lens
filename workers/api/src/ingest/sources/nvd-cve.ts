@@ -129,11 +129,11 @@ export const nvdCveIngester: DatasetIngester = {
 };
 
 async function readCursor(ctx: IngestionContext): Promise<{ startIndex: number }> {
-  const row = await ctx.env.LENS_D1!.prepare("SELECT last_error FROM data_source WHERE id = ?")
+  const row = await ctx.env.LENS_D1!.prepare("SELECT cursor_json FROM data_source WHERE id = ?")
     .bind(SOURCE_ID)
-    .first<{ last_error: string | null }>();
+    .first<{ cursor_json: string | null }>();
   try {
-    const p = JSON.parse(row?.last_error ?? "{}");
+    const p = JSON.parse(row?.cursor_json ?? "{}");
     return { startIndex: typeof p.startIndex === "number" ? p.startIndex : 0 };
   } catch {
     return { startIndex: 0 };
@@ -141,7 +141,7 @@ async function readCursor(ctx: IngestionContext): Promise<{ startIndex: number }
 }
 
 async function writeCursor(ctx: IngestionContext, c: { startIndex: number }): Promise<void> {
-  await ctx.env.LENS_D1!.prepare("UPDATE data_source SET last_error = ? WHERE id = ?")
+  await ctx.env.LENS_D1!.prepare("UPDATE data_source SET cursor_json = ? WHERE id = ?")
     .bind(JSON.stringify(c), SOURCE_ID)
     .run();
 }

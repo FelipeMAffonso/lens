@@ -137,17 +137,17 @@ export const fccEquipmentIngester: DatasetIngester = {
   },
 };
 
-// ---- cursor (stored in `data_source.last_error` as JSON blob for now) ----
+// ---- cursor — stored in `data_source.cursor_json` (added in 0020) ----
 
 async function readCursor(env: Env): Promise<number> {
   const row = await db(env).prepare(
-    "SELECT last_error FROM data_source WHERE id = ?",
+    "SELECT cursor_json FROM data_source WHERE id = ?",
   )
     .bind(SOURCE_ID)
-    .first<{ last_error: string | null }>();
-  if (!row?.last_error) return 1;
+    .first<{ cursor_json: string | null }>();
+  if (!row?.cursor_json) return 1;
   try {
-    const parsed = JSON.parse(row.last_error);
+    const parsed = JSON.parse(row.cursor_json);
     return typeof parsed.cursor === "number" ? parsed.cursor : 1;
   } catch {
     return 1;
@@ -155,10 +155,8 @@ async function readCursor(env: Env): Promise<number> {
 }
 
 async function writeCursor(env: Env, cursor: number): Promise<void> {
-  // Reused last_error as cursor stash to avoid another migration.
-  // Ingester error strings aren't JSON so this doesn't collide with framework writes.
   const blob = JSON.stringify({ cursor });
-  await db(env).prepare("UPDATE data_source SET last_error = ? WHERE id = ?").bind(blob, SOURCE_ID).run();
+  await db(env).prepare("UPDATE data_source SET cursor_json = ? WHERE id = ?").bind(blob, SOURCE_ID).run();
 }
 
 // ---- helpers ----

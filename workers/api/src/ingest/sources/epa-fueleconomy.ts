@@ -113,11 +113,11 @@ function extractTag(xml: string, tag: string): string[] {
 }
 
 async function readState(ctx: IngestionContext): Promise<{ yearIndex: number; makeIndex: number }> {
-  const row = await ctx.env.LENS_D1!.prepare("SELECT last_error FROM data_source WHERE id = ?")
+  const row = await ctx.env.LENS_D1!.prepare("SELECT cursor_json FROM data_source WHERE id = ?")
     .bind(SOURCE_ID)
-    .first<{ last_error: string | null }>();
+    .first<{ cursor_json: string | null }>();
   try {
-    const p = JSON.parse(row?.last_error ?? "{}");
+    const p = JSON.parse(row?.cursor_json ?? "{}");
     return {
       yearIndex: typeof p.yearIndex === "number" ? p.yearIndex : 40, // start at year 2024
       makeIndex: typeof p.makeIndex === "number" ? p.makeIndex : 0,
@@ -134,7 +134,7 @@ async function advance(ctx: IngestionContext, s: { yearIndex: number; makeIndex:
     next.yearIndex -= 1;
     if (next.yearIndex < 0) next.yearIndex = 40; // loop back to recent
   }
-  await ctx.env.LENS_D1!.prepare("UPDATE data_source SET last_error = ? WHERE id = ?")
+  await ctx.env.LENS_D1!.prepare("UPDATE data_source SET cursor_json = ? WHERE id = ?")
     .bind(JSON.stringify(next), SOURCE_ID)
     .run();
 }

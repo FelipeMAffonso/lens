@@ -170,11 +170,11 @@ function upsertSourceLink(env: Env, n: Normalized) {
 
 // --- state blob (stashed in last_error) ---
 async function readState(env: Env): Promise<{ datasetIndex: number; offset: number }> {
-  const row = await env.LENS_D1!.prepare("SELECT last_error FROM data_source WHERE id = ?")
+  const row = await env.LENS_D1!.prepare("SELECT cursor_json FROM data_source WHERE id = ?")
     .bind(SOURCE_ID)
-    .first<{ last_error: string | null }>();
+    .first<{ cursor_json: string | null }>();
   try {
-    const p = JSON.parse(row?.last_error ?? "{}");
+    const p = JSON.parse(row?.cursor_json ?? "{}");
     return {
       datasetIndex: typeof p.datasetIndex === "number" ? p.datasetIndex : 0,
       offset: typeof p.offset === "number" ? p.offset : 0,
@@ -185,7 +185,7 @@ async function readState(env: Env): Promise<{ datasetIndex: number; offset: numb
 }
 
 async function writeState(env: Env, s: { datasetIndex: number; offset: number }): Promise<void> {
-  await env.LENS_D1!.prepare("UPDATE data_source SET last_error = ? WHERE id = ?")
+  await env.LENS_D1!.prepare("UPDATE data_source SET cursor_json = ? WHERE id = ?")
     .bind(JSON.stringify(s), SOURCE_ID)
     .run();
 }

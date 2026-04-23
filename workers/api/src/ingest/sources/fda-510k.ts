@@ -144,11 +144,11 @@ function slugify(s: string): string {
 interface State { offset: number }
 
 async function readState(ctx: IngestionContext): Promise<State> {
-  const row = await ctx.env.LENS_D1!.prepare("SELECT last_error FROM data_source WHERE id = ?")
+  const row = await ctx.env.LENS_D1!.prepare("SELECT cursor_json FROM data_source WHERE id = ?")
     .bind(SOURCE_ID)
-    .first<{ last_error: string | null }>();
+    .first<{ cursor_json: string | null }>();
   try {
-    const p = JSON.parse(row?.last_error ?? "{}");
+    const p = JSON.parse(row?.cursor_json ?? "{}");
     return { offset: typeof p.offset === "number" ? p.offset : 0 };
   } catch {
     return { offset: 0 };
@@ -156,7 +156,7 @@ async function readState(ctx: IngestionContext): Promise<State> {
 }
 
 async function writeState(ctx: IngestionContext, s: State): Promise<void> {
-  await ctx.env.LENS_D1!.prepare("UPDATE data_source SET last_error = ? WHERE id = ?")
+  await ctx.env.LENS_D1!.prepare("UPDATE data_source SET cursor_json = ? WHERE id = ?")
     .bind(JSON.stringify(s), SOURCE_ID)
     .run();
 }
