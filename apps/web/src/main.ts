@@ -1012,6 +1012,24 @@ function esc(s: string | undefined): string {
 document.querySelectorAll<HTMLButtonElement>(".mode-btn").forEach((btn) => {
   btn.addEventListener("click", () => setMode(btn.dataset.mode as Mode));
 });
+// Priority-value chips (appends "<value>" to the query textarea so each
+// click adds a meta-preference the audit pipeline will pick up as a
+// criterion). Persists across categories, doesn't require onboarding.
+document.querySelectorAll<HTMLButtonElement>(".chip[data-values-add]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const v = btn.dataset["valuesAdd"];
+    if (!v) return;
+    const ta = document.getElementById("query-prompt") as HTMLTextAreaElement | null;
+    if (!ta) return;
+    const cur = ta.value.trim();
+    const add = cur.toLowerCase().includes(v.toLowerCase())
+      ? "" // already there
+      : (cur ? (cur.endsWith(",") ? ` ${v}` : `, ${v}`) : v);
+    if (add) ta.value = cur + add;
+    ta.focus();
+  });
+});
+
 document.querySelectorAll<HTMLButtonElement>(".chip[data-example-query]").forEach((btn) => {
   btn.addEventListener("click", () => prefillExampleQuery(btn.dataset.exampleQuery!));
 });
