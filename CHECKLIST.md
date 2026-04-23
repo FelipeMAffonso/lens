@@ -152,13 +152,16 @@
 | V-EXT-INLINE-g | Inline on product pages (price history) | ✅ | `BLOCKS/V-EXT-INLINE-g-product-price-history.md` | `d0e605c` |
 | V-EXT-INLINE-h | Inline on Amazon reviews | ✅ | `BLOCKS/V-EXT-INLINE-h-amazon-reviews.md` | `a15a355` |
 | V-EXT-INLINE-i | Inline on marketplace listings (counterfeit) | ✅ | `BLOCKS/V-EXT-INLINE-i-marketplace-counterfeit.md` | `d0a9baa` |
-| V-MCP-audit | MCP tool `lens.audit` | ⬜ | 🔬 | |
-| V-MCP-spec-optimal | MCP tool `lens.spec_optimal` | ⬜ | 🔬 | |
-| V-MCP-dark-scan | MCP tool `lens.dark_pattern_scan` | ⬜ | 🔬 | |
-| V-MCP-regulation | MCP tool `lens.regulation_lookup` | ⬜ | 🔬 | |
-| V-MCP-pack-get | MCP tool `lens.pack_get` | ⬜ | 🔬 | |
-| V-MCP-pack-list | MCP tool `lens.pack_list` | ⬜ | 🔬 | |
-| V-API-openapi | OpenAPI spec at /api/docs | ⬜ | 🔬 | |
+| V-MCP-audit | MCP tool `lens.audit` | ✅ | `workers/mcp/src/tools.ts` | `f14` |
+| V-MCP-spec-optimal | MCP tool `lens.spec_optimal` | ✅ | `workers/mcp/src/tools.ts` | `f14` |
+| V-MCP-dark-scan | MCP tool `lens.dark_pattern_scan` | ✅ | `workers/mcp/src/tools.ts` | `f14` |
+| V-MCP-regulation | MCP tool `lens.regulation_lookup` | ✅ | `workers/mcp/src/tools.ts` | `f14` |
+| V-MCP-pack-get | MCP tool `lens.pack_get` | ✅ | `workers/mcp/src/tools.ts` | `f14` |
+| V-MCP-pack-list | MCP tool `lens.pack_list` | ✅ | `workers/mcp/src/tools.ts` | `f14` |
+| V-MCP-sku-search | MCP tool `lens.sku_search` (new, data-spine) | ✅ | `workers/mcp/src/tools.ts` | pending |
+| V-MCP-sku-get | MCP tool `lens.sku_get` (new, data-spine) | ✅ | `workers/mcp/src/tools.ts` | pending |
+| V-MCP-stats | MCP tool `lens.architecture_stats` (new) | ✅ | `workers/mcp/src/tools.ts` | pending |
+| V-API-openapi | OpenAPI spec at /openapi.json + /docs | ✅ | `workers/api/src/openapi/spec.ts` + `docs.ts` | `577b9a5` |
 | V-API-sdk-js | JS/TS SDK `@lens/sdk` | ⬜ | 🔬 | |
 | V-API-sdk-py | Python SDK `lens-sdk` | ⬜ | 🔬 | |
 | V-EMAIL-outbound | Outbound email templates | ⬜ | 🔬 | |

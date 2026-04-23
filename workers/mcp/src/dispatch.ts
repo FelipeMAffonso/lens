@@ -45,6 +45,22 @@ export async function callTool(
         // Client-side filter on the stats.byType summary.
         return result;
       }
+      case "lens.sku_search": {
+        const q = String(args["q"] ?? "");
+        if (!q) return errorResult("missing required parameter: q");
+        const qs = new URLSearchParams({ q });
+        if (args["limit"]) qs.set("limit", String(args["limit"]));
+        if (args["brand"]) qs.set("brand", String(args["brand"]));
+        if (args["category"]) qs.set("category", String(args["category"]));
+        return await proxyGet(env, `/sku/search?${qs.toString()}`);
+      }
+      case "lens.sku_get": {
+        const id = String(args["id"] ?? "");
+        if (!id) return errorResult("missing required parameter: id");
+        return await proxyGet(env, `/sku/${encodeURIComponent(id)}`);
+      }
+      case "lens.architecture_stats":
+        return await proxyGet(env, "/architecture/stats");
       case "lens.intervention_draft": {
         const packSlug = String(args["packSlug"] ?? "");
         const context = (args["context"] as Record<string, unknown>) ?? {};

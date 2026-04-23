@@ -129,6 +129,44 @@ export const TOOLS: McpToolDef[] = [
     },
   },
   {
+    name: "lens.sku_search",
+    description:
+      "Fuzzy-search the triangulated SKU catalog (Phase A data spine, 27 public sources). Returns matches with brand, model, triangulated median price, and source count. Use before audit/spec_optimal when you already know the product.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        q: { type: "string", description: "Query string (brand + model works best, e.g. 'Breville Bambino')." },
+        limit: { type: "integer", minimum: 1, maximum: 50, description: "Max matches (default 20)." },
+        brand: { type: "string", description: "Optional brand-slug filter." },
+        category: { type: "string", description: "Optional category-code filter (UNSPSC or Wikidata class slug)." },
+      },
+      required: ["q"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "lens.sku_get",
+    description:
+      "Fetch a single SKU's full detail from the data spine: canonical name, brand, specs, triangulated price with p25/p75, contributing sources, and any matched recalls.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          description: "SKU id (e.g. 'wd:Q12345' for Wikidata, 'usda:123' for USDA foods, 'visual:<sha1>' for visual-audit captures).",
+        },
+      },
+      required: ["id"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "lens.architecture_stats",
+    description:
+      "Return live Lens data-spine metrics: indexed SKU count, brand count, configured/healthy source counts, recalls tracked, regulations in force, last successful ingest run. Sourced from D1 architecture_stats view, cached ~15s.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
     name: "lens.intervention_draft",
     description:
       "Draft a consumer-protection letter (return request, subscription cancellation, FTC / CFPB complaint) using the applicable intervention pack template.",
