@@ -18,6 +18,7 @@ import "./workflow/specs/ticker-aggregate.js"; // register cron-targeted workflo
 import "./workflow/specs/ingest-dispatch.js"; // improve-A2 — data-spine ingester cron
 import "./workflow/specs/triangulate-price.js"; // improve-A12 — hourly consensus price + discrepancy log
 import "./workflow/specs/digest-send.js";       // VISION #22 — weekly digest email via Resend
+import "./workflow/specs/gmail-poll.js";        // VISION #20 — Gmail receipt poller (every 2h)
 import { listTicker } from "./ticker/repo.js";
 import { handleAuthorize as gmailAuthorize, handleCallback as gmailCallback } from "./email/handler.js";
 import {

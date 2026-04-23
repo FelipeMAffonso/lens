@@ -15,6 +15,11 @@ export const CRON_JOBS: CronJob[] = [
     description: "Poll Gmail inbox for new receipts (F12; placeholder until OAuth wired).",
   },
   {
+    pattern: "17 */2 * * *",
+    workflowId: "gmail.poll",
+    description: "VISION #20 — every 2h: Gmail receipt poller for users with gmail_token row.",
+  },
+  {
     pattern: "*/15 * * * *",
     workflowId: "ingest.dispatch",
     description: "improve-A2 — pick due data-source ingesters (CPSC / FCC / EPA / USDA / ...) and run up to 2 in parallel.",
