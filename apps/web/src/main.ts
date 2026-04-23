@@ -903,13 +903,16 @@ function rankRow(c: Candidate, i: number, topScore: number): HTMLElement {
   const retailerLink = c.url
     ? `<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;color:#CC785C;text-decoration:none;margin-left:8px;">view ↗</a>`
     : "";
+  const detailLink = cext.skuId
+    ? `<a href="/sku.html?id=${encodeURIComponent(cext.skuId)}" style="font-size:11px;color:#CC785C;text-decoration:none;margin-left:8px;">all sources →</a>`
+    : "";
   row.innerHTML = `
     <div class="rank-num">${i === 0 ? "👑" : "#" + (i + 1)}</div>
     <div class="rank-product">
       <span class="brand">${esc(c.brand ?? "")}</span>
       <span class="name">${esc(c.name)}</span>
       ${i === 0 ? '<span style="display:inline-block;margin-left:8px;color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">best fit</span>' : ""}
-      ${retailerLink}
+      ${retailerLink}${detailLink}
     </div>
     <div class="rank-price">
       ${c.price != null && c.price > 0 ? `~$${c.price}` : "<span class='muted'>?</span>"}

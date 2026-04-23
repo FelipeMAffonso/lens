@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Lens — SKU detail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --bg:#faf9f5; --fg:#1a1a1a; --fg-dim:#4b4a47; --muted:#6e6c66; --accent:#CC785C; --line:#e3dfd4; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Inter",system-ui,sans-serif; background:var(--bg); color:var(--fg); }
+    header { display:flex; justify-content:space-between; align-items:baseline; padding:16px 28px; border-bottom:1px solid var(--line); }
+    header h1 { font-family:"Source Serif 4",Georgia,serif; font-size:22px; margin:0; }
+    header a { color:var(--accent); text-decoration:none; font-size:14px; margin-left:16px; }
+    main { max-width:1080px; margin:0 auto; padding:28px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+    .hero { display:grid; grid-template-columns:200px 1fr; gap:24px; }
+    .hero img { width:200px; height:200px; object-fit:contain; background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px; }
+    .hero h2 { font-family:"Source Serif 4",Georgia,serif; margin:0 0 6px 0; font-size:24px; }
+    .hero .brand { color:var(--muted); font-size:14px; text-transform:uppercase; letter-spacing:0.06em; }
+    .pill { display:inline-block; padding:2px 10px; background:#f4f2ec; border:1px solid var(--line); border-radius:999px; font-size:11px; color:var(--fg-dim); margin-right:6px; }
+    .kvgrid { display:grid; grid-template-columns:140px 1fr; gap:6px 18px; font-size:13px; }
+    .kvgrid dt { color:var(--muted); }
+    .kvgrid dd { margin:0; }
+    h3 { font-family:"Source Serif 4",Georgia,serif; font-size:16px; margin:0 0 12px 0; }
+    .source-row { display:grid; grid-template-columns:150px 1fr 100px 110px; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:13px; }
+    .source-row:last-child { border-bottom:none; }
+    .source-row a { color:var(--accent); text-decoration:none; }
+    .muted { color:var(--muted); font-size:12px; }
+    .price-strip { font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:14px; }
+    .skeleton { color:var(--muted); font-style:italic; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Lens · SKU detail</h1>
+      <div class="muted" style="font-size:12px;">Every fact, every source, every price observation</div>
+    </div>
+    <nav>
+      <a href="/">← back to audit</a>
+      <a href="https://lens-api.webmarinelli.workers.dev/docs" target="_blank">API docs ↗</a>
+    </nav>
+  </header>
+  <main>
+    <div id="root"><p class="skeleton">Loading…</p></div>
+  </main>
+  <script type="module">
+    const API_BASE = "https://lens-api.webmarinelli.workers.dev";
+    const params = new URLSearchParams(location.search);
+    const skuId = params.get("id") || "";
+    const root = document.getElementById("root");
+
+    function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+    function fmtDollar(cents) { return cents == null ? "?" : "$" + (cents/100).toFixed(2); }
+    function relTime(iso) {
+      if (!iso) return "";
+      const t = new Date(iso.includes("T") ? iso : iso + "Z").getTime();
+      if (Number.isNaN(t)) return iso;
+      const d = Math.floor((Date.now() - t)/86400000);
+      if (d < 1) return "today";
+      if (d < 7) return d + "d ago";
+      if (d < 30) return Math.floor(d/7) + "w ago";
+      return Math.floor(d/30) + "mo ago";
+    }
+
+    async function main() {
+      if (!skuId) { root.innerHTML = '<p class="muted">No SKU id. Try <code>?id=wd:Q6607</code></p>'; return; }
+      try {
+        const res = await fetch(`${API_BASE}/sku/${encodeURIComponent(skuId)}`);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const d = await res.json();
+        render(d);
+      } catch (e) {
+        root.innerHTML = `<p class="muted">Couldn't load SKU <code>${esc(skuId)}</code>: ${esc(e.message)}</p>`;
+      }
+    }
+
+    function render(d) {
+      const sku = d.sku || {};
+      const sources = d.sources || [];
+      const recalls = d.recalls || [];
+      const specs = tryParse(sku.specs_json) || {};
+
+      const priceLine = sku.median_cents != null
+        ? `<div class="price-strip"><strong>${fmtDollar(sku.median_cents)}</strong> <span class="muted">· triangulated across ${sku.n_sources ?? 0} source${sku.n_sources === 1 ? "" : "s"}${sku.p25_cents != null && sku.p75_cents != null ? ` · range ${fmtDollar(sku.p25_cents)}–${fmtDollar(sku.p75_cents)}` : ""}</span></div>`
+        : `<div class="muted">Price not yet triangulated across sources</div>`;
+
+      const specsList = Object.entries(specs)
+        .filter(([k]) => !k.startsWith("_"))
+        .slice(0, 30)
+        .map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(typeof v === "object" ? JSON.stringify(v) : v)}</dd>`)
+        .join("");
+
+      const sourcesList = sources.map((s) => `
+        <div class="source-row">
+          <div><span class="pill">${esc(s.source_id)}</span></div>
+          <div>${s.external_url ? `<a href="${esc(s.external_url)}" target="_blank">${esc(s.external_url.slice(0, 90))}${s.external_url.length > 90 ? "…" : ""}</a>` : '<span class="muted">(no retailer URL)</span>'}</div>
+          <div class="price-strip">${s.price_cents != null ? fmtDollar(s.price_cents) : "<span class='muted'>—</span>"}</div>
+          <div class="muted">${esc(relTime(s.observed_at))} · conf ${Number(s.confidence ?? 0).toFixed(2)}</div>
+        </div>`).join("");
+
+      const recallsList = recalls.length === 0
+        ? '<div class="muted">No recalls matched against this SKU.</div>'
+        : recalls.map((r) => `
+          <div style="padding:10px 0;border-bottom:1px solid var(--line);">
+            <div style="font-weight:600;color:${r.severity === 'park-it' ? 'var(--accent)' : 'var(--fg)'};">${esc(r.title)}</div>
+            <div class="muted">${esc(r.hazard || r.severity)} · ${esc(relTime(r.published_at))} · <a href="${esc(r.url)}" target="_blank">official ↗</a></div>
+          </div>`).join("");
+
+      root.innerHTML = `
+        <div class="card hero">
+          ${sku.image_url ? `<img src="${esc(sku.image_url)}" alt=""/>` : '<div class="muted" style="width:200px;height:200px;display:flex;align-items:center;justify-content:center;background:#f4f2ec;border-radius:8px;">no image</div>'}
+          <div>
+            <div class="brand">${esc(sku.brand_slug || "")}</div>
+            <h2>${esc(sku.canonical_name || skuId)}</h2>
+            <div style="margin:8px 0;">
+              ${sku.category_code ? `<span class="pill">${esc(sku.category_code)}</span>` : ''}
+              ${sku.model_code ? `<span class="pill">model ${esc(sku.model_code)}</span>` : ''}
+              ${sku.asin ? `<span class="pill">ASIN ${esc(sku.asin)}</span>` : ''}
+              ${sku.upc ? `<span class="pill">UPC ${esc(sku.upc)}</span>` : ''}
+              ${sku.ean ? `<span class="pill">EAN ${esc(sku.ean)}</span>` : ''}
+              ${sku.fcc_id ? `<span class="pill">FCC ${esc(sku.fcc_id)}</span>` : ''}
+            </div>
+            ${priceLine}
+            <div class="muted" style="margin-top:8px;">Refreshed ${esc(relTime(sku.last_refreshed_at))} · id <code>${esc(skuId)}</code></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Multi-retailer price + source links (${sources.length})</h3>
+          ${sources.length === 0 ? '<div class="muted">No source links recorded. This SKU is known from one ingester only.</div>' : sourcesList}
+        </div>
+
+        <div class="card">
+          <h3>Known specs</h3>
+          ${specsList ? `<dl class="kvgrid">${specsList}</dl>` : '<div class="muted">No specs recorded. wikidata-enrich / upcitemdb / page-fetch hydrate this over time.</div>'}
+        </div>
+
+        <div class="card">
+          <h3>Recalls (${recalls.length})</h3>
+          ${recallsList}
+        </div>
+      `;
+    }
+
+    function tryParse(s) { try { return JSON.parse(s); } catch { return null; } }
+
+    main();
+  </script>
+</body>
+</html>
