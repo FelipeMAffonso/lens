@@ -17,11 +17,15 @@ import type { Env } from "../index.js";
 import { pickDueIngesterIds, runIngester, type DatasetIngester } from "./framework.js";
 import { cpscRecallsIngester } from "./sources/cpsc-recalls.js";
 import { epaEnergyStarIngester } from "./sources/epa-energy-star.js";
+import { epaFuelEconomyIngester } from "./sources/epa-fueleconomy.js";
 import { fccEquipmentIngester } from "./sources/fcc-equipment.js";
 import { fdaRecallsIngester } from "./sources/fda-recalls.js";
 import { nhtsaRecallsIngester } from "./sources/nhtsa-recalls.js";
+import { federalRegisterIngester } from "./sources/federal-register.js";
+import { manufacturerSitemapsIngester } from "./sources/manufacturer-sitemaps.js";
 import { openBeautyFactsIngester } from "./sources/openbeautyfacts.js";
 import { openFoodFactsIngester } from "./sources/openfoodfacts.js";
+import { retailerSitemapsIngester } from "./sources/retailer-sitemaps.js";
 import { usdaFoodsIngester } from "./sources/usda-foods.js";
 import { wikidataIngester } from "./sources/wikidata.js";
 
@@ -32,10 +36,14 @@ export const REGISTERED: Record<string, DatasetIngester> = {
   "fda-recalls": fdaRecallsIngester,
   "fcc-equipment": fccEquipmentIngester,
   "epa-energy-star": epaEnergyStarIngester,
+  "epa-fueleconomy": epaFuelEconomyIngester,
   "openfoodfacts": openFoodFactsIngester,
   "openbeautyfacts": openBeautyFactsIngester,
   "usda-foods": usdaFoodsIngester,
   "wikidata": wikidataIngester,
+  "federal-register": federalRegisterIngester,
+  "retailer-sitemaps": retailerSitemapsIngester,
+  "manufacturer-sitemaps": manufacturerSitemapsIngester,
 };
 
 /** Called from the scheduled() handler in index.ts. */

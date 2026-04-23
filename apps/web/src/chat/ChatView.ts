@@ -47,13 +47,13 @@ export function mountChatView(opts: ChatViewOptions): void {
   let rotator: RotatingStatusHandle | null = null;
   let lastAudit: AuditResult | null = null;
 
-  // First bot greeting — the Study-3-faithful opener. Em-dash-free per
-  // CLAUDE.md "zero tolerance" rule. If the user already has saved turns
-  // for this session, we just replay them instead.
+  // First bot greeting. improve-D17 2026-04-22: voice aligned with
+  // LENS_VOICE_COVENANT in prompts.ts. Independent, transparent, no
+  // affiliates. Em-dash-free.
   const preExisting = store.all();
   if (preExisting.length === 0) {
     const greeting =
-      "Hey, I'm Lens, your independent shopping agent. What are you thinking of buying?";
+      "Hi, I'm Lens. I work for you, not the retailers. Paste an AI recommendation to audit it, drop a product URL, or just tell me what you're shopping for.";
     const t = store.append("assistant", greeting);
     transcript.append(botBubble(t.text));
     renderSeedChips();
@@ -421,18 +421,17 @@ export function mountChatView(opts: ChatViewOptions): void {
 
 function buildRecap(audit: AuditResult, topCriterion?: string): string {
   const pick = audit.specOptimal;
-  // If search came back empty, don't pretend we have a pick. Say so plainly.
-  const isEmpty = !pick || !pick.name || pick.name.startsWith("(no candidates");
+  // improve-D3: if search came back empty, render a real empty state, not an
+  // optimistic template with a placeholder name. D17 voice alignment.
+  const isEmpty =
+    !pick || !pick.name || pick.name.startsWith("(no candidates") || pick.name.startsWith("(none");
   if (isEmpty) {
-    return "I tried to find products but came back empty this time. Live web search may be rate-limited or the query is very niche. Try another phrasing, or scroll down to see what Lens did infer from what you said.";
+    return "Search came back empty this run. The category may be unindexed in the live catalog, or the live search timed out. You can narrow the query (add a budget or a specific feature) or paste a retailer URL and I'll parse the product page directly.";
   }
   const brand = pick.brand ? `${pick.brand} ` : "";
   const price = pick.price != null ? ` ($${pick.price})` : "";
   const criterionPhrase = topCriterion
-    ? ` matches your top criterion (${topCriterion.replace(/[_-]+/g, " ")})`
-    : " fits your criteria best";
-  // User-feedback 2026-04-22: em-dashes banned repo-wide. Recap is hardcoded, so
-  // the fix is here in the string literal (the Opus-drafted turns already go
-  // through scrubClarifierText on the server).
-  return `Based on what you told me, Lens's pick is ${brand}${pick.name}${price}. It${criterionPhrase} per the transparent utility math. The full ranking is below. Drag the sliders to re-weight.`;
+    ? ` scores highest on your top criterion (${topCriterion.replace(/[_-]+/g, " ")})`
+    : " fits the spread of your criteria best";
+  return `Top pick: ${brand}${pick.name}${price}. It${criterionPhrase} on the transparent utility math (U = Σ wᵢ·sᵢ). The full ranking and every contribution are below. Drag the sliders to re-weight.`;
 }
