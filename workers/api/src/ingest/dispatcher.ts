@@ -35,6 +35,8 @@ import { nvdCveIngester } from "./sources/nvd-cve.js";
 import { cisaKevIngester } from "./sources/cisa-kev.js";
 import { cfpbComplaintsIngester } from "./sources/cfpb-complaints.js";
 import { slickdealsIngester } from "./sources/slickdeals.js";
+import { googleProductTaxonomyIngester } from "./sources/google-product-taxonomy.js";
+import { steamStoreIngester } from "./sources/steam-store.js";
 import { bensbargainsIngester } from "./sources/bensbargains.js";
 import { dealnewsIngester } from "./sources/dealnews.js";
 import { gottadealIngester } from "./sources/gottadeal.js";
@@ -77,6 +79,8 @@ export const REGISTERED: Record<string, DatasetIngester> = {
   "dealnews": dealnewsIngester,
   "gottadeal": gottadealIngester,
   "mybargainbuddy": mybargainbuddyIngester,
+  "google-product-taxonomy": googleProductTaxonomyIngester,
+  "steam-store": steamStoreIngester,
   "openlibrary": openLibraryIngester,
   "musicbrainz": musicBrainzIngester,
   "gs1-origin": gs1OriginIngester,

@@ -457,6 +457,15 @@ app.get("/compare", async (c) => {
   return handleCompare(c as never);
 });
 
+// improve-A13d — POST /resolve-url — link recognition.
+// Takes any retailer URL, extracts { retailer, id, brand, model } and
+// tries to look it up in the data spine. Lets the chat + extension
+// short-circuit "user pasted an Amazon URL" → matched SKU.
+app.post("/resolve-url", async (c) => {
+  const { handleResolveUrl } = await import("./sku/resolve-url.js");
+  return handleResolveUrl(c as never);
+});
+
 // improve-A13b — /sku/:id — single SKU detail.
 app.get("/sku/:id", async (c) => {
   const id = decodeURIComponent(c.req.param("id"));
