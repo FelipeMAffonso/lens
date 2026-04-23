@@ -61,6 +61,11 @@ export const CRON_JOBS: CronJob[] = [
   },
   {
     pattern: "41 * * * *",
+    workflowId: "triangulate.specs",
+    description: "improve-A12b — Hourly: sku_spec consensus across sources + spec-discrepancy log.",
+  },
+  {
+    pattern: "41 * * * *",
     workflowId: "digest.send",
     description: "VISION #22 — Hourly: dispatch weekly digests for users whose preferred day/hour matches now.",
   },
