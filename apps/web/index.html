@@ -272,6 +272,58 @@
           </div>
         </div>
 
+        <div class="arch-band">
+          <h3>Install the companion</h3>
+          <p class="arch-sub">Lens ships as three surfaces. Pick the one that fits when you're shopping.</p>
+          <div class="install-grid">
+            <div class="install-card">
+              <div class="install-icon">🧩</div>
+              <h4>Chrome extension</h4>
+              <p>One-click "Lens this page" on every retailer site. Captures the full page, Opus 4.7's <strong>3.75 MP vision</strong> parses every field even when robots.txt blocks scraping, and the audit drops in-place.</p>
+              <p><strong>Bonus:</strong> silent dark-pattern badges at checkout. Opt-in multi-page shopping session that stitches related visits into one audit.</p>
+              <a class="install-cta" href="https://github.com/FelipeMAffonso/lens/tree/main/apps/extension#install" target="_blank">Load unpacked →</a>
+            </div>
+            <div class="install-card">
+              <div class="install-icon">📱</div>
+              <h4>Mobile PWA</h4>
+              <p>Add to home screen on iOS or Android. Share sheet, camera input (photograph a product in the store), push notifications for recalls + price drops on things you own.</p>
+              <p><strong>Bonus:</strong> voice input. Dictate "I need running shoes for marathon training" and Lens does the rest.</p>
+              <a class="install-cta" href="/">Install on phone →</a>
+            </div>
+            <div class="install-card">
+              <div class="install-icon">💻</div>
+              <h4>Web dashboard</h4>
+              <p>Paste any AI shopping answer from ChatGPT, Claude, Gemini, Rufus, Perplexity. Lens audits the claims against live catalog data and returns a slider-tunable utility-math ranking in under 20 seconds.</p>
+              <p><strong>Bonus:</strong> profile export, so your preferences move with you.</p>
+              <a class="install-cta" href="/">Open the web app →</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-band">
+          <h3>How Lens learns your preferences</h3>
+          <p class="arch-sub">Five layers, from a single sentence to years of revealed-preference signal. All local unless you sign in to sync.</p>
+          <div class="pref-layers">
+            <div class="pref-layer"><span class="pref-n">L1</span><div><strong>Goal parsing.</strong> Opus 4.7 adaptive thinking extracts weighted criteria from one sentence. 5 seconds.</div></div>
+            <div class="pref-layer"><span class="pref-n">L2</span><div><strong>Adaptive clarification.</strong> When confidence is low, Lens asks 2-4 conjoint-style binary tradeoff questions. Converges 5× faster than classical preference elicitation.</div></div>
+            <div class="pref-layer"><span class="pref-n">L3</span><div><strong>Explicit editing.</strong> Every weight is a slider. You inspect the math, you move the dials, ranking recomputes live. Your call is final.</div></div>
+            <div class="pref-layer"><span class="pref-n">L4</span><div><strong>Revealed-preference updating.</strong> After 5-10 audits, Lens learns from what you actually pick over what it ranked top. If you chose the #2 over the #1, the weight that discriminates them adjusts.</div></div>
+            <div class="pref-layer"><span class="pref-n">L5</span><div><strong>Cross-category transfer.</strong> Meta-preferences (durability, repairability, country of origin, ethical supply chain) carry from one category to the next. New category, informed priors.</div></div>
+          </div>
+        </div>
+
+        <div class="arch-band">
+          <h3>Shopping-session mode (extension, opt-in)</h3>
+          <p class="arch-sub">One click when you start browsing. Lens buffers a <strong>session_id</strong> across the next few pages you visit, and the multi-page audit surfaces dark patterns that require seeing the <em>whole</em> flow — not just one page.</p>
+          <ul class="session-list">
+            <li><strong>Bait-and-switch:</strong> price you saw on the product page ≠ cart subtotal. Lens captured both.</li>
+            <li><strong>Hidden fees:</strong> the <code>$49 destination amenity fee</code> only appears at checkout confirmation. Lens has the full chain.</li>
+            <li><strong>Forced continuity:</strong> the free-trial dark pattern that auto-upgrades on step 5 of 6. Lens saw step 5.</li>
+            <li><strong>Drip pricing:</strong> item A → cart → shipping add-on → service fee → tip → total is 40% higher. Lens has every increment.</li>
+          </ul>
+          <p class="arch-sub">Pages in a session are stored only for the session duration (default 30 min). All excerpts pass the per-host consent gate. Revoke any time in extension settings.</p>
+        </div>
+
         <div class="arch-band arch-trust">
           <h3>Trust posture</h3>
           <ul class="trust-list">

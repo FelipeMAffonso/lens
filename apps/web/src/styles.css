@@ -797,7 +797,98 @@ details[open] summary { color: var(--fg-dim); }
   border-radius: 3px;
   color: #8a5a3a;
 }
+.install-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.install-card {
+  background: #fff;
+  border: 1px solid #e8e4dd;
+  border-radius: 10px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.install-icon { font-size: 32px; margin-bottom: 4px; }
+.install-card h4 { font-size: 15px; font-weight: 600; margin: 0 0 4px; color: #1a1a1a; }
+.install-card p { font-size: 13px; line-height: 1.55; color: #4a4a4a; margin: 0; }
+.install-card p strong { color: #8a5a3a; }
+.install-cta {
+  margin-top: auto;
+  display: inline-block;
+  padding: 10px 16px;
+  background: #cc785c;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.install-cta:hover { transform: translateY(-1px); }
+.pref-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pref-layer {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid #e8e4dd;
+  border-radius: 8px;
+  padding: 16px;
+  align-items: center;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #4a4a4a;
+}
+.pref-layer strong { color: #1a1a1a; }
+.pref-n {
+  width: 34px;
+  height: 34px;
+  background: #faf4ee;
+  color: #8a5a3a;
+  border: 1px solid #f0e3d4;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+.session-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.session-list li {
+  padding: 10px 16px;
+  background: #fff;
+  border: 1px solid #e8e4dd;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #2a2a2a;
+}
+.session-list strong { color: #8a5a3a; margin-right: 4px; }
+.session-list code {
+  font-size: 12px;
+  padding: 1px 5px;
+  background: #faf4ee;
+  border-radius: 3px;
+  color: #8a5a3a;
+}
 @media (max-width: 720px) {
+  .install-grid { grid-template-columns: 1fr; }
   .arch-hero { padding: 28px 20px; }
   .arch-hero h2 { font-size: 22px; }
   .three-places { grid-template-columns: 1fr; }
