@@ -262,6 +262,22 @@ app.get("/architecture/sources/:id", async (c) => {
   }
 });
 
+// improve-B-triggers — Lens Triggers, privacy-preserving passive monitoring.
+// docs/TRIGGERS.md for the full threat model + privacy contract. Server
+// stores only hashes. Zero content ever touches the wire.
+app.post("/triggers/report", async (c) => {
+  const { handleTriggerReport } = await import("./triggers/handler.js");
+  return handleTriggerReport(c as never);
+});
+app.get("/triggers/definitions", async (c) => {
+  const { handleTriggerDefinitions } = await import("./triggers/handler.js");
+  return handleTriggerDefinitions(c as never);
+});
+app.get("/triggers/aggregate", async (c) => {
+  const { handleTriggerAggregate } = await import("./triggers/handler.js");
+  return handleTriggerAggregate(c as never);
+});
+
 // improve-B-session — /shopping-session/* — multi-page shopping journey capture.
 app.post("/shopping-session/start", async (c) => {
   const { handleSessionStart } = await import("./shopping-session/handler.js");
