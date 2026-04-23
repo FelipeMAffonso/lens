@@ -73,7 +73,7 @@ const CLASSES = [
   { qid: "Q11006", slug: "toy" },
 ];
 
-const LIMIT = 500;
+const LIMIT = 2000;
 
 export const wikidataIngester: DatasetIngester = {
   id: SOURCE_ID,

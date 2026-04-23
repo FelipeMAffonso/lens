@@ -5,7 +5,7 @@
 import { ensureBrands, type DatasetIngester, type IngestionContext, type IngestionReport } from "../framework.js";
 
 const SOURCE_ID = "openlibrary";
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 500;
 
 interface OLSearchResp {
   docs?: Array<{
