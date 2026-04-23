@@ -36,6 +36,7 @@ import { openBeautyFactsIngester } from "./sources/openbeautyfacts.js";
 import { openFoodFactsIngester } from "./sources/openfoodfacts.js";
 import { redditBiflIngester } from "./sources/reddit-bifl.js";
 import { retailerSitemapsIngester } from "./sources/retailer-sitemaps.js";
+import { unspscSeedIngester } from "./sources/unspsc-seed.js";
 import { usdaFoodsIngester } from "./sources/usda-foods.js";
 import { wikidataIngester } from "./sources/wikidata.js";
 
@@ -64,6 +65,7 @@ export const REGISTERED: Record<string, DatasetIngester> = {
   "musicbrainz": musicBrainzIngester,
   "gs1-origin": gs1OriginIngester,
   "eu-eprel": euEprelIngester,
+  "unspsc": unspscSeedIngester,
 };
 
 /** Called from the scheduled() handler in index.ts. */
