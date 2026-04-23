@@ -16,6 +16,7 @@ import { transcribe, TranscribeRequestSchema } from "./voice/transcribe.js";
 import { computeScore, EMBED_JS, ScoreQuerySchema } from "./public/score.js";
 import "./workflow/specs/ticker-aggregate.js"; // register cron-targeted workflow
 import "./workflow/specs/ingest-dispatch.js"; // improve-A2 — data-spine ingester cron
+import "./workflow/specs/triangulate-price.js"; // improve-A12 — hourly consensus price + discrepancy log
 import { listTicker } from "./ticker/repo.js";
 import { handleAuthorize as gmailAuthorize, handleCallback as gmailCallback } from "./email/handler.js";
 import {

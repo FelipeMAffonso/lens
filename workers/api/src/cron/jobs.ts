@@ -49,6 +49,11 @@ export const CRON_JOBS: CronJob[] = [
     workflowId: "ticker.aggregate",
     description: "Hourly disagreement-ticker aggregator (k-anonymity enforced).",
   },
+  {
+    pattern: "41 * * * *",
+    workflowId: "triangulate.price",
+    description: "improve-A12 — Hourly: recompute triangulated_price + discrepancy_log.",
+  },
 ];
 
 export function findCronJobs(pattern: string): CronJob[] {
