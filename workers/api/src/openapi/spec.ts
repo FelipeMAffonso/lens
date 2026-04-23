@@ -78,6 +78,23 @@ export function buildOpenAPISpec(baseUrl: string): OpenAPIDoc {
           responses: { "200": JSON_OK },
         },
       },
+      "/architecture/next-due": {
+        get: {
+          tags: ["core"],
+          summary: "Show the ingester queue the dispatcher picks on the next 15-min tick",
+          description: "Returns `due_total`, `available` (filtered to REGISTERED ingesters), `would_attempt` (first 2), plus `unregistered_due` (data_source rows without a matching ingester).",
+          responses: { "200": JSON_OK },
+        },
+      },
+      "/architecture/trigger/{id}": {
+        post: {
+          tags: ["core"],
+          summary: "Manually kick an ingester (unauthenticated, rate-limited)",
+          description: "Runs the ingester for one data_source.id immediately. Each ingester is idempotent (INSERT OR IGNORE). Useful for demos and for filling a specific gap on demand.",
+          parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+          responses: { "200": JSON_OK, "404": { description: "Unknown source_id" } },
+        },
+      },
       "/auth/request": {
         post: {
           tags: ["auth"],
@@ -349,6 +366,61 @@ export function buildOpenAPISpec(baseUrl: string): OpenAPIDoc {
       },
       "/packs/stats": {
         get: { tags: ["core"], summary: "Bundled pack counts (rubrics, overlays, stimuli)", responses: { "200": JSON_OK } },
+      },
+      "/email/receipt": {
+        post: {
+          tags: ["digest"],
+          summary: "Inbound receipt forwarder (HTTP parallel to `lens+receipts@…`)",
+          description:
+            "Accepts a parsed email body from Zapier / Make.com / iOS Shortcuts / manual curl. Auth: session cookie OR shared bearer token `x-lens-receipt-token`. Persists to `purchases`.",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    from: { type: "string" },
+                    subject: { type: "string" },
+                    date: { type: "string" },
+                    product: { type: "string" },
+                    priceCents: { type: "integer" },
+                    retailer: { type: "string" },
+                    rawBody: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          responses: { "200": JSON_OK, "401": { description: "Auth required" } },
+        },
+      },
+      "/intervention/send": {
+        post: {
+          tags: ["digest"],
+          summary: "Dispatch a drafted intervention letter via Resend",
+          description:
+            "Takes a filled letter (subject + body + recipient), wraps in a Source-Serif HTML shell, sends via Resend, logs to `interventions`. Auth: session cookie required.",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["to", "subject", "body"],
+                  properties: {
+                    to: { type: "string", format: "email" },
+                    subject: { type: "string" },
+                    body: { type: "string" },
+                    packSlug: { type: "string" },
+                    meta: { type: "object" },
+                  },
+                },
+              },
+            },
+          },
+          responses: { "200": JSON_OK, "401": { description: "Auth required" }, "503": { description: "Resend not configured" } },
+        },
       },
     },
     components: {
