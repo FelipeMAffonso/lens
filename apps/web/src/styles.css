@@ -1,17 +1,24 @@
 :root {
-  /* Light, professional palette — modeled on Cognitive Traps Repository */
-  --bg: #fafbfc;
+  /* improve-D9 + D10 — warm-bone palette + pumpkin accent aligned with Claude
+     Design aesthetic (launched by Anthropic Labs Apr 17 2026). Replaces the
+     cool #fafbfc background with warm cream #faf9f5, shifts the coral accent
+     closer to pumpkin #CC785C. Adds serif for display type. */
+  --bg: #faf9f5;                          /* warm bone — was #fafbfc (cool gray) */
   --surface: #ffffff;
-  --surface-hi: #f4f6f8;
-  --border: #e5e8ec;
-  --border-hi: #cfd5dc;
+  --surface-hi: #f4f1ea;                  /* cream tone — was cool-gray */
+  --border: #e8e4dd;                      /* warm border — was #e5e8ec */
+  --border-hi: #d9d2c6;                   /* warm border-hi */
   --fg: #1a1a1a;
-  --fg-dim: #4a5260;
-  --fg-muted: #6a7488;
-  --accent: #DA7756;
-  --accent-hi: #c86a4a;
-  --accent-subtle: rgba(218, 119, 86, 0.10);
-  --accent-ring: rgba(218, 119, 86, 0.18);
+  --fg-dim: #3a3a3a;                      /* warmer dark — was bluish */
+  --fg-muted: #6a6a6a;                    /* warm neutral */
+  --accent: #CC785C;                      /* pumpkin — was #DA7756 (lighter coral) */
+  --accent-hi: #a8593f;                   /* deeper pumpkin */
+  --accent-subtle: rgba(204, 120, 92, 0.09);
+  --accent-ring: rgba(204, 120, 92, 0.20);
+  /* display serif — used on H1, H2 of landing + /architecture. Inter-fallback
+     for reader systems without Source Serif. */
+  --font-display: "Source Serif 4", "Source Serif Pro", "Charter", "Iowan Old Style", "Georgia", serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
   --warn: #b3791f;
   --warn-bg: rgba(245, 190, 88, 0.16);
   --error: #b13b30;
@@ -37,10 +44,18 @@ html, body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+  font: 15px/1.55 var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+
+/* improve-D10 — serif display for hero / section headings. Keeps body sans. */
+h1, h2, .hero h1, .arch-hero h2, .arch-band > h3, .hero-anchor-footer h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+h1 { line-height: 1.15; }
 
 .top-nav {
   display: flex;
