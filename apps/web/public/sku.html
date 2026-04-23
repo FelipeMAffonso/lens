@@ -88,10 +88,43 @@
         ? `<div class="price-strip"><strong>${fmtDollar(sku.median_cents)}</strong> <span class="muted">· triangulated across ${sku.n_sources ?? 0} source${sku.n_sources === 1 ? "" : "s"}${sku.p25_cents != null && sku.p75_cents != null ? ` · range ${fmtDollar(sku.p25_cents)}–${fmtDollar(sku.p75_cents)}` : ""}</span></div>`
         : `<div class="muted">Price not yet triangulated across sources</div>`;
 
+      // Provenance strip — warranty, country of origin, materials. Pulled
+      // from specs_json. These are the "all humanly possible" fields users
+      // care about but retailers bury. Surfaced above raw specs.
+      const provenanceKeys = [
+        ["warranty", "Warranty"],
+        ["countryOfOrigin", "Country of origin"],
+        ["country_of_origin", "Country of origin"],
+        ["made_in", "Made in"],
+        ["material", "Material"],
+        ["materials", "Materials"],
+        ["certifications", "Certifications"],
+        ["energy_rating", "Energy rating"],
+        ["energy_star", "Energy Star"],
+        ["repairability_score", "Repairability score"],
+      ];
+      const seenProv = new Set();
+      const provenanceRows = provenanceKeys
+        .map(([k, label]) => {
+          if (seenProv.has(label)) return "";
+          const v = specs[k];
+          if (v == null || v === "") return "";
+          seenProv.add(label);
+          const text = typeof v === "object" ? JSON.stringify(v) : String(v);
+          return `<dt>${esc(label)}</dt><dd>${esc(text)}</dd>`;
+        })
+        .filter(Boolean)
+        .join("");
+
+      // Hide provenance keys from the generic specs block so we don't
+      // render them twice. Underscore keys are already hidden.
+      const hideInSpecs = new Set(provenanceKeys.map(([k]) => k).concat(
+        ["retailer", "retailerId", "extractor", "model"],
+      ));
       const specsList = Object.entries(specs)
-        .filter(([k]) => !k.startsWith("_"))
-        .slice(0, 30)
-        .map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(typeof v === "object" ? JSON.stringify(v) : v)}</dd>`)
+        .filter(([k]) => !k.startsWith("_") && !hideInSpecs.has(k))
+        .slice(0, 40)
+        .map(([k, v]) => `<dt>${esc(k.replace(/_/g, " "))}</dt><dd>${esc(typeof v === "object" ? JSON.stringify(v) : v)}</dd>`)
         .join("");
 
       const sourcesList = sources.map((s) => `
@@ -128,6 +161,10 @@
             <div class="muted" style="margin-top:8px;">Refreshed ${esc(relTime(sku.last_refreshed_at))} · id <code>${esc(skuId)}</code></div>
           </div>
         </div>
+
+        ${provenanceRows
+          ? `<div class="card"><h3>Warranty, country, materials</h3><dl class="kvgrid">${provenanceRows}</dl><div class="muted" style="margin-top:10px;font-size:12px;">Surfaced from retailer page via Opus 4.7 structured extraction. Null fields mean the retailer page did not state them; we do not guess.</div></div>`
+          : ''}
 
         <div class="card">
           <h3>Multi-retailer price + source links (${sources.length})</h3>
