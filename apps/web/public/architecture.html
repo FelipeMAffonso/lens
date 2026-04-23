@@ -196,24 +196,126 @@
       </section>
 
       <section>
-        <h2>Live endpoints</h2>
+        <h2>Live endpoints (public, no auth)</h2>
         <table>
           <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
           <tbody>
+            <tr><td colspan="3" style="background:#faf6f0; font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:#8a5a3a;">Data spine</td></tr>
             <tr><td><code>GET</code></td><td><code>/architecture/stats</code></td><td>Live counts driving this page.</td></tr>
             <tr><td><code>GET</code></td><td><code>/architecture/sources</code></td><td>All data-source pipelines with current status.</td></tr>
             <tr><td><code>GET</code></td><td><code>/architecture/sources/:id</code></td><td>One source + last 20 ingestion runs.</td></tr>
-            <tr><td><code>GET</code></td><td><code>/sku/search?q=</code></td><td>FTS5 fuzzy over indexed catalog (p99 &lt; 50ms).</td></tr>
+            <tr><td colspan="3" style="background:#faf6f0; font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:#8a5a3a;">SKU catalog</td></tr>
+            <tr><td><code>GET</code></td><td><code>/sku/search?q=&category=&brand=&includeSources=1</code></td><td>FTS5 fuzzy over indexed catalog (p99 &lt; 50ms). Falls back to LIKE during bootstrap.</td></tr>
             <tr><td><code>GET</code></td><td><code>/sku/:id</code></td><td>SKU detail with sources + recalls.</td></tr>
             <tr><td><code>GET</code></td><td><code>/compare?skus=a,b,c</code></td><td>Side-by-side comparison of 2-6 SKUs + shared-spec matrix.</td></tr>
-            <tr><td><code>POST</code></td><td><code>/audit</code></td><td>Full audit pipeline (extract → search → verify → rank → cross-check).</td></tr>
-            <tr><td><code>POST</code></td><td><code>/audit/stream</code></td><td>Same, SSE per-stage.</td></tr>
-            <tr><td><code>POST</code></td><td><code>/passive-scan</code></td><td>Stage-2 dark-pattern verification with regulation citation.</td></tr>
-            <tr><td><code>POST</code></td><td><code>/chat/clarify</code></td><td>Study-3 ecological-bot preference elicitor.</td></tr>
-            <tr><td><code>POST</code></td><td><code>/chat/followup</code></td><td>Post-audit Q&amp;A.</td></tr>
+            <tr><td colspan="3" style="background:#faf6f0; font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:#8a5a3a;">Audit pipeline</td></tr>
+            <tr><td><code>POST</code></td><td><code>/audit</code></td><td>Full audit (extract → search → verify + self-verify → rank → cross-check). Accepts kind: text / query / url / image / photo.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/audit/stream</code></td><td>Same, SSE per-stage for live UI.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/visual-audit</code></td><td>Opus 4.7 3.75MP vision — Chrome extension screenshots + parses any product page, including Temu/AliExpress/robots-blocked pages. Persists to sku_catalog.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/passive-scan</code></td><td>Stage-2 dark-pattern verification with regulation citation (FTC Junk Fees Rule, etc.).</td></tr>
+            <tr><td colspan="3" style="background:#faf6f0; font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:#8a5a3a;">Multi-page shopping session</td></tr>
+            <tr><td><code>POST</code></td><td><code>/shopping-session/start</code></td><td>Start a 30-min session with user-granted host-allowlist + KV storage.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/shopping-session/capture</code></td><td>Append a visual-audit JSON to the session. Verifies host is on consent allowlist.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/shopping-session/:id/summary</code></td><td>Opus 4.7 reads all pages, surfaces journey-level dark patterns (price drift, dripped fees, bait-and-switch).</td></tr>
+            <tr><td colspan="3" style="background:#faf6f0; font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:#8a5a3a;">Chat & elicitor</td></tr>
+            <tr><td><code>POST</code></td><td><code>/chat/clarify</code></td><td>Study-3 ecological-bot preference elicitor. Detects Job 2 paste and short-circuits to audit.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/chat/followup</code></td><td>Post-audit Q&amp;A with 1M context over the full audit.</td></tr>
+            <tr><td colspan="3" style="background:#faf6f0; font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:#8a5a3a;">Packs + public ticker</td></tr>
             <tr><td><code>GET</code></td><td><code>/packs/stats</code></td><td>Knowledge-pack registry counts.</td></tr>
             <tr><td><code>GET</code></td><td><code>/packs/:slug</code></td><td>Full pack JSON.</td></tr>
-            <tr><td><code>GET</code></td><td><code>/ticker</code></td><td>Public disagreement ticker (k-anonymity enforced).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/ticker</code></td><td>Public disagreement ticker (k-anonymity ≥ 5 enforced).</td></tr>
+            <tr><td colspan="3" style="background:#faf6f0; font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:#8a5a3a;">Auth + sync</td></tr>
+            <tr><td><code>POST</code></td><td><code>/auth/request</code></td><td>Magic-link email via Resend. No passwords, ever.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/auth/verify</code></td><td>Exchange magic-link token for a JWT session cookie.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/auth/whoami</code></td><td>Returns {userId, email, createdAt} or {anonUserId}.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/auth/signout</code></td><td>Invalidate session.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/history/audits</code></td><td>User's audit history (cross-device after sign-in).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/preferences</code></td><td>User's saved weights, values overlay, source weighting.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/preferences</code></td><td>Update a preference slice.</td></tr>
+            <tr><td colspan="3" style="background:#faf6f0; font-weight:600; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:#8a5a3a;">Developer surfaces</td></tr>
+            <tr><td><code>POST</code></td><td><code>/mcp</code></td><td>Model Context Protocol (JSON-RPC 2.0). Tools: lens.audit, lens.sku_search, lens.dark_pattern_scan, lens.regulation_lookup, lens.pack_get, lens.pack_list.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Cross-browser + cross-device compatibility</h2>
+        <table>
+          <thead><tr><th>Surface</th><th>Chrome</th><th>Firefox</th><th>Safari</th><th>Mobile</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Web dashboard</strong> (lens-b1h.pages.dev)</td>
+              <td style="color:#247a50;">✓ full</td>
+              <td style="color:#247a50;">✓ full</td>
+              <td style="color:#247a50;">✓ full</td>
+              <td style="color:#247a50;">✓ responsive</td>
+            </tr>
+            <tr>
+              <td><strong>Chrome extension</strong> (MV3)</td>
+              <td style="color:#247a50;">✓ primary target</td>
+              <td style="color:#9c6b14;">△ MV3 via Mozilla port</td>
+              <td style="color:#9c6b14;">△ Safari Web Extension port</td>
+              <td style="color:#8a2f2f;">✗ desktop only</td>
+            </tr>
+            <tr>
+              <td><strong>Mobile PWA</strong></td>
+              <td style="color:#247a50;">✓ install via Android Chrome</td>
+              <td style="color:#247a50;">✓ install</td>
+              <td style="color:#247a50;">✓ Add to Home Screen on iOS 16.4+</td>
+              <td style="color:#247a50;">✓ primary target</td>
+            </tr>
+            <tr>
+              <td><strong>MCP (external agents)</strong></td>
+              <td colspan="4" style="color:#247a50;">✓ Claude Code, Claude Agent SDK, any MCP 2024-11-05 client</td>
+            </tr>
+            <tr>
+              <td><strong>Public API</strong></td>
+              <td colspan="4" style="color:#247a50;">✓ CORS-enabled, fetch/curl/SDK from anywhere</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>User profile + cross-device sync</h2>
+        <p style="color: var(--fg-muted); max-width: 720px;">
+          Lens uses a two-tier identity system. Both tiers are first-class — you can use Lens forever without ever signing in.
+        </p>
+        <table>
+          <thead><tr><th>Tier</th><th>How identified</th><th>Where state lives</th><th>What syncs across devices</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Anonymous</strong></td>
+              <td><code>anonUserId</code> minted on first visit, stored in <code>localStorage</code> + sent as <code>x-lens-anon-id</code> header.</td>
+              <td><code>localStorage</code> + Cloudflare D1 (keyed by anonUserId).</td>
+              <td>Nothing — device-local by design.</td>
+            </tr>
+            <tr>
+              <td><strong>Signed-in</strong></td>
+              <td>Magic-link email via Resend. JWT in HttpOnly cookie. <strong>No passwords, ever.</strong></td>
+              <td>Cloudflare D1 + KV. Anonymous state migrates to the user on first sign-in (anonUserId kept as reference).</td>
+              <td>Audit history, preferences, values overlay, source weighting, watchers, interventions, welfare-delta. Read/write via <code>/preferences</code>, <code>/history/audits</code>, <code>/watchers</code>, <code>/interventions</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="color: var(--fg-muted); margin-top: 12px; font-size: 12px;">
+          Full export available via <strong>Export profile JSON</strong> in the web dashboard. Signed, portable, works on any future Lens instance. Delete-all-server-state supported via <code>DELETE /preferences/:id</code> and <code>/auth/signout</code> + cookie revoke.
+        </p>
+      </section>
+
+      <section>
+        <h2>Trust + privacy posture (hard invariants)</h2>
+        <table>
+          <thead><tr><th>Invariant</th><th>Enforced how</th></tr></thead>
+          <tbody>
+            <tr><td><strong>No affiliate links, ever</strong></td><td>Every retailer URL scrubbed of <code>ref=</code>, <code>tag=</code>, <code>utm_*</code> before return. CI grep-test + LOOP_DISCIPLINE off-limits rule.</td></tr>
+            <tr><td><strong>No ranking bias</strong></td><td>Deterministic utility math <code>U = Σ wᵢ·sᵢ</code>. No LLM in the ranker. All contributions inspectable in the UI.</td></tr>
+            <tr><td><strong>No commission, ad revenue, or partner deals</strong></td><td>Project-violation commit rule in VISION_COMPLETE §13.</td></tr>
+            <tr><td><strong>k-anonymity on aggregates</strong></td><td>Public ticker suppresses any bucket with fewer than 5 contributing audits.</td></tr>
+            <tr><td><strong>Per-host consent for passive scan</strong></td><td>Content-script gates Stage-2 escalation on chrome.storage.local per-host consent record.</td></tr>
+            <tr><td><strong>Shopping-session consent</strong></td><td>Every session-capture call verifies the URL host against the consented allowlist. 403 on out-of-scope hosts. 30-min TTL default.</td></tr>
+            <tr><td><strong>No PII in session KV</strong></td><td>Visual-audit extracts only product-page facts (name, brand, price, specs). Reviewer PII, session cookies, tokens all stripped before the POST.</td></tr>
+            <tr><td><strong>Every fact cited</strong></td><td>Every sku_catalog row has ≥1 sku_source_link row with a public external_url. Discrepancies (&gt; 15% delta between sources) flagged in discrepancy_log.</td></tr>
           </tbody>
         </table>
       </section>
