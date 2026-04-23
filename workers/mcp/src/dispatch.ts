@@ -61,6 +61,13 @@ export async function callTool(
       }
       case "lens.architecture_stats":
         return await proxyGet(env, "/architecture/stats");
+      case "lens.architecture_sources":
+        return await proxyGet(env, "/architecture/sources");
+      case "lens.trigger_ingest": {
+        const id = String(args["id"] ?? "");
+        if (!id) return errorResult("missing required parameter: id");
+        return await proxyPost(env, `/architecture/trigger/${encodeURIComponent(id)}`, {});
+      }
       case "lens.intervention_draft": {
         const packSlug = String(args["packSlug"] ?? "");
         const context = (args["context"] as Record<string, unknown>) ?? {};

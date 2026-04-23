@@ -167,6 +167,28 @@ export const TOOLS: McpToolDef[] = [
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
   {
+    name: "lens.architecture_sources",
+    description:
+      "Return the full registry of Lens data sources (29 sources as of 2026-04-23) with per-source status, cadence, last run, row count, and docs URL. Lets an external agent introspect exactly what Lens ingests and how fresh each feed is before composing a user-facing claim.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    name: "lens.trigger_ingest",
+    description:
+      "Manually kick off an ingester for one Lens data source (e.g. 'cisa-kev', 'fda-510k', 'ftc-enforcement'). Unauthenticated but rate-limited. Each ingester is idempotent (INSERT OR IGNORE everywhere). Returns rowsUpserted + errors + duration. Useful for demos and for filling a specific gap on demand.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          description: "data_source.id (e.g. 'cisa-kev', 'fda-510k', 'cfpb-complaints', 'unspsc'). Full list via lens.architecture_sources.",
+        },
+      },
+      required: ["id"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "lens.intervention_draft",
     description:
       "Draft a consumer-protection letter (return request, subscription cancellation, FTC / CFPB complaint) using the applicable intervention pack template.",
