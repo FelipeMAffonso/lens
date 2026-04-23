@@ -73,11 +73,11 @@ const CLASSES = [
   { qid: "Q11006", slug: "toy" },
 ];
 
-const LIMIT = 2000;
+const LIMIT = 5000; // bumped from 2000 after cursor_json fix so each run actually advances a real window
 
 export const wikidataIngester: DatasetIngester = {
   id: SOURCE_ID,
-  maxDurationMs: 180_000,
+  maxDurationMs: 240_000,
   async run(ctx: IngestionContext): Promise<IngestionReport> {
     const counters: IngestionReport = { rowsSeen: 0, rowsUpserted: 0, rowsSkipped: 0, errors: [], log: "" };
     const logLines: string[] = [];
