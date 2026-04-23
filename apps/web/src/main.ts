@@ -665,6 +665,42 @@ function fitLabel(score: number): string {
   return "poor fit";
 }
 
+// Honest price display. Before: "Price: $279 · Best fit for your stated priorities"
+// implied that $279 was the current retailer price. User feedback 2026-04-23:
+// the retailer page often shows a different (usually higher) number. Lens doesn't
+// lie by saying "$279 IS the price" — it says "we last observed ~$279 here, and
+// if you find a lower price elsewhere, that's good for you, click through to
+// verify". Price-from-outside-retailer discounts are a *feature*, not a bug.
+function renderPriceLine(c: { price: number | null; priceSources?: number; priceObservedAt?: string }): string {
+  if (c.price == null || c.price <= 0) {
+    return `<span class="muted">Price not verified yet, check the retailer link below for the current number.</span>`;
+  }
+  const n = c.priceSources ?? 0;
+  const sourceNote =
+    n >= 3 ? `triangulated across ${n} sources`
+    : n === 2 ? `triangulated across 2 sources`
+    : n === 1 ? `from one source, not yet triangulated`
+    : `last observation, not yet triangulated`;
+  const freshness = relativePriceFreshness(c.priceObservedAt);
+  return `
+    <span class="amount">~$${c.price}</span>
+    <span class="muted">&nbsp;· ${sourceNote}${freshness ? `, ${freshness}` : ""}</span>
+    <div class="muted" style="font-size:11px;margin-top:2px;">Retailer price may differ, check the link. If the retailer is lower that's good, take it.</div>
+  `;
+}
+
+function relativePriceFreshness(iso?: string): string {
+  if (!iso) return "";
+  const t = Date.parse(iso.includes("T") || iso.includes("Z") ? iso : iso + "Z");
+  if (Number.isNaN(t)) return "";
+  const days = Math.floor((Date.now() - t) / 86400000);
+  if (days < 1) return "observed today";
+  if (days < 7) return `observed ${days}d ago`;
+  if (days < 30) return `observed ${Math.floor(days / 7)}w ago`;
+  if (days < 365) return `observed ${Math.floor(days / 30)}mo ago`;
+  return `observed over a year ago, likely stale`;
+}
+
 function heroPickCard(r: AuditResult): HTMLElement {
   const o = r.specOptimal;
   const card = document.createElement("section");
@@ -680,7 +716,7 @@ function heroPickCard(r: AuditResult): HTMLElement {
     <div class="hero-pick">
       <div>
         <div class="pick-product"><span class="brand">${esc(o.brand ?? "")}</span> <span class="name">${esc(o.name)}</span></div>
-        <div class="pick-price">Price: <span class="amount">$${o.price ?? "?"}</span> · <span class="muted">Best fit for your stated priorities</span></div>
+        <div class="pick-price">${renderPriceLine(o)}</div>
         <div style="margin-top:6px;">${urlLink}</div>
       </div>
     </div>
