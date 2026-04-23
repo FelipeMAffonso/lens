@@ -91,7 +91,10 @@ export const retailerSitemapsIngester: DatasetIngester = {
       // one (e.g. Amazon 500) forever. Without this, a single 500-prone
       // retailer at the top of the list pins the cursor and every other
       // retailer's sitemap stays unreached.
-      await writeState(ctx, { retailerIndex: state.retailerIndex + 1, childIndex: 0 });
+      await writeState(ctx, {
+        retailerIndex: state.retailerIndex + 1,
+        childIndexes: state.childIndexes,
+      });
       return counters;
     }
 
@@ -178,12 +181,20 @@ export const retailerSitemapsIngester: DatasetIngester = {
       if ((i / BATCH) % 20 === 0) await ctx.progress({});
     }
 
-    // Advance: next retailer if we exhausted the children.
-    const moreChildren = childUrls.length > 0 && state.childIndex + 1 < childUrls.length;
-    const next = moreChildren
-      ? { retailerIndex: state.retailerIndex, childIndex: state.childIndex + 1 }
-      : { retailerIndex: state.retailerIndex + 1, childIndex: 0 };
-    await writeState(ctx, next);
+    // Round-robin across retailers: advance retailerIndex every run, keep
+    // a per-retailer childIndex so each retailer progresses through its
+    // own sitemap sequence independently. Without round-robin the cursor
+    // would burn 50+ Best Buy children (dozens of runs) before ever
+    // touching Walmart / Target / Home Depot / Costco.
+    const perRetailerKey = retailer.slug;
+    const nextChild: Record<string, number> = { ...state.childIndexes };
+    nextChild[perRetailerKey] = childUrls.length > 0 && state.childIndex + 1 < childUrls.length
+      ? state.childIndex + 1
+      : 0; // wrap around — revisiting older children is fine (idempotent upsert)
+    await writeState(ctx, {
+      retailerIndex: state.retailerIndex + 1,
+      childIndexes: nextChild,
+    });
 
     counters.log = logLines.join("\n");
     return counters;
@@ -215,22 +226,39 @@ function humanizeFromUrl(url: string): string {
   }
 }
 
-async function readState(ctx: IngestionContext): Promise<{ retailerIndex: number; childIndex: number }> {
+async function readState(ctx: IngestionContext): Promise<{
+  retailerIndex: number;
+  childIndex: number;
+  childIndexes: Record<string, number>;
+}> {
   const row = await ctx.env.LENS_D1!.prepare("SELECT cursor_json FROM data_source WHERE id = ?")
     .bind(SOURCE_ID)
     .first<{ cursor_json: string | null }>();
   try {
     const p = JSON.parse(row?.cursor_json ?? "{}");
-    return {
-      retailerIndex: typeof p.retailerIndex === "number" ? p.retailerIndex : 0,
-      childIndex: typeof p.childIndex === "number" ? p.childIndex : 0,
-    };
+    const retailerIndex = typeof p.retailerIndex === "number" ? p.retailerIndex : 0;
+    const childIndexes = (p.childIndexes && typeof p.childIndexes === "object")
+      ? p.childIndexes as Record<string, number>
+      // Legacy cursor (single childIndex) — seed the current retailer's entry
+      // from it; everyone else starts at 0.
+      : (() => {
+          const seeded: Record<string, number> = {};
+          const r = RETAILERS[retailerIndex % RETAILERS.length];
+          if (r) seeded[r.slug] = typeof p.childIndex === "number" ? p.childIndex : 0;
+          return seeded;
+        })();
+    const retailer = RETAILERS[retailerIndex % RETAILERS.length];
+    const childIndex = retailer ? (childIndexes[retailer.slug] ?? 0) : 0;
+    return { retailerIndex, childIndex, childIndexes };
   } catch {
-    return { retailerIndex: 0, childIndex: 0 };
+    return { retailerIndex: 0, childIndex: 0, childIndexes: {} };
   }
 }
 
-async function writeState(ctx: IngestionContext, s: { retailerIndex: number; childIndex: number }): Promise<void> {
+async function writeState(
+  ctx: IngestionContext,
+  s: { retailerIndex: number; childIndexes: Record<string, number> },
+): Promise<void> {
   await ctx.env.LENS_D1!.prepare("UPDATE data_source SET cursor_json = ? WHERE id = ?")
     .bind(JSON.stringify(s), SOURCE_ID)
     .run();
