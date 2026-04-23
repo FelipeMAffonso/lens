@@ -15,7 +15,58 @@
 const HOST = location.hostname;
 
 // Only inject on sites that look like product pages. Runs once per page.
-const RETAIL_HOSTS = /amazon\.|bestbuy\.|walmart\.|target\.|homedepot\.|costco\.|temu\.|aliexpress\.|shopify\.|etsy\.|ebay\.|rei\.|newegg\.|microsoft\.|apple\.|sony\.|samsung\.|lg\.|dyson\.|breville\.|delonghi\./i;
+// Expanded retailer + marketplace + direct-to-consumer host list (~100).
+// Pattern matches any .com/.co.uk/.de/.ca/.jp/.fr/.com.au/etc suffix.
+const RETAIL_HOSTS = new RegExp(
+  "(^|\\.)(" +
+    [
+      // US big-box + marketplaces
+      "amazon", "bestbuy", "walmart", "target", "homedepot", "costco", "sams",
+      "lowes", "menards", "officedepot", "staples", "kohls", "macys",
+      "nordstrom", "bloomingdales", "saksfifthavenue", "neimanmarcus", "tjmaxx",
+      "rei", "dickssportinggoods", "academy", "newegg", "bhphotovideo", "adorama",
+      "microcenter", "jcpenney", "overstock", "wayfair", "westelm", "cb2",
+      "crateandbarrel", "ikea", "potterybarn", "ashleyfurniture", "bedbathandbeyond",
+      // Marketplaces (3P heavy)
+      "ebay", "etsy", "mercari", "poshmark", "depop", "facebook", "craigslist",
+      "offerup", "alibaba", "aliexpress", "temu", "shein", "wish",
+      // Grocery + food
+      "kroger", "safeway", "publix", "wholefoodsmarket", "traderjoes", "instacart",
+      "harristeeter", "shoprite", "freshdirect", "thrivemarket", "boxed",
+      // Fashion + footwear
+      "nike", "adidas", "underarmour", "lululemon", "uniqlo", "zara", "hm",
+      "asos", "zappos", "shoebacca", "footlocker", "champssports",
+      // Electronics DTC
+      "apple", "microsoft", "google", "store.google", "sony", "samsung",
+      "lg", "hp", "dell", "lenovo", "acer", "msi", "asus", "razer",
+      "logitech", "anker", "bose", "sennheiser", "jbl", "sonos", "shure",
+      // Home/kitchen DTC
+      "dyson", "breville", "delonghi", "cuisinart", "kitchenaid", "vitamix",
+      "nespresso", "keurig", "miele", "bosch-home", "geappliances", "whirlpool",
+      "shark", "bissell", "hoover", "irobot", "roborock",
+      // Pet + health
+      "petsmart", "petco", "chewy", "cvs", "walgreens", "riteaid", "drugstore",
+      // Automotive + outdoor
+      "tesla", "autozone", "oreillyauto", "advanceautoparts",
+      "patagonia", "northface", "columbia", "llbean", "backcountry", "cabelas",
+      "basspro", "mountainhardwear", "arcteryx",
+      // Shopify-style DTC brands
+      "allbirds", "warbyparker", "caspersleep", "purple", "glossier", "rothys",
+      "away", "peloton", "nordictrack", "onepeloton",
+      // EU / UK
+      "argos", "currys", "johnlewis", "selfridges", "marksandspencer", "boots",
+      "lidl", "aldi", "sainsburys", "tesco", "asda",
+      "mediamarkt", "saturn", "otto", "zalando", "elkjop", "elgiganten",
+      // APAC
+      "rakuten", "yodobashi", "biccamera", "jd", "tmall",
+      // Canada
+      "canadiantire", "bestbuy.ca", "costco.ca",
+      // AU
+      "coles", "woolworths", "bunnings",
+    ].join("|") +
+    ")\\.",
+  "i",
+);
 if (!RETAIL_HOSTS.test(HOST)) {
   // Not a retailer — don't inject.
 } else {
