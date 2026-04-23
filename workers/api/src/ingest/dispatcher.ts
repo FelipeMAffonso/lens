@@ -22,9 +22,13 @@ import { fccEquipmentIngester } from "./sources/fcc-equipment.js";
 import { fdaRecallsIngester } from "./sources/fda-recalls.js";
 import { nhtsaRecallsIngester } from "./sources/nhtsa-recalls.js";
 import { federalRegisterIngester } from "./sources/federal-register.js";
+import { ftcEnforcementIngester } from "./sources/ftc-enforcement.js";
+import { hibpIngester } from "./sources/hibp.js";
+import { keepaIngester } from "./sources/keepa.js";
 import { manufacturerSitemapsIngester } from "./sources/manufacturer-sitemaps.js";
 import { openBeautyFactsIngester } from "./sources/openbeautyfacts.js";
 import { openFoodFactsIngester } from "./sources/openfoodfacts.js";
+import { redditBiflIngester } from "./sources/reddit-bifl.js";
 import { retailerSitemapsIngester } from "./sources/retailer-sitemaps.js";
 import { usdaFoodsIngester } from "./sources/usda-foods.js";
 import { wikidataIngester } from "./sources/wikidata.js";
@@ -44,6 +48,10 @@ export const REGISTERED: Record<string, DatasetIngester> = {
   "federal-register": federalRegisterIngester,
   "retailer-sitemaps": retailerSitemapsIngester,
   "manufacturer-sitemaps": manufacturerSitemapsIngester,
+  "keepa": keepaIngester,
+  "hibp": hibpIngester,
+  "ftc-enforcement": ftcEnforcementIngester,
+  "reddit": redditBiflIngester,
 };
 
 /** Called from the scheduled() handler in index.ts. */
