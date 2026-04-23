@@ -832,14 +832,28 @@ function rankRow(c: Candidate, i: number, topScore: number): HTMLElement {
   // Normalize the displayed bar so the #1 pick is always 100% — makes the rank ordering visually clear
   const normalized = topScore > 0 ? Math.round(((c.utilityScore ?? 0) / topScore) * 100) : 0;
   const rankLabel = i === 0 ? "best" : i === 1 ? "runner-up" : i === 2 ? "third" : `#${i + 1}`;
+  const cext = c as Candidate & { priceSources?: number; priceMin?: number; priceMax?: number };
+  const n = cext.priceSources ?? 0;
+  const priceStory = n >= 2
+    ? `<span class="muted" style="font-size:11px;margin-left:8px;">triangulated across ${n} retailers${cext.priceMin != null && cext.priceMax != null && cext.priceMin !== cext.priceMax ? ` · range $${cext.priceMin}–$${cext.priceMax}` : ""}</span>`
+    : n === 1
+    ? `<span class="muted" style="font-size:11px;margin-left:8px;">one source so far</span>`
+    : "";
+  const retailerLink = c.url
+    ? `<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;color:#CC785C;text-decoration:none;margin-left:8px;">view ↗</a>`
+    : "";
   row.innerHTML = `
     <div class="rank-num">${i === 0 ? "👑" : "#" + (i + 1)}</div>
     <div class="rank-product">
       <span class="brand">${esc(c.brand ?? "")}</span>
       <span class="name">${esc(c.name)}</span>
       ${i === 0 ? '<span style="display:inline-block;margin-left:8px;color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">best fit</span>' : ""}
+      ${retailerLink}
     </div>
-    <div class="rank-price">$${c.price ?? "?"}</div>
+    <div class="rank-price">
+      ${c.price != null && c.price > 0 ? `~$${c.price}` : "<span class='muted'>?</span>"}
+      ${priceStory}
+    </div>
     <div class="rank-match">
       <div class="rank-match-bar"><div style="width:${normalized}%"></div></div>
       <div class="rank-match-label">${esc(rankLabel)}</div>

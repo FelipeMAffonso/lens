@@ -389,7 +389,10 @@ async function catalogSearch(intent: UserIntent, env: Env): Promise<Candidate[]>
     const { results } = await env.LENS_D1.prepare(
       `SELECT sc.id, sc.canonical_name, sc.brand_slug, sc.model_code, sc.image_url,
               sc.specs_json, sc.asin,
-              tp.median_cents
+              tp.median_cents, tp.p25_cents, tp.p75_cents, tp.n_sources,
+              (SELECT external_url FROM sku_source_link
+                WHERE sku_id = sc.id AND active = 1 AND external_url IS NOT NULL
+                ORDER BY observed_at DESC LIMIT 1) AS preferred_url
          FROM sku_fts
          JOIN sku_catalog sc ON sc.id = sku_fts.sku_id
          LEFT JOIN triangulated_price tp ON tp.sku_id = sc.id
@@ -405,6 +408,10 @@ async function catalogSearch(intent: UserIntent, env: Env): Promise<Candidate[]>
       specs_json: string | null;
       asin: string | null;
       median_cents: number | null;
+      p25_cents: number | null;
+      p75_cents: number | null;
+      n_sources: number | null;
+      preferred_url: string | null;
     }>();
     return (results ?? []).map((r) => {
       let specs: Record<string, unknown> = {};
@@ -415,9 +422,14 @@ async function catalogSearch(intent: UserIntent, env: Env): Promise<Candidate[]>
         brand: r.brand_slug ?? undefined,
         model: r.model_code ?? undefined,
         price: r.median_cents != null ? Math.round(r.median_cents / 100) : undefined,
-        url: r.asin ? `https://www.amazon.com/dp/${r.asin}` : undefined,
+        url: r.asin ? `https://www.amazon.com/dp/${r.asin}` : (r.preferred_url ?? undefined),
         imageUrl: r.image_url ?? undefined,
         specs,
+        // Price-story transparency (surface the consensus math to the UI)
+        priceSources: r.n_sources ?? undefined,
+        priceMin: r.p25_cents != null ? Math.round(r.p25_cents / 100) : undefined,
+        priceMax: r.p75_cents != null ? Math.round(r.p75_cents / 100) : undefined,
+        skuId: r.id,
       } as Candidate;
       return c;
     });

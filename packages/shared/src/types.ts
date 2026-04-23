@@ -34,12 +34,21 @@ export interface Candidate {
   brand: string;
   price: number | null;
   currency: string;          // "USD"
-  url?: string;              // product page
+  url?: string;              // product page (scrubbed of affiliate tags)
   thumbnailUrl?: string;
   specs: Record<string, string | number | boolean>;
   attributeScores: Record<string, number>; // each user-criterion → 0..1
   utilityScore: number;                     // weighted sum ∈ [0, 1]
   utilityBreakdown: Array<{ criterion: string; weight: number; score: number; contribution: number }>;
+  /** Price-story transparency: how many retailer rows triangulate into the
+   *  displayed median price, and the p25/p75 range. Lets the UI show
+   *  "triangulated across N retailers · range $X-$Y" per candidate. */
+  priceSources?: number;
+  priceMin?: number;
+  priceMax?: number;
+  /** Canonical SKU id in the spine (e.g. wd:Q123, amazon:B0..., fda510k:K123).
+   *  Frontend can use this to fetch per-retailer price history on demand. */
+  skuId?: string;
 }
 
 /** Parsed user intent extracted from the original prompt (or inferred from the AI's answer). */
