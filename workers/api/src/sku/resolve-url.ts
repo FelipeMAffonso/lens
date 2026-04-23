@@ -26,8 +26,8 @@ export async function handleResolveUrl(c: Context<{ Bindings: Env }>): Promise<R
   const env = c.env;
   if (!env.LENS_D1) return c.json({ error: "bootstrapping" }, 503);
 
-  let body: { url?: string; fetchPage?: boolean };
-  try { body = (await c.req.json()) as { url?: string; fetchPage?: boolean }; } catch { return c.json({ error: "invalid_json" }, 400); }
+  let body: { url?: string; fetchPage?: boolean; html?: string };
+  try { body = (await c.req.json()) as { url?: string; fetchPage?: boolean; html?: string }; } catch { return c.json({ error: "invalid_json" }, 400); }
   const raw = (body.url ?? "").trim();
   if (!raw) return c.json({ error: "missing_url" }, 400);
   const wantFetch = body.fetchPage !== false; // default on
@@ -37,10 +37,15 @@ export async function handleResolveUrl(c: Context<{ Bindings: Env }>): Promise<R
     return c.json({ parsed, candidates: [], matched: false, note: "unknown_retailer" });
   }
 
-  // Kick off the page fetch in parallel with the spine lookup. If the fetch
-  // returns a parseable page we extract title/price/image/bullets/rating
-  // and opportunistically upsert a sku_catalog row so the next lookup matches.
-  const pageP = wantFetch ? fetchAndExtract(raw, parsed).catch(() => null) : Promise.resolve(null);
+  // Page-fetch path:
+  // - If `html` was supplied (e.g. Chrome extension posted the DOM it
+  //   already has, bypassing IP-based bot-blocks on amazon / walmart
+  //   / target), parse it directly — no server fetch.
+  // - Otherwise, if fetchPage != false, fetch from the server.
+  // - Otherwise, skip.
+  const pageP = body.html
+    ? Promise.resolve(extractFromHtml(body.html, raw))
+    : wantFetch ? fetchAndExtract(raw, parsed).catch(() => null) : Promise.resolve(null);
 
   // 1. Direct id match (e.g. wd:Q123, steam:123, fda510k:K123, visual:<hash>).
   const directId = toSkuId(parsed);
@@ -109,7 +114,7 @@ interface PageExtract {
   raw: { http: number; bytes: number; contentType?: string };
 }
 
-async function fetchAndExtract(url: string, parsed: ParsedUrl): Promise<PageExtract | null> {
+async function fetchAndExtract(url: string, _parsed: ParsedUrl): Promise<PageExtract | null> {
   let res: Response;
   try {
     res = await fetch(url, {
@@ -126,14 +131,30 @@ async function fetchAndExtract(url: string, parsed: ParsedUrl): Promise<PageExtr
   }
   const ct = res.headers.get("content-type") ?? "";
   const html = await res.text();
-  const raw = { http: res.status, bytes: html.length, contentType: ct };
-  if (!res.ok || !html) return { raw };
+  // Amazon / Walmart / Target / BestBuy serve a bot-detection shell (small
+  // page, no product data) to Cloudflare Worker IPs. Detect that heuristic
+  // and surface it so the caller (extension) knows to supply `html` itself.
+  const looksBlocked =
+    res.ok && html.length < 8000 &&
+    /amazon\.com|walmart\.com|target\.com|bestbuy\.com/i.test(url) &&
+    !/productTitle|\"@type\":\s*\"Product\"/i.test(html);
+  if (looksBlocked) {
+    return {
+      raw: { http: res.status, bytes: html.length, contentType: ct },
+      // Surface the issue so the extension / CLI can react.
+      title: "(retailer bot-blocked — supply `html` via extension)",
+    };
+  }
+  if (!res.ok || !html) return { raw: { http: res.status, bytes: html.length, contentType: ct } };
+  return extractFromHtml(html, url, { http: res.status, contentType: ct });
+}
 
+function extractFromHtml(html: string, url: string, raw?: { http?: number; contentType?: string }): PageExtract {
+  const parsedForBrand = parseRetailerUrl(url);
   return {
-    ...raw,
-    raw,
+    raw: { http: raw?.http ?? 200, bytes: html.length, contentType: raw?.contentType ?? "text/html" },
     title: extractTitle(html),
-    brand: extractBrand(html, parsed),
+    brand: extractBrand(html, parsedForBrand),
     priceCents: extractPriceCents(html),
     currency: "USD",
     imageUrl: extractImageUrl(html),
