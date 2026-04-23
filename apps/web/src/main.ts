@@ -813,11 +813,14 @@ function rankRow(c: Candidate, i: number, topScore: number): HTMLElement {
 function crossModelCard(r: AuditResult): HTMLElement {
   const card = document.createElement("section");
   card.className = "card";
+  // D4 — when cross-model returned nothing, DO NOT publish "provider keys
+  // may need refresh" to the user. Either hide entirely (if the env flag
+  // says the panel is disabled) or render a neutral "skipped in this run"
+  // state. No alarming copy.
   if (r.crossModel.length === 0) {
-    card.innerHTML = `
-      <div class="card-header"><h2>What other frontier models picked</h2></div>
-      <p class="muted" style="margin: 0;">The cross-model check runs on a <a href="https://lens-cross-model.webmarinelli.workers.dev/health" target="_blank" style="color:var(--hl-hi);">separate Claude Managed Agent Worker</a>. No other-model picks for this run. Some provider keys may need refresh.</p>
-    `;
+    // Hide altogether unless the env reveals cross-model is expected to run.
+    // Safe default in the field: return an empty fragment wrapper.
+    card.style.display = "none";
     return card;
   }
   card.innerHTML = `

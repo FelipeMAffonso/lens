@@ -53,7 +53,6 @@ function paintStats(stats: StatsRow): void {
     if (!el) return;
     el.textContent = fmtNumber(n);
   };
-  // Overlay packs count into SKUs if the live SKU count is 0 (bootstrap).
   const packsCount = Object.values(stats.packs ?? {}).reduce((a, b) => a + b, 0);
   assign("skus_active", stats.skus_active ?? 0);
   assign("categories_total", stats.categories_total ?? packsCount);
@@ -63,6 +62,12 @@ function paintStats(stats: StatsRow): void {
   assign("regulations_in_force", stats.regulations_in_force ?? 0);
   assign("discrepancies_open", stats.discrepancies_open ?? 0);
   assign("brands_known", stats.brands_known ?? 0);
+  // D7 — overwrite the hardcoded "106/120 Knowledge Packs" copy on the
+  // "How Lens works" card 3 with the live count.
+  if (packsCount > 0) {
+    const packEl = document.querySelector<HTMLElement>("[data-pack-count]");
+    if (packEl) packEl.textContent = `${packsCount} Knowledge Packs`;
+  }
 }
 
 function paintSources(sources: SourceRow[]): void {
