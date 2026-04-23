@@ -212,6 +212,16 @@ export class LensClient {
     return this.send(`/architecture/trigger/${encodeURIComponent(id)}`, { method: "POST", body: "{}" });
   }
 
+  /** POST /resolve-url — link recognition. Parses a retailer URL and
+   * returns matched SKU candidates from the triangulated catalog. */
+  resolveUrl(url: string): Promise<{
+    parsed: { retailer?: string; id?: string; brand?: string; model?: string; urlClean: string };
+    candidates: Array<Record<string, unknown>>;
+    matched: boolean;
+  }> {
+    return this.send("/resolve-url", { method: "POST", body: JSON.stringify({ url }) });
+  }
+
   /** /digest/preferences — user's weekly-digest settings (requires session cookie). */
   digest = {
     getPreferences: (): Promise<Record<string, unknown>> => this.send("/digest/preferences"),

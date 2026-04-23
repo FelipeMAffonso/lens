@@ -6,6 +6,7 @@
 // Feed: https://store.steampowered.com/api/featuredcategories/?cc=us
 
 import type { DatasetIngester, IngestionContext, IngestionReport } from "../framework.js";
+import { ensureBrands } from "../framework.js";
 
 const SOURCE_ID = "steam-store";
 const FEED_URL = "https://store.steampowered.com/api/featuredcategories/?cc=us";
@@ -64,6 +65,13 @@ export const steamStoreIngester: DatasetIngester = {
     });
     counters.rowsSeen = items.length;
     counters.log = `specials=${body.specials?.items?.length ?? 0} new=${body.new_releases?.items?.length ?? 0} top=${body.top_sellers?.items?.length ?? 0} soon=${body.coming_soon?.items?.length ?? 0}`;
+
+    // Register the synthetic "steam" brand so sku_catalog.brand_slug FK resolves.
+    try {
+      await ensureBrands(ctx.env, new Map([["steam", "Steam"]]));
+    } catch (err) {
+      if (counters.errors.length < 5) counters.errors.push(`ensureBrands: ${(err as Error).message}`);
+    }
 
     const BATCH = 15;
     const observed = new Date().toISOString().slice(0, 19);

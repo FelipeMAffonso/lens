@@ -173,6 +173,19 @@ export const TOOLS: McpToolDef[] = [
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
   {
+    name: "lens.resolve_url",
+    description:
+      "Link recognition. Takes any retailer URL, parses { retailer, id, brand, model } with affiliate-tag stripping (tag, ref, utm_*). Looks up against the triangulated SKU catalog and returns matched candidates with price + source count. Supports Amazon (ASIN), Steam (appid), Best Buy (skuId), Walmart (ip/id), Target (A-id), Newegg (/p/id), Home Depot / Lowe's / Costco (last-numeric).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", format: "uri", description: "A retailer product page URL." },
+      },
+      required: ["url"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "lens.trigger_ingest",
     description:
       "Manually kick off an ingester for one Lens data source (e.g. 'cisa-kev', 'fda-510k', 'ftc-enforcement'). Unauthenticated but rate-limited. Each ingester is idempotent (INSERT OR IGNORE everywhere). Returns rowsUpserted + errors + duration. Useful for demos and for filling a specific gap on demand.",

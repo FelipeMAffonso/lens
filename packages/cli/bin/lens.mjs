@@ -71,6 +71,11 @@ env:
       if (!id) die("trigger requires a source id (e.g. cisa-kev)");
       return printJson(await lens.architectureTrigger(id));
     }
+    case "resolve-url": {
+      const url = args[0];
+      if (!url) die("resolve-url requires a URL");
+      return printJson(await lens.resolveUrl(url));
+    }
     case "search": {
       const q = args.join(" ");
       if (!q) die("search requires a query");

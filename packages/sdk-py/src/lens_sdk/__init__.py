@@ -302,3 +302,9 @@ class LensClient:
     def architecture_trigger(self, source_id: str) -> Dict[str, Any]:
         """Manually kick an ingester (idempotent). Judge-friendly demo path."""
         return self._request("POST", f"/architecture/trigger/{source_id}", json={})
+
+    def resolve_url(self, url: str) -> Dict[str, Any]:
+        """Link recognition. Parses a retailer URL (amazon/steam/bestbuy/
+        walmart/target/newegg/...) and returns matched SKU candidates from
+        the triangulated catalog."""
+        return self._request("POST", "/resolve-url", json={"url": url})

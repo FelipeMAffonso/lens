@@ -63,6 +63,11 @@ export async function callTool(
         return await proxyGet(env, "/architecture/stats");
       case "lens.architecture_sources":
         return await proxyGet(env, "/architecture/sources");
+      case "lens.resolve_url": {
+        const url = String(args["url"] ?? "");
+        if (!url) return errorResult("missing required parameter: url");
+        return await proxyPost(env, "/resolve-url", { url });
+      }
       case "lens.trigger_ingest": {
         const id = String(args["id"] ?? "");
         if (!id) return errorResult("missing required parameter: id");

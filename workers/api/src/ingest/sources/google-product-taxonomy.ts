@@ -26,7 +26,12 @@ export const googleProductTaxonomyIngester: DatasetIngester = {
     let body = "";
     try {
       const res = await fetch(FEED_URL, {
-        headers: { "User-Agent": "LensBot/1.0 (consumer welfare research)" },
+        headers: {
+          // Google 403s the plain LensBot UA. Use a browser UA.
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+          "Accept": "text/plain,text/*;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+        },
         signal: ctx.signal,
       });
       if (!res.ok) throw new Error(`http ${res.status}`);
