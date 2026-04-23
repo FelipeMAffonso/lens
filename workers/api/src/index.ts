@@ -635,6 +635,14 @@ app.get("/ticker", async (c) => {
 app.get("/oauth/gmail/authorize", (c) => gmailAuthorize(c as never));
 app.get("/oauth/gmail/callback", (c) => gmailCallback(c as never));
 
+// VISION #23 — drafted-letter outbound via Resend.
+// Auth: requires session cookie. Body: { to, subject, body, packSlug?, meta? }.
+// Renders a Source-Serif HTML wrapper, posts to Resend, logs to interventions.
+app.post("/intervention/send", async (c) => {
+  const { handleInterventionSend } = await import("./intervention/send.js");
+  return handleInterventionSend(c as never);
+});
+
 // VISION #21 — inbound receipt forwarder (HTTP parallel to Email Routing).
 // Accepts a parsed receipt from Zapier / Make.com / manual curl / Gmail
 // filter webhook → persists to purchases. Auth: session cookie or shared
