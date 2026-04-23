@@ -164,7 +164,7 @@ async function runAudit(): Promise<void> {
   });
   if (!res.ok) {
     const err = await res.text().catch(() => "");
-    logEl.append(logLine(`Error: ${res.status} — ${err.slice(0, 200)}`));
+    logEl.append(logLine(`Error: ${res.status}. ${err.slice(0, 200)}`));
     return;
   }
   const result = (await res.json()) as AuditResult;
@@ -237,7 +237,7 @@ function summarize(event: string, data: unknown): string {
   const d = data as Record<string, unknown>;
   if (event === "extract:done") {
     const cat = (d.intent as { category?: string } | undefined)?.category;
-    return cat && cat !== "product" ? `Understanding what you need — ${cat}` : "Understanding what you need";
+    return cat && cat !== "product" ? `Understanding what you need (${cat})` : "Understanding what you need";
   }
   if (event === "search:done") return `Looking at ${d.count ?? "?"} real products`;
   if (event === "verify:done") {
@@ -335,7 +335,7 @@ function enrichmentsCard(r: AuditResult): HTMLElement {
   const signals = [e.scam, e.breach, e.priceHistory, e.provenance, e.sponsorship].filter(Boolean);
   const allSkipped = signals.length > 0 && signals.every((s) => s?.status === "skipped");
   if (allSkipped) {
-    card.innerHTML = `<div class="card-header"><h2>Trust signals</h2></div><p class="muted" style="margin:0;">No trust signals apply to this audit (query mode — no retailer URL to evaluate).</p>`;
+    card.innerHTML = `<div class="card-header"><h2>Trust signals</h2></div><p class="muted" style="margin:0;">No trust signals apply to this audit (query mode. Paste a retailer URL to evaluate).</p>`;
     return card;
   }
   const rows: string[] = [];
@@ -816,7 +816,7 @@ function crossModelCard(r: AuditResult): HTMLElement {
   if (r.crossModel.length === 0) {
     card.innerHTML = `
       <div class="card-header"><h2>What other frontier models picked</h2></div>
-      <p class="muted" style="margin: 0;">The cross-model check runs on a <a href="https://lens-cross-model.webmarinelli.workers.dev/health" target="_blank" style="color:var(--hl-hi);">separate Claude Managed Agent Worker</a>. No other-model picks for this run — some provider keys may need refresh.</p>
+      <p class="muted" style="margin: 0;">The cross-model check runs on a <a href="https://lens-cross-model.webmarinelli.workers.dev/health" target="_blank" style="color:var(--hl-hi);">separate Claude Managed Agent Worker</a>. No other-model picks for this run. Some provider keys may need refresh.</p>
     `;
     return card;
   }
@@ -1004,3 +1004,7 @@ function escape(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 }
 renderAuthControl();
+
+// improve-E5 — mount the architecture-reveal section. Self-updates every 60s.
+import { mountArchitectureReveal } from "./architecture-reveal.js";
+void mountArchitectureReveal();

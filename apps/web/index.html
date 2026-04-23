@@ -132,6 +132,158 @@
         <div id="result-body"></div>
       </section>
 
+      <!-- improve-E5 — Architecture reveal. Populated by src/architecture-reveal.ts
+           on DOMContentLoaded. Shows data sources, triangulation, agents, pipeline,
+           all live from /architecture/stats + /architecture/sources. -->
+      <section id="architecture-reveal" class="architecture-reveal">
+        <div class="arch-hero">
+          <span class="arch-kicker">The machine behind the audit</span>
+          <h2>Lens is the consumer's independent agent across every point of every purchase.</h2>
+          <p class="arch-lede">
+            Every fact Lens shows you is triangulated from at least two independent public sources.
+            No affiliate links. No ranking bias. No proprietary catalog. The schema, the sources, the
+            pipelines, the crons, the agents — all open, all below, all live.
+          </p>
+          <div class="arch-stats" id="arch-stats">
+            <div class="stat"><span class="n" data-stat="skus_active">…</span><span class="l">indexed SKUs</span></div>
+            <div class="stat"><span class="n" data-stat="categories_total">…</span><span class="l">categories</span></div>
+            <div class="stat"><span class="n" data-stat="sources_configured">…</span><span class="l">data pipelines</span></div>
+            <div class="stat"><span class="n" data-stat="sources_healthy">…</span><span class="l">healthy now</span></div>
+            <div class="stat"><span class="n" data-stat="recalls_total">…</span><span class="l">recalls tracked</span></div>
+            <div class="stat"><span class="n" data-stat="regulations_in_force">…</span><span class="l">regulations in force</span></div>
+            <div class="stat"><span class="n" data-stat="discrepancies_open">…</span><span class="l">price discrepancies caught</span></div>
+            <div class="stat"><span class="n" data-stat="brands_known">…</span><span class="l">brands indexed</span></div>
+          </div>
+        </div>
+
+        <div class="arch-band">
+          <h3>Three places Lens protects you</h3>
+          <div class="three-places">
+            <div class="place">
+              <div class="place-icon">🗣️</div>
+              <h4>When you ask</h4>
+              <p><strong>Active audit.</strong> Paste a ChatGPT / Claude / Gemini / Rufus answer, paste a retailer URL, or just describe what you want. Lens runs the 5-stage pipeline below and returns one transparent, slider-tunable card.</p>
+            </div>
+            <div class="place">
+              <div class="place-icon">🛒</div>
+              <h4>When you shop</h4>
+              <p><strong>Passive protection.</strong> The Chrome extension watches every retailer page for dark patterns, hidden fees, fake sales, counterfeits, fake reviews, and breach history. Silent unless there's something worth interrupting for.</p>
+            </div>
+            <div class="place">
+              <div class="place-icon">🌙</div>
+              <h4>When you sleep</h4>
+              <p><strong>Background monitoring.</strong> Cloudflare crons cross-match recalls, price drops, subscription renewals, and firmware advisories against your purchases. Draft letters and claims ready when you wake up.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-band">
+          <h3>The data spine</h3>
+          <p class="arch-sub">
+            Every claim Lens makes triangulates across multiple independent sources. If one source lies or goes stale, Lens catches it.
+          </p>
+          <div class="sources-grid" id="sources-grid">
+            <div class="source-loading">Loading live source status…</div>
+          </div>
+        </div>
+
+        <div class="arch-band">
+          <h3>Triangulation — example</h3>
+          <p class="arch-sub">How Lens establishes consensus on a price (same pattern for specs, recalls, reviews).</p>
+          <div class="triangulation-example">
+            <div class="tri-row tri-header"><span>Source</span><span>Value</span><span>Observed</span><span>Confidence</span></div>
+            <div class="tri-row"><span>Retailer PDP (amazon.com)</span><span>$249.99</span><span>live fetch</span><span class="tri-conf high">high</span></div>
+            <div class="tri-row"><span>Keepa 90-day median</span><span>$239.00</span><span>hourly</span><span class="tri-conf high">high</span></div>
+            <div class="tri-row"><span>Manufacturer MSRP (delonghi.com)</span><span>$249.95</span><span>weekly sitemap</span><span class="tri-conf high">high</span></div>
+            <div class="tri-row"><span>BLS CPI small-appliance index ±σ</span><span>$241–258 plausible</span><span>monthly</span><span class="tri-conf medium">medium</span></div>
+            <div class="tri-row"><span>Wikidata P2284 (price)</span><span>$249</span><span>2026-02-15</span><span class="tri-conf medium">medium</span></div>
+            <div class="tri-consensus">
+              <strong>Consensus:</strong> $249 ±2%. Any single source deviating >15% fires a discrepancy row and shows a "verify before checkout" flag on the audit card.
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-band">
+          <h3>The 5-stage audit pipeline</h3>
+          <ol class="pipeline">
+            <li>
+              <span class="stage-num">1</span>
+              <div>
+                <h4>Extract <span class="stage-cap">adaptive thinking</span></h4>
+                <p>Parse the user's stated criteria + any cited AI claims into a weighted utility function with per-criterion confidence.</p>
+              </div>
+            </li>
+            <li>
+              <span class="stage-num">2</span>
+              <div>
+                <h4>Search <span class="stage-cap">sku_catalog FTS5 + live web_search fallback</span></h4>
+                <p>First hit: the indexed SKU spine (shown above). Fallback: Opus 4.7 web_search_20260209 for unindexed categories.</p>
+              </div>
+            </li>
+            <li>
+              <span class="stage-num">3</span>
+              <div>
+                <h4>Verify <span class="stage-cap">1M context</span></h4>
+                <p>Every AI claim + every candidate spec loaded in one window. Knowledge packs inject confabulation patterns, dark-pattern regex, regulation citations.</p>
+              </div>
+            </li>
+            <li>
+              <span class="stage-num">4</span>
+              <div>
+                <h4>Rank <span class="stage-cap">deterministic math</span></h4>
+                <p>U = Σ wᵢ·sᵢ. No LLM. Sliders re-weight live in the UI. Every contribution inspectable.</p>
+              </div>
+            </li>
+            <li>
+              <span class="stage-num">5</span>
+              <div>
+                <h4>Cross-check <span class="stage-cap">Claude Managed Agent</span></h4>
+                <p>Parallel fan-out to GPT-4o + Gemini + Llama via a separate Worker. Where labs disagree, Lens shows the map.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <div class="arch-band">
+          <h3>The 8 agents</h3>
+          <div class="agents-grid">
+            <div class="agent"><h4>Interpreter</h4><p>Intent extraction from text / voice / image</p><code>workflow/specs/audit.ts → extract</code></div>
+            <div class="agent"><h4>Researcher</h4><p>Live web search + spec retrieval + catalog lookup</p><code>workflow/specs/audit.ts → search</code></div>
+            <div class="agent"><h4>Auditor</h4><p>Claim + dark-pattern + provenance verification</p><code>passive-scan + verify</code></div>
+            <div class="agent"><h4>Ranker</h4><p>Deterministic utility math (no LLM)</p><code>workflow/specs/audit.ts → rank</code></div>
+            <div class="agent"><h4>Watcher</h4><p>Recall / price-drop / firmware / renewal crons</p><code>cron/jobs.ts</code></div>
+            <div class="agent"><h4>Advocate</h4><p>Drafts refund, cancel, and FTC-complaint letters</p><code>returns/, subs/, intervention packs</code></div>
+            <div class="agent"><h4>Historian</h4><p>Aggregates audits → welfare delta + public ticker</p><code>ticker/, repo files in db/</code></div>
+            <div class="agent"><h4>Translator</h4><p>Legal → plain, spec → criterion score</p><code>interpreter + auditor prompts</code></div>
+          </div>
+        </div>
+
+        <div class="arch-band">
+          <h3>How it stays fresh</h3>
+          <p class="arch-sub">Cloudflare Cron Triggers fire the dispatcher. Dispatcher reads <code>data_source</code>, picks ingesters whose cadence is due, runs up to 2 in parallel. Every run is logged to <code>ingestion_run</code> with row counts, error samples, duration.</p>
+          <div class="crons" id="crons-list">
+            <div class="cron"><code>*/15 * * * *</code><span>ingest.dispatch · every 15 minutes — rotate through due data sources</span></div>
+            <div class="cron"><code>7 9 * * *</code><span>recall.watch · daily 07:09 UTC — match new recalls to purchases</span></div>
+            <div class="cron"><code>17 */2 * * *</code><span>price.poll · every 2h — detect price drops inside price-match windows</span></div>
+            <div class="cron"><code>23 10 * * *</code><span>subs.renewal-watch · daily — 7-day pre-charge alerts</span></div>
+            <div class="cron"><code>31 7 * * 1</code><span>firmware.watch · weekly — CVE + vendor advisory scan</span></div>
+            <div class="cron"><code>41 * * * *</code><span>ticker.aggregate · hourly — k≥5 anonymized disagreement buckets</span></div>
+            <div class="cron"><code>13 6 * * 1</code><span>pack.maintenance · weekly — validator + enricher + regulation-watcher</span></div>
+          </div>
+        </div>
+
+        <div class="arch-band arch-trust">
+          <h3>Trust posture</h3>
+          <ul class="trust-list">
+            <li>✅ <strong>Open source under MIT.</strong> Every source file, every schema, every prompt is public at <a href="https://github.com/FelipeMAffonso/lens" target="_blank">github.com/FelipeMAffonso/lens</a>.</li>
+            <li>✅ <strong>No affiliate links, ever.</strong> Every retailer URL Lens returns is scrubbed of <code>ref=</code>, <code>tag=</code>, <code>utm_*</code>, and other monetized-redirect params. Enforced in code.</li>
+            <li>✅ <strong>No ranking bias.</strong> Utility math is deterministic, inspectable, and slider-tunable. The formula is the spec.</li>
+            <li>✅ <strong>Every claim sourced.</strong> Every fact has a visible source link + timestamp. If the source goes stale, the claim is flagged.</li>
+            <li>✅ <strong>k-anonymity on aggregates.</strong> The public disagreement ticker never publishes a bucket with fewer than 5 contributing audits.</li>
+          </ul>
+        </div>
+      </section>
+
       <section class="hero-anchor-footer">
         <h3>How Lens works</h3>
         <div class="how-grid">

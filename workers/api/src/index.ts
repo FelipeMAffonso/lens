@@ -15,6 +15,7 @@ import { listWebhooks } from "./webhooks/registry.js";
 import { transcribe, TranscribeRequestSchema } from "./voice/transcribe.js";
 import { computeScore, EMBED_JS, ScoreQuerySchema } from "./public/score.js";
 import "./workflow/specs/ticker-aggregate.js"; // register cron-targeted workflow
+import "./workflow/specs/ingest-dispatch.js"; // improve-A2 — data-spine ingester cron
 import { listTicker } from "./ticker/repo.js";
 import { handleAuthorize as gmailAuthorize, handleCallback as gmailCallback } from "./email/handler.js";
 import {
@@ -130,6 +131,8 @@ export interface Env {
   GMAIL_OAUTH_CLIENT_ID?: string;
   GMAIL_OAUTH_CLIENT_SECRET?: string;
   GMAIL_OAUTH_REDIRECT_URI?: string;
+  // improve-A2 — admin key for manual ingester trigger (POST /admin/ingest/:id)
+  LENS_ADMIN_KEY?: string;
 }
 
 const app = new Hono<{ Bindings: Env; Variables: AuthVars }>();
@@ -165,6 +168,115 @@ app.post("/auth/signout", (c) => authHandleSignout(c as never));
 app.get("/packs/stats", async (c) => {
   const { packStats } = await import("./packs/registry.js");
   return c.json(packStats());
+});
+
+// improve-E1 — /architecture/stats — live numbers for the landing page.
+// Reads the `architecture_stats` view (migration 0010) directly. Zero LLM
+// calls. Cached 15s via CF cache-control so landing hydration stays cheap.
+app.get("/architecture/stats", async (c) => {
+  try {
+    const row = await c.env.LENS_D1.prepare("SELECT * FROM architecture_stats").first<
+      Record<string, string | number | null>
+    >();
+    const packs = await import("./packs/registry.js").then((m) => m.packStats());
+    const payload = {
+      ...(row ?? {}),
+      packs, // overlay pack counts from the bundled pack registry (not a DB row)
+      computed_at: new Date().toISOString(),
+    };
+    return c.json(payload, 200, {
+      "cache-control": "public, max-age=15",
+    });
+  } catch (err) {
+    // Before migration 0010 lands, the view doesn't exist. Serve a
+    // best-effort response so the landing page doesn't blank out — pack
+    // counts + "data spine bootstrapping" status.
+    const packs = await import("./packs/registry.js").then((m) => m.packStats());
+    return c.json(
+      {
+        status: "bootstrapping",
+        message: (err as Error).message,
+        packs,
+        computed_at: new Date().toISOString(),
+      },
+      200,
+      { "cache-control": "public, max-age=15" },
+    );
+  }
+});
+
+// improve-E2 — /architecture/sources — full source registry with live status.
+app.get("/architecture/sources", async (c) => {
+  try {
+    const { results } = await c.env.LENS_D1.prepare(
+      `SELECT id, name, type, base_url, docs_url, cadence_minutes,
+              last_run_at, last_success_at, last_error, rows_total, status,
+              description
+         FROM data_source
+        ORDER BY type, id`,
+    ).all();
+    return c.json(
+      { sources: results ?? [], computed_at: new Date().toISOString() },
+      200,
+      { "cache-control": "public, max-age=30" },
+    );
+  } catch (err) {
+    return c.json(
+      {
+        status: "bootstrapping",
+        message: (err as Error).message,
+        sources: [],
+        computed_at: new Date().toISOString(),
+      },
+      200,
+      { "cache-control": "public, max-age=15" },
+    );
+  }
+});
+
+// improve-E3 — /architecture/sources/:id — per-source detail incl. recent runs.
+app.get("/architecture/sources/:id", async (c) => {
+  const id = decodeURIComponent(c.req.param("id"));
+  try {
+    const source = await c.env.LENS_D1.prepare(
+      "SELECT * FROM data_source WHERE id = ?",
+    )
+      .bind(id)
+      .first();
+    if (!source) return c.json({ error: "not_found", id }, 404);
+    const { results: runs } = await c.env.LENS_D1.prepare(
+      `SELECT id, started_at, finished_at, status, rows_seen, rows_upserted,
+              rows_skipped, error_count, duration_ms
+         FROM ingestion_run WHERE source_id = ?
+        ORDER BY started_at DESC LIMIT 20`,
+    )
+      .bind(id)
+      .all();
+    return c.json({ source, recent_runs: runs ?? [] });
+  } catch (err) {
+    return c.json(
+      { status: "bootstrapping", message: (err as Error).message, id },
+      200,
+    );
+  }
+});
+
+// improve-A2 — manual ingester trigger. Requires admin key.
+// Useful for seeding initial data without waiting for the 15-min cron.
+app.post("/admin/ingest/:source_id", async (c) => {
+  const adminKey = c.req.header("x-lens-admin-key");
+  if (!adminKey || adminKey !== c.env.LENS_ADMIN_KEY) {
+    return c.json({ error: "unauthorized" }, 401);
+  }
+  const sourceId = c.req.param("source_id");
+  const { REGISTERED } = await import("./ingest/dispatcher.js");
+  const { runIngester } = await import("./ingest/framework.js");
+  const ingester = REGISTERED[sourceId];
+  if (!ingester) {
+    return c.json({ error: "unknown_source", source_id: sourceId, registered: Object.keys(REGISTERED) }, 404);
+  }
+  const result = await runIngester(ingester, c.env);
+  return c.json(result);
 });
 
 app.get("/packs/:slug", async (c) => {
