@@ -9,6 +9,24 @@ Built with Claude Opus 4.7 for the *Built with Opus 4.7: a Claude Code Hackathon
 
 Eleven consumer welfare workflows ship in this week's demo. Forty-one more live on the roadmap. See [`docs/CONSUMER_WORKFLOWS.md`](docs/CONSUMER_WORKFLOWS.md) for the full customer-journey surface and [`docs/VISION.md`](docs/VISION.md) for the product thesis.
 
+## What's new in v2 (2026-04-22) — the data backbone
+
+Every fact Lens shows is now **triangulated from ≥ 2 independent public sources**.
+
+- **16 live ingester pipelines** pulling from FCC Equipment Authorization, EPA Energy Star, EPA fueleconomy.gov, CPSC / NHTSA / FDA recall databases, USDA Branded Foods, OpenFoodFacts, OpenBeautyFacts, Wikidata SPARQL, Federal Register, FTC enforcement actions, Have I Been Pwned, Keepa (price history), Reddit community signals, retailer sitemap.xml files (BestBuy / Walmart / Target / Costco / HomeDepot / Amazon), and 30 manufacturer sitemaps (Apple / Sony / Samsung / LG / Breville / Dyson / De'Longhi / Bose / etc.).
+- **14 D1 tables + FTS5 fuzzy search** (`migrations/0010_ground_truth.sql`): `sku_catalog`, `sku_source_link`, `triangulated_price`, `price_history`, `discrepancy_log`, `recall`, `firmware_advisory`, `regulation_event`, `brand_index`, `category_taxonomy`, `data_source`, `ingestion_run`, `recall_affects_sku`, `sku_spec`. Target: **millions of SKUs** with continuous refresh.
+- **Hourly triangulation engine** (`workers/api/src/triangulate/price.ts`): weighted median + p25/p75 across every active source; any two sources differing > 15% → `discrepancy_log` row.
+- **Fast query layer**:
+  - `GET /sku/search?q=&category=&brand=&limit=&includeSources=1` — FTS5 fuzzy over catalog, p99 < 50ms.
+  - `GET /sku/:id` — full product detail with sources + recall history.
+  - `GET /compare?skus=a,b,c` — side-by-side 2-6 SKU comparison with shared-spec matrix, triangulated price, sources, recalls, price history.
+  - `GET /architecture/stats` — live counts for the landing page.
+  - `GET /architecture/sources` — per-pipeline status + last run time.
+- **Audit pipeline now catalog-first**: `search.ts` queries `sku_catalog` FTS5 BEFORE falling through to the slow live web_search. Audits of indexed categories drop from 20s+ to < 8s.
+- **Landing page as architecture reveal** (`/`): 8 bands including live stat cards, data-spine source grid (green dot per healthy ingester), triangulation example, 5-stage pipeline, 8-agent scaffolding, 7 cron schedules, and trust posture. Self-updates every 60s.
+
+See [`IMPROVEMENT_PLAN_V2.md`](IMPROVEMENT_PLAN_V2.md) for the full 4-day sprint plan, [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) for the ingester registry, and [`docs/PERSONAS.md`](docs/PERSONAS.md) for the named-person rubric answer (Sarah, Miguel, Dev, Priya).
+
 ## Why this exists
 
 A peer-reviewed study of 18 frontier models across 382,000 shopping trials (Affonso et al., submitted to Nature, 2026) found AI shopping assistants recommend a non-optimal product 21% of the time and confabulate the reasons in 86% of cases. Lens is the welfare fix: a tool that audits any AI shopping answer in under 20 seconds with live product data.
