@@ -215,17 +215,21 @@ async function fetchViaJina(url: string): Promise<PageExtract | null> {
     images.push({ url: u.slice(0, 800), alt: im[1] ? im[1].slice(0, 240) : undefined });
   }
 
-  // Price: prefer labelled lines ("Price: $…", "List: $…", "Now $…"),
-  // otherwise pick the LARGEST $-amount over $5 in the first 10KB of the
-  // body — skips $0-$5 junk like "save $4" / "$1 shipping" / "under $10".
+  // Amazon/Walmart Jina markdown concatenates: main product header +
+  // price block + bullets + reviews + "customers also bought" + footer.
+  // "Main product" data lives in the first ~5-8K chars. Scoping rating +
+  // price there avoids picking up "5 out of 5" from a reviewer blurb or
+  // "$15 off" from a related-product promo.
+  const head = body.slice(0, 8_000);
+
+  // Price: prefer labelled lines, then largest $-amount in head ≥$5
   let priceCents: number | undefined;
-  const labelled = body.match(/(?:price|sale|deal|now|was|list)[:\s]+\$([0-9]{1,4}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/i);
+  const labelled = head.match(/(?:price|sale|deal|now|was|list)[:\s]+\$([0-9]{1,4}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/i);
   if (labelled) {
     const n = parseFloat(labelled[1]!.replace(/,/g, ""));
     if (Number.isFinite(n) && n >= 5) priceCents = Math.round(n * 100);
   }
   if (priceCents == null) {
-    const head = body.slice(0, 10_000);
     const prices: number[] = [];
     const priceRe = /\$([0-9]{1,4}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/g;
     let pm: RegExpExecArray | null;
@@ -234,33 +238,34 @@ async function fetchViaJina(url: string): Promise<PageExtract | null> {
       if (Number.isFinite(n) && n >= 5 && n < 20000) prices.push(n);
     }
     if (prices.length > 0) {
-      // Median of top-3 largest — robust to single "$1299" list-price +
-      // "$10 off" coupons sitting above the actual sale price.
-      const top = prices.sort((a, b) => b - a).slice(0, 3);
-      const mid = top[Math.floor(top.length / 2)]!;
-      priceCents = Math.round(mid * 100);
+      // Max $-amount in the header window — on real retailer product
+      // pages this is the list/sale price, not a coupon or shipping fee.
+      priceCents = Math.round(Math.max(...prices) * 100);
     }
   }
 
-  // Rating: "4.5 out of 5 stars"
-  const ratingMatch = body.match(/([0-5](?:\.\d)?)\s+out of 5 stars/i);
+  // Rating: scope to head too (reviewer quotes mention "5 stars" often).
+  const ratingMatch = head.match(/([0-5](?:\.\d)?)\s+out of\s+5(?:\s+stars)?/i);
   const rating = ratingMatch ? parseFloat(ratingMatch[1]!) : undefined;
 
-  // Review count: "12,345 ratings" or "(1,234)" near a rating
-  const reviewMatch = body.match(/([\d,]+)\s+(?:global\s+)?ratings?/i)
-    ?? body.match(/\(([\d,]+)\s+customer\s+reviews?\)/i);
+  const reviewMatch = head.match(/([\d,]+)\s+(?:global\s+)?ratings?/i)
+    ?? head.match(/\(([\d,]+)\s+customer\s+reviews?\)/i);
   const reviewCount = reviewMatch
     ? parseInt(reviewMatch[1]!.replace(/,/g, ""), 10)
     : undefined;
 
-  // Bullets: heuristically grab the first product bulleted list after title.
-  // Limit to 10 items under ~400 chars.
+  // Bullets: only real list items (must contain letters + a verb-y word).
+  // Filter out lines that are pure heading markers ("#####") or empty
+  // markdown ornaments — these show up when Jina converts Amazon's
+  // feature-bullets block.
   const bullets: string[] = [];
   const bulletRe = /^[\s]{0,4}[-*•]\s+(.{15,400})$/gm;
   let bm: RegExpExecArray | null;
   while ((bm = bulletRe.exec(body)) !== null && bullets.length < 10) {
     const t = bm[1]!.replace(/\[[^\]]*\]\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
-    if (t) bullets.push(t);
+    // Require at least 3 lowercase letters so "#####" / "=====" / "---"
+    // markdown-heading rows don't slip through.
+    if (t && /[a-z]{3}/.test(t)) bullets.push(t);
   }
 
   return {
