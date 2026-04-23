@@ -261,6 +261,48 @@ app.get("/architecture/sources/:id", async (c) => {
   }
 });
 
+// improve-A13 + B1 — /sku/search — FTS5 fuzzy over indexed catalog.
+app.get("/sku/search", async (c) => {
+  const { handleSkuSearch } = await import("./sku/search.js");
+  return handleSkuSearch(c as never);
+});
+
+// improve-A13c — /compare — side-by-side comparison of 2-6 SKUs.
+app.get("/compare", async (c) => {
+  const { handleCompare } = await import("./sku/compare.js");
+  return handleCompare(c as never);
+});
+
+// improve-A13b — /sku/:id — single SKU detail.
+app.get("/sku/:id", async (c) => {
+  const id = decodeURIComponent(c.req.param("id"));
+  if (!c.env.LENS_D1) return c.json({ error: "bootstrapping" }, 503);
+  try {
+    const sku = await c.env.LENS_D1.prepare(
+      `SELECT sc.*, tp.median_cents, tp.p25_cents, tp.p75_cents, tp.n_sources
+         FROM sku_catalog sc
+         LEFT JOIN triangulated_price tp ON tp.sku_id = sc.id
+        WHERE sc.id = ?`,
+    ).bind(id).first();
+    if (!sku) return c.json({ error: "not_found", id }, 404);
+    const { results: sources } = await c.env.LENS_D1.prepare(
+      `SELECT source_id, external_url, price_cents, confidence, observed_at
+         FROM sku_source_link
+        WHERE sku_id = ? AND active = 1
+        ORDER BY observed_at DESC`,
+    ).bind(id).all();
+    const { results: recalls } = await c.env.LENS_D1.prepare(
+      `SELECT r.id, r.title, r.severity, r.hazard, r.url, r.published_at
+         FROM recall_affects_sku ras JOIN recall r ON r.id = ras.recall_id
+        WHERE ras.sku_id = ?
+        ORDER BY r.published_at DESC LIMIT 20`,
+    ).bind(id).all();
+    return c.json({ sku, sources: sources ?? [], recalls: recalls ?? [] });
+  } catch (err) {
+    return c.json({ error: "server", message: (err as Error).message }, 500);
+  }
+});
+
 // improve-A2 — manual ingester trigger. Requires admin key.
 // Useful for seeding initial data without waiting for the 15-min cron.
 app.post("/admin/ingest/:source_id", async (c) => {
