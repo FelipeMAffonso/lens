@@ -70,6 +70,22 @@ export function looksLikeAIRecommendation(text: string): boolean {
   return score >= 2;
 }
 
+// D2 — detect a pasted retailer URL in chat. Short-circuits to /audit with
+// kind="url" so the S3-W15 per-host parsers can fetch the PDP directly.
+const RETAILER_URL_RE = /^https?:\/\/(?:www\.)?(amazon|bestbuy|walmart|target|homedepot|costco|ebay|etsy|sams|newegg|bhphotovideo|adorama|rei|dickssportinggoods|academy|zappos|zappo|wayfair|potterybarn|ikea|apple|microsoft|sony|samsung|lg|lenovo|dell|hp|breville|dyson|delonghi|bose|sennheiser|logitech|anker|nike|adidas|patagonia|northface|columbia|llbean|tesla|peloton|temu|aliexpress|shein|wish|rakuten|jd|tmall|mercadolibre|argos|currys|johnlewis|mediamarkt|otto|zalando)\./i;
+
+export function looksLikeRetailerUrl(text: string): { ok: true; url: string } | { ok: false } {
+  const t = text.trim();
+  // Accept a line that's just a URL, or a URL with minimal prefix text.
+  const match = t.match(/https?:\/\/\S+/);
+  if (!match) return { ok: false };
+  const url = match[0].replace(/[.,;]+$/, "");
+  if (!RETAILER_URL_RE.test(url)) return { ok: false };
+  // Reject if the message also contains full sentences — that's a reco paste.
+  if (t.split(/[.!?]\s/).length > 2) return { ok: false };
+  return { ok: true, url };
+}
+
 export function inferHostAI(text: string): "chatgpt" | "claude" | "gemini" | "rufus" | "unknown" {
   const t = text.toLowerCase();
   if (/\bon\s+amazon\b|\bavailable\s+on\s+amazon\b|\bsold\s+by\s+amazon\b|rufus/i.test(t)) return "rufus";

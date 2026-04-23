@@ -8,7 +8,7 @@ import { botBubble, typingBubble, userBubble } from "./bubbleRenderer.js";
 import { mountComposer, type ComposerHandles } from "./composer.js";
 import { ConversationStore } from "./ConversationStore.js";
 import { mountRotatingStatus, type RotatingStatusHandle } from "./rotatingStatus.js";
-import { inferHostAI, looksLikeAIRecommendation, shouldTriggerAudit } from "./stages.js";
+import { inferHostAI, looksLikeAIRecommendation, looksLikeRetailerUrl, shouldTriggerAudit } from "./stages.js";
 
 const API_BASE = import.meta.env.VITE_LENS_API_URL ?? "https://lens-api.webmarinelli.workers.dev";
 
@@ -93,12 +93,27 @@ export function mountChatView(opts: ChatViewOptions): void {
       return;
     }
 
+    // D2 — retailer URL short-circuit: if first turn is a pasted URL from a
+    // known retailer, skip the clarifier and call /audit with kind="url" so
+    // the S3-W15 per-host parsers fetch the PDP directly.
+    const userOnly = store.all().filter((t) => t.role === "user");
+    if (userOnly.length === 1) {
+      const urlMatch = looksLikeRetailerUrl(text);
+      if (urlMatch.ok) {
+        const ack = "Got it, let me pull the product page and audit it.";
+        const t = store.append("assistant", ack);
+        transcript.append(botBubble(t.text));
+        scrollBottom();
+        await runAudit({ pasteRaw: undefined, urlMode: urlMatch.url });
+        return;
+      }
+    }
+
     // improve-01 Job 2 short-circuit: if this is the first user turn AND it
     // looks like a pasted AI-generated product recommendation (cited reasons,
     // explicit model code, explicit price), skip the clarifier and go
     // straight to audit with kind="text". This is the marquee hackathon
     // pitch: paste an AI answer, see the audit. Don't ask another question.
-    const userOnly = store.all().filter((t) => t.role === "user");
     if (userOnly.length === 1 && looksLikeAIRecommendation(text)) {
       // Acknowledge before the audit wall, so the user doesn't feel ignored.
       const ack = "Got it, that reads like an AI recommendation. Let me audit the claims against real product data.";
@@ -177,7 +192,11 @@ export function mountChatView(opts: ChatViewOptions): void {
   }
 
   async function runAudit(
-    opts: { pasteRaw?: string; hostAi?: "chatgpt" | "claude" | "gemini" | "rufus" | "unknown" } = {},
+    opts: {
+      pasteRaw?: string;
+      hostAi?: "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
+      urlMode?: string;
+    } = {},
   ): Promise<void> {
     phase = "generating";
     composer.setDisabled(true);
@@ -195,7 +214,10 @@ export function mountChatView(opts: ChatViewOptions): void {
     //   - Query route: build a folded Q/A prompt from the conversation.
     //     kind="query". This is the Job 1 flow.
     let body: string;
-    if (opts.pasteRaw && opts.pasteRaw.trim().length > 0) {
+    if (opts.urlMode) {
+      // D2 — URL short-circuit. Server extractFromUrl + S3-W15 parsers.
+      body = JSON.stringify({ kind: "url", url: opts.urlMode });
+    } else if (opts.pasteRaw && opts.pasteRaw.trim().length > 0) {
       body = JSON.stringify({
         kind: "text",
         source: opts.hostAi ?? "unknown",
