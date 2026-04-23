@@ -1,30 +1,30 @@
 // IMPROVEMENT_PLAN_V2 A4b — NHTSA (vehicle) recall ingester.
-// API: https://api.nhtsa.gov/recalls/recallsByManufacturer?manufacturer=X
-// Uses the SafetyRatings/recalls endpoint for bulk discovery.
-// Each NHTSA recall → `recall` row with source_id="nhtsa-recalls".
+// api.nhtsa.gov's /recallsByVehicle endpoint requires an exact model
+// (model=ALL returns http 400), so we first enumerate models for the
+// current (make, modelYear) pair via /products/vehicle/models, then fetch
+// recalls per model. Each run rotates one (make, year) combination
+// through MANUFACTURERS × last 3 model years.
 
 import type { DatasetIngester, IngestionContext, IngestionReport } from "../framework.js";
 
 const SOURCE_ID = "nhtsa-recalls";
+const MODELS_PER_RUN = 15;
 
-// Rotates through major manufacturers; per-run pulls all active recalls for
-// one manufacturer, then advances the cursor.
 const MANUFACTURERS = [
-  "Ford",
-  "General Motors",
-  "Toyota",
-  "Honda",
-  "Nissan",
-  "Hyundai",
-  "Kia",
-  "Stellantis",
-  "Tesla",
-  "Volkswagen",
-  "BMW",
-  "Mercedes-Benz",
-  "Subaru",
-  "Mazda",
+  "FORD", "TOYOTA", "HONDA", "NISSAN", "HYUNDAI", "KIA",
+  "CHEVROLET", "TESLA", "VOLKSWAGEN", "BMW", "MERCEDES-BENZ",
+  "SUBARU", "MAZDA", "JEEP", "RAM", "DODGE", "CHRYSLER",
+  "GMC", "CADILLAC", "BUICK", "LEXUS", "ACURA", "INFINITI",
+  "VOLVO", "AUDI", "PORSCHE", "LAND ROVER", "JAGUAR",
+  "MITSUBISHI", "MINI", "ALFA ROMEO", "FIAT", "GENESIS",
 ];
+
+interface ModelRow { modelYear?: string; make?: string; model?: string }
+interface RecallRow {
+  NHTSACampaignNumber?: string; Manufacturer?: string; ReportReceivedDate?: string;
+  Component?: string; Summary?: string; Make?: string; Model?: string; ModelYear?: string;
+  Consequence?: string; Remedy?: string; parkIt?: boolean; parkOutSide?: boolean;
+}
 
 export const nhtsaRecallsIngester: DatasetIngester = {
   id: SOURCE_ID,
@@ -35,52 +35,65 @@ export const nhtsaRecallsIngester: DatasetIngester = {
 
     const idx = await readIdx(ctx);
     const mfg = MANUFACTURERS[idx % MANUFACTURERS.length]!;
-    logLines.push(`mfg=${mfg} (idx ${idx})`);
-    // The legacy /recallsByManufacturer endpoint 403s from cloud IPs. Use the
-    // model-year stable endpoint instead (works from any origin) and query
-    // the last 3 years per manufacturer, rotating through.
     const thisYear = new Date().getFullYear();
-    const year = thisYear - (idx % 3);
-    const url = `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(mfg)}&modelYear=${year}&model=ALL`;
+    const year = thisYear - (Math.floor(idx / MANUFACTURERS.length) % 3);
+    logLines.push(`idx=${idx} mfg=${mfg} year=${year}`);
 
-    let body: { results?: Array<Record<string, string>> };
+    // Step 1 — enumerate models with recalls for this (make, year).
+    let models: ModelRow[];
     try {
-      const res = await fetch(url, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (LensBot academic; felipe@lens-b1h.pages.dev)",
-          Accept: "application/json",
-        },
-        signal: ctx.signal,
-      });
-      if (!res.ok) throw new Error(`http ${res.status}`);
-      body = (await res.json()) as { results?: Array<Record<string, string>> };
+      const res = await fetch(
+        `https://api.nhtsa.gov/products/vehicle/models?modelYear=${year}&make=${encodeURIComponent(mfg)}&issueType=r`,
+        { headers: browserHeaders(), signal: ctx.signal },
+      );
+      if (!res.ok) throw new Error(`models http ${res.status}`);
+      const body = (await res.json()) as { results?: ModelRow[] };
+      models = body.results ?? [];
     } catch (err) {
       counters.errors.push((err as Error).message);
+      await writeIdx(ctx, idx + 1);
       counters.log = logLines.join("\n");
       return counters;
     }
-    const rows = body.results ?? [];
-    counters.rowsSeen = rows.length;
 
-    const BATCH = 20;
-    for (let i = 0; i < rows.length; i += BATCH) {
+    // Dedupe model names; the API returns some duplicates.
+    const seen = new Set<string>();
+    const uniqModels = models
+      .map((m) => m.model ?? "")
+      .filter((m) => m && !seen.has(m) && seen.add(m))
+      .slice(0, MODELS_PER_RUN);
+    logLines.push(`models=${uniqModels.length}`);
+
+    // Step 2 — for each model, fetch recalls and upsert.
+    for (const model of uniqModels) {
       if (ctx.signal.aborted) break;
+      let rows: RecallRow[] = [];
+      try {
+        const url = `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(mfg)}&modelYear=${year}&model=${encodeURIComponent(model)}`;
+        const res = await fetch(url, { headers: browserHeaders(), signal: ctx.signal });
+        if (!res.ok) { counters.errors.push(`${model}: ${res.status}`); continue; }
+        const body = (await res.json()) as { results?: RecallRow[] };
+        rows = body.results ?? [];
+      } catch (err) {
+        counters.errors.push(`${model}: ${(err as Error).message}`);
+        continue;
+      }
+      counters.rowsSeen += rows.length;
+      if (rows.length === 0) continue;
+
       const stmts: unknown[] = [];
-      for (const r of rows.slice(i, i + BATCH)) {
-        const extId = (r.NHTSACampaignNumber ?? r.Campaign ?? "").trim();
-        if (!extId) {
-          counters.rowsSkipped++;
-          continue;
-        }
-        const title = `${mfg} ${r.Component ?? ""} ${r.Summary ?? ""}`.slice(0, 240);
+      for (const r of rows) {
+        const extId = (r.NHTSACampaignNumber ?? "").trim();
+        if (!extId) { counters.rowsSkipped++; continue; }
+        const title = `${mfg} ${r.Model ?? model} ${r.ModelYear ?? year}: ${r.Component ?? ""}`.slice(0, 240);
         const productMatch = JSON.stringify({
           brands: [mfg],
-          products: [{ make: r.Make, model: r.Model, year: r.ModelYear, component: r.Component }],
+          products: [{ make: r.Make ?? mfg, model: r.Model ?? model, year: r.ModelYear ?? year, component: r.Component }],
         });
         stmts.push(
           ctx.env.LENS_D1!.prepare(
             `INSERT INTO recall (id, source_id, external_id, title, product_match_json, severity, hazard, published_at, url, remedy, raw_json)
-             VALUES (?, ?, ?, ?, ?, 'recall', ?, ?, ?, ?, ?)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
              ON CONFLICT(id) DO UPDATE SET
                title = excluded.title,
                product_match_json = excluded.product_match_json,
@@ -92,11 +105,12 @@ export const nhtsaRecallsIngester: DatasetIngester = {
             extId,
             title,
             productMatch,
-            inferHazard(r.Component ?? r.Summary ?? ""),
-            (r.ReportReceivedDate ?? new Date().toISOString()).slice(0, 19),
+            r.parkIt ? "park-it" : r.parkOutSide ? "park-outside" : "recall",
+            inferHazard((r.Component ?? "") + " " + (r.Summary ?? "")),
+            parseDate(r.ReportReceivedDate) ?? new Date().toISOString().slice(0, 19),
             `https://www.nhtsa.gov/recalls?nhtsaId=${encodeURIComponent(extId)}`,
-            r.Conequence ?? r.Remedy ?? null,
-            JSON.stringify(r).slice(0, 64_000),
+            r.Remedy ?? r.Consequence ?? null,
+            JSON.stringify(r).slice(0, 32_000),
           ),
         );
       }
@@ -107,7 +121,7 @@ export const nhtsaRecallsIngester: DatasetIngester = {
       } catch (err) {
         if (counters.errors.length < 10) counters.errors.push((err as Error).message);
       }
-      if ((i / BATCH) % 10 === 0) await ctx.progress({});
+      await ctx.progress({});
     }
 
     await writeIdx(ctx, idx + 1);
@@ -115,6 +129,15 @@ export const nhtsaRecallsIngester: DatasetIngester = {
     return counters;
   },
 };
+
+function browserHeaders(): Record<string, string> {
+  return {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://www.nhtsa.gov/",
+  };
+}
 
 function inferHazard(s: string): string {
   const low = s.toLowerCase();
@@ -125,7 +148,20 @@ function inferHazard(s: string): string {
   if (/steering|steer/.test(low)) return "steering";
   if (/tire/.test(low)) return "tire";
   if (/seat|belt/.test(low)) return "restraint";
+  if (/electr|battery|charger|voltage/.test(low)) return "electrical";
   return "other";
+}
+
+function parseDate(d?: string): string | null {
+  if (!d) return null;
+  // NHTSA returns "MM/DD/YYYY" or ISO. Normalize to ISO prefix.
+  const m = d.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) {
+    const mm = m[1]!.padStart(2, "0"); const dd = m[2]!.padStart(2, "0"); const yy = m[3]!;
+    return `${yy}-${mm}-${dd}T00:00:00`;
+  }
+  const t = Date.parse(d);
+  return Number.isNaN(t) ? null : new Date(t).toISOString().slice(0, 19);
 }
 
 async function readIdx(ctx: IngestionContext): Promise<number> {
