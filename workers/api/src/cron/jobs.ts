@@ -54,6 +54,11 @@ export const CRON_JOBS: CronJob[] = [
     workflowId: "triangulate.price",
     description: "improve-A12 — Hourly: recompute triangulated_price + discrepancy_log.",
   },
+  {
+    pattern: "41 * * * *",
+    workflowId: "digest.send",
+    description: "VISION #22 — Hourly: dispatch weekly digests for users whose preferred day/hour matches now.",
+  },
 ];
 
 export function findCronJobs(pattern: string): CronJob[] {

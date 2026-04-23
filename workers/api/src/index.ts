@@ -17,6 +17,7 @@ import { computeScore, EMBED_JS, ScoreQuerySchema } from "./public/score.js";
 import "./workflow/specs/ticker-aggregate.js"; // register cron-targeted workflow
 import "./workflow/specs/ingest-dispatch.js"; // improve-A2 — data-spine ingester cron
 import "./workflow/specs/triangulate-price.js"; // improve-A12 — hourly consensus price + discrepancy log
+import "./workflow/specs/digest-send.js";       // VISION #22 — weekly digest email via Resend
 import { listTicker } from "./ticker/repo.js";
 import { handleAuthorize as gmailAuthorize, handleCallback as gmailCallback } from "./email/handler.js";
 import {
@@ -260,6 +261,57 @@ app.get("/architecture/sources/:id", async (c) => {
       200,
     );
   }
+});
+
+// VISION #17 — Web Push subscribe + VAPID key + unsubscribe.
+app.get("/push/vapid-public-key", async (c) => {
+  const { handleVapidPublicKey } = await import("./push/handler.js");
+  return handleVapidPublicKey(c as never);
+});
+app.post("/push/subscribe", async (c) => {
+  const { handleSubscribe } = await import("./push/handler.js");
+  return handleSubscribe(c as never);
+});
+app.post("/push/unsubscribe", async (c) => {
+  const { handleUnsubscribe } = await import("./push/handler.js");
+  return handleUnsubscribe(c as never);
+});
+
+// VISION #22 — digest preferences (user-facing; cron separately fires delivery).
+app.get("/digest/preferences", async (c) => {
+  if (!c.env.LENS_D1) return c.json({ bootstrapping: true });
+  const userId = c.get("userId" as never) as string | undefined;
+  if (!userId) return c.json({ error: "auth_required" }, 401);
+  const row = await c.env.LENS_D1.prepare(
+    "SELECT email, cadence, send_day, send_hour_utc, timezone, last_sent_at FROM digest_preference WHERE user_id = ?",
+  ).bind(userId).first();
+  return c.json(row ?? { cadence: "weekly", send_day: 5, send_hour_utc: 14 });
+});
+
+app.put("/digest/preferences", async (c) => {
+  if (!c.env.LENS_D1) return c.json({ bootstrapping: true }, 503);
+  const userId = c.get("userId" as never) as string | undefined;
+  if (!userId) return c.json({ error: "auth_required" }, 401);
+  const body = (await c.req.json().catch(() => null)) as Record<string, unknown> | null;
+  if (!body) return c.json({ error: "invalid_body" }, 400);
+  await c.env.LENS_D1.prepare(
+    `INSERT INTO digest_preference (user_id, email, cadence, send_day, send_hour_utc, timezone)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(user_id) DO UPDATE SET
+       email = excluded.email,
+       cadence = excluded.cadence,
+       send_day = excluded.send_day,
+       send_hour_utc = excluded.send_hour_utc,
+       timezone = excluded.timezone`,
+  ).bind(
+    userId,
+    body.email ?? null,
+    (body.cadence as string) ?? "weekly",
+    (body.send_day as number) ?? 5,
+    (body.send_hour_utc as number) ?? 14,
+    (body.timezone as string) ?? "America/New_York",
+  ).run();
+  return c.json({ ok: true });
 });
 
 // VISION #32 / CJ-W52 — Lens Score embed widget for third-party publishers.
