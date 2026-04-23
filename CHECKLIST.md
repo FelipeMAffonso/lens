@@ -135,8 +135,8 @@
 | CJ-W48 | Gift-buying mode | ✅ | `BLOCKS/CJ-W48-gift-buying.md` | `e5dad68` |
 | CJ-W49 | Group-buy pooling | ⬜ | 🔬 | |
 | CJ-W50 | Profile portability (server sync) | 🟡 | 🔬 | |
-| CJ-W51 | Public disagreement ticker | ⬜ | 🔬 | |
-| CJ-W52 | Lens Score API | ⬜ | 🔬 | |
+| CJ-W51 | Public disagreement ticker | ✅ | `workers/api/src/index.ts` GET /ticker + `ticker/repo.ts` | earlier |
+| CJ-W52 | Lens Score API | ✅ | `workers/api/src/embed/score.ts` + GET /embed/lens-score.js | earlier |
 | CJ-W53 | Conversational elicitor (chat-first front door) | ✅ | `BLOCKS/CJ-W53-conversational-elicitor.md` | `f9637c9` |
 
 ## Part C — Delivery surface variants
@@ -168,8 +168,8 @@
 | V-EMAIL-inbound | Inbound receipt forwarder (HTTP) | ✅ | `workers/api/src/email/receipt-inbound.ts` | pending |
 | V-EMAIL-digest | Weekly digest email | ✅ | `workers/api/src/digest/handler.ts` + `workflow/specs/digest-send.ts` | earlier |
 | V-PWA-mobile-audit | PWA mobile paste audit | ⬜ | 🔬 | |
-| V-PWA-share-sheet | Android share target (see F10) | ⬜ | 🔬 | |
-| V-PWA-push | Push notifications | ⬜ | 🔬 | |
+| V-PWA-share-sheet | Android share target (see F10) | ✅ | `apps/web/public/manifest.webmanifest` share_target | earlier |
+| V-PWA-push | Push notifications | ✅ | `workers/api/src/push/handler.ts` + VAPID endpoint | earlier |
 | V-CLI | CLI `npx @lens/cli audit <url>` | ✅ | `packages/cli/bin/lens.mjs` | pending |
 
 ## Part D — Agent loops
