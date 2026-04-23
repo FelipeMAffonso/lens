@@ -60,7 +60,7 @@ export const blsCpiIngester: DatasetIngester = {
       stmts.push(
         ctx.env.LENS_D1!.prepare(
           `INSERT INTO regulation_event (id, source_id, external_id, jurisdiction, citation, title, status, effective_date, scope_summary, url, raw_json)
-           VALUES (?, ?, ?, 'us-federal-bls-cpi', 'BLS Consumer Price Index', ?, 'in-force', ?, ?, ?)
+           VALUES (?, ?, ?, 'us-federal-bls-cpi', 'BLS Consumer Price Index', ?, 'in-force', ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET
              title = excluded.title,
              scope_summary = excluded.scope_summary,
