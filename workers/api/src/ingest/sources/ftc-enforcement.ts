@@ -1,57 +1,67 @@
 // IMPROVEMENT_PLAN_V2 A-S21 — FTC enforcement actions ingester.
-// FTC publishes a public press-releases API. We filter for consumer-protection
-// actions (cases against retailers, advertisers, dark patterns, etc.) and
-// persist as regulation_event rows with jurisdiction='us-federal-ftc-action'.
+// FTC retired their RSS feeds during 2025-2026, so we scrape the public
+// press-releases listing pages (Drupal-backed, stable URL structure) and
+// extract the h3.node-title anchors. URLs always carry YYYY/MM which we
+// parse into an effective_date. Keyword-filtered to consumer-protection +
+// enforcement actions only (skips pure speeches, appointments, etc.).
 
 import type { DatasetIngester, IngestionContext, IngestionReport } from "../framework.js";
 
 const SOURCE_ID = "ftc-enforcement";
-const PAGE_SIZE = 50;
+const LISTING_URL_BASE = "https://www.ftc.gov/news-events/news/press-releases";
+const PAGES_PER_RUN = 5; // ~50-75 press releases per run, rotates through.
+
+interface Release { url: string; title: string; year: number; month: number; slug: string }
 
 export const ftcEnforcementIngester: DatasetIngester = {
   id: SOURCE_ID,
   maxDurationMs: 120_000,
   async run(ctx: IngestionContext): Promise<IngestionReport> {
     const counters: IngestionReport = { rowsSeen: 0, rowsUpserted: 0, rowsSkipped: 0, errors: [], log: "" };
-    const page = await readPage(ctx);
+    const startPage = await readPage(ctx);
+    const releases: Release[] = [];
 
-    // FTC press releases index (correct URL verified 2026-04-23).
-    const rssUrl = "https://www.ftc.gov/feeds/press-releases.xml";
-
-    let rss = "";
-    try {
-      const res = await fetch(rssUrl, { headers: { "User-Agent": "LensBot/1.0" }, signal: ctx.signal });
-      if (!res.ok) throw new Error(`http ${res.status}`);
-      rss = await res.text();
-    } catch (err) {
-      counters.errors.push((err as Error).message);
-      return counters;
+    for (let offset = 0; offset < PAGES_PER_RUN; offset++) {
+      if (ctx.signal.aborted) break;
+      const p = startPage + offset;
+      try {
+        const html = await fetchListing(p, ctx.signal);
+        const found = parseListing(html);
+        if (found.length === 0) break; // past the end
+        releases.push(...found);
+      } catch (err) {
+        counters.errors.push(`page ${p}: ${(err as Error).message}`);
+        if (counters.errors.length > 3) break;
+      }
     }
 
-    const items = extractBlocks(rss, "item").slice(0, 60);
-    counters.rowsSeen = items.length;
+    // Dedupe by URL.
+    const seen = new Set<string>();
+    const unique = releases.filter((r) => {
+      if (seen.has(r.url)) return false;
+      seen.add(r.url);
+      return true;
+    });
+    counters.rowsSeen = unique.length;
+
+    const KEYWORDS = [
+      "sues", "sue ", "settle", "settles", "settlement", "complaint",
+      "enforcement", "deceptive", "mislead", "fine", "fines",
+      "order", "orders", "injunction", "action", "ban", "bans",
+      "charge", "charges", "refund", "refunds", "fraud", "scam",
+      "stop", "stops", "deceptive", "violation", "consent",
+    ];
 
     const BATCH = 20;
-    for (let i = 0; i < items.length; i += BATCH) {
+    for (let i = 0; i < unique.length; i += BATCH) {
       if (ctx.signal.aborted) break;
       const stmts: unknown[] = [];
-      for (const it of items.slice(i, i + BATCH)) {
-        const title = stripTag(extractTag(it, "title"));
-        const link = stripTag(extractTag(it, "link"));
-        const pubDate = stripTag(extractTag(it, "pubDate"));
-        const desc = stripTag(extractTag(it, "description"));
-        if (!title || !link) {
-          counters.rowsSkipped++;
-          continue;
-        }
-        // Filter: is this actually an enforcement / consumer-protection action?
-        const keywords = ["settles", "sue", "complaint", "enforcement", "deceptive", "mislead", "fine", "settlement", "order", "injunction", "action"];
-        const low = (title + " " + desc).toLowerCase();
-        if (!keywords.some((k) => low.includes(k))) {
-          counters.rowsSkipped++;
-          continue;
-        }
-        const id = `ftc:${link.split("/").filter(Boolean).pop() ?? title.slice(0, 80)}`;
+      for (const r of unique.slice(i, i + BATCH)) {
+        const low = r.title.toLowerCase();
+        const match = KEYWORDS.some((k) => low.includes(k));
+        if (!match) { counters.rowsSkipped++; continue; }
+        const id = `ftc:${r.slug}`;
+        const effective = `${r.year}-${String(r.month).padStart(2, "0")}-01T00:00:00`;
         stmts.push(
           ctx.env.LENS_D1!.prepare(
             `INSERT INTO regulation_event (id, source_id, external_id, jurisdiction, citation, title, status, effective_date, scope_summary, url, raw_json)
@@ -65,11 +75,11 @@ export const ftcEnforcementIngester: DatasetIngester = {
             id,
             SOURCE_ID,
             id,
-            title.slice(0, 400),
-            pubDate ? new Date(pubDate).toISOString().slice(0, 19) : null,
-            desc.slice(0, 1000),
-            link,
-            JSON.stringify({ title, link, pubDate, desc }).slice(0, 32_000),
+            r.title.slice(0, 400),
+            effective,
+            r.title.slice(0, 1000),
+            r.url,
+            JSON.stringify({ title: r.title, url: r.url, year: r.year, month: r.month, slug: r.slug }).slice(0, 32_000),
           ),
         );
       }
@@ -83,33 +93,52 @@ export const ftcEnforcementIngester: DatasetIngester = {
       if ((i / BATCH) % 10 === 0) await ctx.progress({});
     }
 
-    await writePage(ctx, page + 1);
+    // Rotate page cursor so successive runs see older releases.
+    const nextPage = unique.length === 0 ? 0 : (startPage + PAGES_PER_RUN) % 40;
+    await writePage(ctx, nextPage);
     return counters;
   },
 };
 
-function extractBlocks(xml: string, tag: string): string[] {
-  const re = new RegExp(`<${tag}[\\s>][^]*?</${tag}>`, "gi");
-  return xml.match(re) ?? [];
+async function fetchListing(page: number, signal: AbortSignal): Promise<string> {
+  const url = `${LISTING_URL_BASE}?page=${page}`;
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Lens welfare crawler; contact=github.com/FelipeMAffonso/lens)",
+      "Accept": "text/html,application/xhtml+xml",
+      "Accept-Language": "en-US,en;q=0.9",
+    },
+    signal,
+  });
+  if (!res.ok) throw new Error(`http ${res.status}`);
+  return await res.text();
 }
 
-function extractTag(block: string, tag: string): string {
-  const re = new RegExp(`<${tag}[^>]*>([^]*?)</${tag}>`, "i");
-  const m = block.match(re);
-  return m ? m[1]! : "";
+function parseListing(html: string): Release[] {
+  const out: Release[] = [];
+  const re = /class="node-title"><a\s+href="(\/news-events\/news\/press-releases\/(\d{4})\/(\d{2})\/([^"]+))"[^>]*>([^<]+)</g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    const path = m[1]!;
+    const year = parseInt(m[2]!, 10);
+    const month = parseInt(m[3]!, 10);
+    const slug = m[4]!;
+    const title = decodeEntities(m[5]!).trim();
+    if (!title || !slug) continue;
+    out.push({ url: `https://www.ftc.gov${path}`, title, year, month, slug });
+  }
+  return out;
 }
 
-function stripTag(s: string): string {
+function decodeEntities(s: string): string {
   return s
-    .replace(/<!\[CDATA\[/g, "")
-    .replace(/\]\]>/g, "")
-    .replace(/<[^>]+>/g, "")
     .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
-    .trim();
+    .replace(/&nbsp;/g, " ");
 }
 
 async function readPage(ctx: IngestionContext): Promise<number> {
@@ -118,9 +147,9 @@ async function readPage(ctx: IngestionContext): Promise<number> {
     .first<{ last_error: string | null }>();
   try {
     const p = JSON.parse(row?.last_error ?? "{}");
-    return typeof p.page === "number" ? p.page : 1;
+    return typeof p.page === "number" ? p.page : 0;
   } catch {
-    return 1;
+    return 0;
   }
 }
 
