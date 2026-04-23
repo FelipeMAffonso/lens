@@ -72,6 +72,26 @@ export const wikidataIngester: DatasetIngester = {
     const rows = body.results?.bindings ?? [];
     counters.rowsSeen = rows.length;
 
+    // Upsert every unique brand FIRST so the sku_catalog FK holds.
+    const uniqueBrands = new Map<string, string>();
+    for (const r of rows) {
+      const mfg = r.mfgLabel?.value ?? "";
+      const slug = mfg.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "unknown";
+      if (!uniqueBrands.has(slug)) uniqueBrands.set(slug, mfg || slug);
+    }
+    const brandStmts = Array.from(uniqueBrands.entries()).map(([slug, name]) =>
+      ctx.env.LENS_D1!.prepare(
+        "INSERT INTO brand_index (slug, name) VALUES (?, ?) ON CONFLICT(slug) DO NOTHING",
+      ).bind(slug, name.slice(0, 200)),
+    );
+    if (brandStmts.length > 0) {
+      try {
+        await (ctx.env.LENS_D1 as unknown as { batch(s: unknown[]): Promise<unknown[]> }).batch(brandStmts);
+      } catch (err) {
+        logLines.push(`brand upsert: ${(err as Error).message}`);
+      }
+    }
+
     const BATCH = 12;
     for (let i = 0; i < rows.length; i += BATCH) {
       if (ctx.signal.aborted) break;

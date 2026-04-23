@@ -20,7 +20,7 @@
 //     grant_date and the canonical EAS detail URL.
 
 import type { Env } from "../../index.js";
-import type { DatasetIngester, IngestionContext, IngestionReport } from "../framework.js";
+import { ensureBrands, type DatasetIngester, type IngestionContext, type IngestionReport } from "../framework.js";
 
 const SOURCE_ID = "fcc-equipment";
 // CSV export endpoint — takes ~6 seconds to respond for 2000 rows.
@@ -88,6 +88,16 @@ export const fccEquipmentIngester: DatasetIngester = {
     const rows = parseCsvLoose(csv);
     logLines.push(`rows parsed: ${rows.length}`);
     counters.rowsSeen = rows.length;
+
+    // Ensure all applicant brands exist before inserting sku_catalog rows.
+    const brands = new Map<string, string>();
+    for (const r of rows) {
+      const applicant = pick(r, ["Applicant Name", "applicant_name", "applicantName"]);
+      if (!applicant) continue;
+      const slug = normalizeBrand(applicant);
+      if (!brands.has(slug)) brands.set(slug, applicant);
+    }
+    await ensureBrands(ctx.env, brands);
 
     // Batch UPSERT (25 per D1 batch; 2 statements per row → 12-13 rows per batch).
     const BATCH = 12;

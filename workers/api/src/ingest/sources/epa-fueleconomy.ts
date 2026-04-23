@@ -3,7 +3,7 @@
 // Cascading API: /menu/year → /menu/make?year=Y → /menu/model?year=Y&make=M
 // Per-run: fetch one make-year slice, ~50 vehicles.
 
-import type { DatasetIngester, IngestionContext, IngestionReport } from "../framework.js";
+import { ensureBrands, type DatasetIngester, type IngestionContext, type IngestionReport } from "../framework.js";
 
 const SOURCE_ID = "epa-fueleconomy";
 
@@ -39,6 +39,10 @@ export const epaFuelEconomyIngester: DatasetIngester = {
     const models = extractTag(modelsXml, "value");
     counters.rowsSeen = models.length;
     logLines.push(`models: ${models.length}`);
+
+    // Ensure the make brand exists before inserting sku_catalog rows.
+    const brandSlug = make.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    await ensureBrands(ctx.env, new Map([[brandSlug, make]]));
 
     // For each model, we could fetch vehicle IDs, but that's another request
     // per model. For now, persist one row per (year, make, model) with minimal

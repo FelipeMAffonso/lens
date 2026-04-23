@@ -259,3 +259,19 @@ function truncate(s: string, max: number): string {
   if (s.length <= max) return s;
   return s.slice(0, max - 20) + "... [truncated]";
 }
+
+// Shared helper: upsert brand rows before inserting sku_catalog rows that
+// reference brand_slug via FK. Batched per call.
+export async function ensureBrands(env: Env, brands: Map<string, string>): Promise<void> {
+  if (brands.size === 0) return;
+  const stmts = Array.from(brands.entries()).map(([slug, name]) =>
+    db(env).prepare(
+      "INSERT INTO brand_index (slug, name) VALUES (?, ?) ON CONFLICT(slug) DO NOTHING",
+    ).bind(slug, name.slice(0, 200)),
+  );
+  try {
+    await (db(env) as unknown as { batch(s: unknown[]): Promise<unknown[]> }).batch(stmts);
+  } catch (err) {
+    console.warn("[ingest:ensureBrands] upsert failed:", (err as Error).message);
+  }
+}

@@ -6,7 +6,7 @@
 // URL as external_url. The enricher cron later hits each URL with the
 // per-host parser (S3-W15) to fill in name/price/specs.
 
-import type { DatasetIngester, IngestionContext, IngestionReport } from "../framework.js";
+import { ensureBrands, type DatasetIngester, type IngestionContext, type IngestionReport } from "../framework.js";
 
 const SOURCE_ID = "retailer-sitemaps";
 
@@ -113,6 +113,9 @@ export const retailerSitemapsIngester: DatasetIngester = {
     urls = urls.slice(0, MAX_URLS_PER_RUN);
     counters.rowsSeen = urls.length;
     logLines.push(`product urls: ${urls.length}`);
+
+    // Ensure the retailer brand exists in brand_index before inserts.
+    await ensureBrands(ctx.env, new Map([[retailer.slug, retailer.name]]));
 
     const BATCH = 20;
     for (let i = 0; i < urls.length; i += BATCH) {

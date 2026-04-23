@@ -3,7 +3,7 @@
 // Requires USDA_FDC_KEY (free, 1000/h). Without a key we fall back to the
 // 250-result public endpoint which still seeds initial inventory.
 
-import type { DatasetIngester, IngestionContext, IngestionReport } from "../framework.js";
+import { ensureBrands, type DatasetIngester, type IngestionContext, type IngestionReport } from "../framework.js";
 
 const SOURCE_ID = "usda-foods";
 const PAGE_SIZE = 200;
@@ -31,6 +31,15 @@ export const usdaFoodsIngester: DatasetIngester = {
     }
     const foods = body.foods ?? [];
     counters.rowsSeen = foods.length;
+
+    // Upsert brands first so FK constraint on sku_catalog.brand_slug holds.
+    const brands = new Map<string, string>();
+    for (const f of foods) {
+      const raw = ((f.brandOwner as string | undefined) ?? (f.brandName as string | undefined) ?? "").trim();
+      const slug = raw.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "unknown";
+      if (!brands.has(slug)) brands.set(slug, raw || slug);
+    }
+    await ensureBrands(ctx.env, brands);
 
     const BATCH = 12;
     for (let i = 0; i < foods.length; i += BATCH) {

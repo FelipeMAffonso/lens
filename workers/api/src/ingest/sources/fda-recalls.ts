@@ -54,7 +54,8 @@ export const fdaRecallsIngester: DatasetIngester = {
           counters.rowsSkipped++;
           continue;
         }
-        const title = (r.product_description ?? r.openfda?.[0] ?? "FDA Recall").toString().slice(0, 240);
+        const descRaw = (r as Record<string, unknown>).product_description;
+        const title = (typeof descRaw === "string" ? descRaw : "FDA Recall").slice(0, 240);
         const productMatch = JSON.stringify({
           brands: r.recalling_firm ? [r.recalling_firm] : [],
           products: [{ name: r.product_description, classification: r.classification ?? r.product_type }],
@@ -78,7 +79,20 @@ export const fdaRecallsIngester: DatasetIngester = {
             (r.recall_initiation_date ?? new Date().toISOString()).slice(0, 19),
             `https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfRES/res.cfm?ID=${encodeURIComponent(extId)}`,
             r.recall_action ?? null,
-            JSON.stringify(r).slice(0, 64_000),
+            // Only persist the subset of fields we care about so raw_json
+            // stays within 64KB and passes json_valid() check.
+            JSON.stringify({
+              recall_number: r.recall_number ?? null,
+              event_id: r.event_id ?? null,
+              product_description: r.product_description ?? null,
+              reason_for_recall: r.reason_for_recall ?? null,
+              classification: r.classification ?? null,
+              recalling_firm: r.recalling_firm ?? null,
+              recall_initiation_date: r.recall_initiation_date ?? null,
+              recall_action: r.recall_action ?? null,
+              status: r.status ?? null,
+              product_type: r.product_type ?? null,
+            }),
           ),
         );
       }

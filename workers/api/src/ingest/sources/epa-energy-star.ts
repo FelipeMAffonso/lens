@@ -9,7 +9,7 @@
 // round-robin. Each per-run fetches 1000 rows from the current category.
 
 import type { Env } from "../../index.js";
-import type { DatasetIngester, IngestionContext, IngestionReport } from "../framework.js";
+import { ensureBrands, type DatasetIngester, type IngestionContext, type IngestionReport } from "../framework.js";
 
 const SOURCE_ID = "epa-energy-star";
 
@@ -60,6 +60,14 @@ export const epaEnergyStarIngester: DatasetIngester = {
     }
     counters.rowsSeen = rows.length;
     logLines.push(`rows returned: ${rows.length}`);
+
+    const brands = new Map<string, string>();
+    for (const r of rows) {
+      const raw = (r[ds.brandField] ?? r.brand_name ?? r.manufacturer ?? "").trim();
+      const slug = raw.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "unknown";
+      if (!brands.has(slug)) brands.set(slug, raw || slug);
+    }
+    await ensureBrands(ctx.env, brands);
 
     const BATCH = 12;
     for (let i = 0; i < rows.length; i += BATCH) {

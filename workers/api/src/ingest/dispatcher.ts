@@ -24,6 +24,7 @@ import { nhtsaRecallsIngester } from "./sources/nhtsa-recalls.js";
 import { federalRegisterIngester } from "./sources/federal-register.js";
 import { ftcEnforcementIngester } from "./sources/ftc-enforcement.js";
 import { hibpIngester } from "./sources/hibp.js";
+import { ifixitIngester } from "./sources/ifixit.js";
 import { keepaIngester } from "./sources/keepa.js";
 import { manufacturerSitemapsIngester } from "./sources/manufacturer-sitemaps.js";
 import { openBeautyFactsIngester } from "./sources/openbeautyfacts.js";
@@ -50,6 +51,7 @@ export const REGISTERED: Record<string, DatasetIngester> = {
   "manufacturer-sitemaps": manufacturerSitemapsIngester,
   "keepa": keepaIngester,
   "hibp": hibpIngester,
+  "ifixit": ifixitIngester,
   "ftc-enforcement": ftcEnforcementIngester,
   "reddit": redditBiflIngester,
 };

@@ -1,7 +1,7 @@
 // IMPROVEMENT_PLAN_V2 A-S10 — OpenBeautyFacts ingester.
 // Same shape as OpenFoodFacts; cosmetics/beauty barcodes + ingredient data.
 
-import type { DatasetIngester, IngestionContext, IngestionReport } from "../framework.js";
+import { ensureBrands, type DatasetIngester, type IngestionContext, type IngestionReport } from "../framework.js";
 
 const SOURCE_ID = "openbeautyfacts";
 const PAGE_SIZE = 100;
@@ -36,6 +36,14 @@ export const openBeautyFactsIngester: DatasetIngester = {
     }
     const rows = data.products ?? [];
     counters.rowsSeen = rows.length;
+
+    const brands = new Map<string, string>();
+    for (const r of rows) {
+      const raw = (r.brands ?? "").split(",")[0]?.trim() ?? "";
+      const slug = raw.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "unknown";
+      if (!brands.has(slug)) brands.set(slug, raw || slug);
+    }
+    await ensureBrands(ctx.env, brands);
 
     const BATCH = 12;
     for (let i = 0; i < rows.length; i += BATCH) {
