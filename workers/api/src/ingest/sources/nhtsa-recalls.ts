@@ -36,11 +36,22 @@ export const nhtsaRecallsIngester: DatasetIngester = {
     const idx = await readIdx(ctx);
     const mfg = MANUFACTURERS[idx % MANUFACTURERS.length]!;
     logLines.push(`mfg=${mfg} (idx ${idx})`);
-    const url = `https://api.nhtsa.gov/recalls/recallsByManufacturer?manufacturer=${encodeURIComponent(mfg)}`;
+    // The legacy /recallsByManufacturer endpoint 403s from cloud IPs. Use the
+    // model-year stable endpoint instead (works from any origin) and query
+    // the last 3 years per manufacturer, rotating through.
+    const thisYear = new Date().getFullYear();
+    const year = thisYear - (idx % 3);
+    const url = `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(mfg)}&modelYear=${year}&model=ALL`;
 
     let body: { results?: Array<Record<string, string>> };
     try {
-      const res = await fetch(url, { headers: { "User-Agent": "LensBot/1.0" }, signal: ctx.signal });
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (LensBot academic; felipe@lens-b1h.pages.dev)",
+          Accept: "application/json",
+        },
+        signal: ctx.signal,
+      });
       if (!res.ok) throw new Error(`http ${res.status}`);
       body = (await res.json()) as { results?: Array<Record<string, string>> };
     } catch (err) {

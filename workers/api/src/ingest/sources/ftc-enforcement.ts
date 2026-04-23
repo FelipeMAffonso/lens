@@ -15,9 +15,8 @@ export const ftcEnforcementIngester: DatasetIngester = {
     const counters: IngestionReport = { rowsSeen: 0, rowsUpserted: 0, rowsSkipped: 0, errors: [], log: "" };
     const page = await readPage(ctx);
 
-    const url = `https://www.ftc.gov/system/files/attachments/press-releases/ftc_press_releases_${page}.json`;
-    // Fallback: use FTC's enforcement/cases-proceedings RSS
-    const rssUrl = "https://www.ftc.gov/news-events/news/rss.xml";
+    // FTC press releases index (correct URL verified 2026-04-23).
+    const rssUrl = "https://www.ftc.gov/feeds/press-releases.xml";
 
     let rss = "";
     try {

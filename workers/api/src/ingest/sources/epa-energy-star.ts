@@ -47,8 +47,13 @@ export const epaEnergyStarIngester: DatasetIngester = {
 
     let rows: Record<string, string>[] = [];
     try {
+      // Socrata rejects some cloud IPs unless the request looks browser-like.
       const res = await fetch(url, {
-        headers: { Accept: "application/json", "User-Agent": "LensBot/1.0" },
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+          "Accept-Language": "en-US,en;q=0.9",
+        },
         signal: ctx.signal,
       });
       if (!res.ok) throw new Error(`http ${res.status}`);

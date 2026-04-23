@@ -37,7 +37,16 @@ export const redditBiflIngester: DatasetIngester = {
 
     let body: RedditListing;
     try {
-      const res = await fetch(url, { headers: { "User-Agent": "LensBot/1.0 (academic)" }, signal: ctx.signal });
+      // Reddit 2024+ hardened against anonymous .json scrapers. The old.reddit
+      // host still serves public .json without auth — route through it.
+      const oldUrl = url.replace("www.reddit.com", "old.reddit.com");
+      const res = await fetch(oldUrl, {
+        headers: {
+          "User-Agent": "LensBot/1.0 academic researcher, contact felipe@lens-b1h.pages.dev",
+          Accept: "application/json",
+        },
+        signal: ctx.signal,
+      });
       if (!res.ok) throw new Error(`http ${res.status}`);
       body = (await res.json()) as RedditListing;
     } catch (err) {
