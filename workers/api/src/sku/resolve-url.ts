@@ -215,12 +215,31 @@ async function fetchViaJina(url: string): Promise<PageExtract | null> {
     images.push({ url: u.slice(0, 800), alt: im[1] ? im[1].slice(0, 240) : undefined });
   }
 
-  // Price: look for "$1,299.00" style.
+  // Price: prefer labelled lines ("Price: $…", "List: $…", "Now $…"),
+  // otherwise pick the LARGEST $-amount over $5 in the first 10KB of the
+  // body — skips $0-$5 junk like "save $4" / "$1 shipping" / "under $10".
   let priceCents: number | undefined;
-  const priceMatch = body.match(/\$([0-9]{1,4}(?:,[0-9]{3})*(?:\.[0-9]{2}))/);
-  if (priceMatch) {
-    const n = parseFloat(priceMatch[1]!.replace(/,/g, ""));
-    if (Number.isFinite(n)) priceCents = Math.round(n * 100);
+  const labelled = body.match(/(?:price|sale|deal|now|was|list)[:\s]+\$([0-9]{1,4}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/i);
+  if (labelled) {
+    const n = parseFloat(labelled[1]!.replace(/,/g, ""));
+    if (Number.isFinite(n) && n >= 5) priceCents = Math.round(n * 100);
+  }
+  if (priceCents == null) {
+    const head = body.slice(0, 10_000);
+    const prices: number[] = [];
+    const priceRe = /\$([0-9]{1,4}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/g;
+    let pm: RegExpExecArray | null;
+    while ((pm = priceRe.exec(head)) !== null) {
+      const n = parseFloat(pm[1]!.replace(/,/g, ""));
+      if (Number.isFinite(n) && n >= 5 && n < 20000) prices.push(n);
+    }
+    if (prices.length > 0) {
+      // Median of top-3 largest — robust to single "$1299" list-price +
+      // "$10 off" coupons sitting above the actual sale price.
+      const top = prices.sort((a, b) => b - a).slice(0, 3);
+      const mid = top[Math.floor(top.length / 2)]!;
+      priceCents = Math.round(mid * 100);
+    }
   }
 
   // Rating: "4.5 out of 5 stars"
