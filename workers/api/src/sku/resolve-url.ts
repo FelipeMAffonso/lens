@@ -12,7 +12,7 @@
 
 import type { Context } from "hono";
 
-interface Env { LENS_D1?: D1Database }
+interface Env { LENS_D1?: D1Database; LENS_KV?: KVNamespace }
 
 interface ParsedUrl {
   retailer?: string;
@@ -64,8 +64,8 @@ export async function handleResolveUrl(c: Context<{ Bindings: Env }>): Promise<R
     ? Promise.resolve(extractFromHtml(body.html, raw))
     : wantFetch
       ? (isBotBlocker
-          ? fetchViaJina(raw).catch(() => null)
-          : fetchAndExtract(raw, parsed).catch(() => null))
+          ? fetchViaJinaCached(raw, env)
+          : fetchAndExtract(raw, parsed).catch((e) => diagPage(`fetch-throw:${(e as Error).message}`)))
       : Promise.resolve(null);
 
   // 1. Direct id match (e.g. wd:Q123, steam:123, fda510k:K123, visual:<hash>).
@@ -182,7 +182,59 @@ async function fetchAndExtract(url: string, _parsed: ParsedUrl): Promise<PageExt
 
 // Free fallback for IP-blocked retailers. Jina Reader returns the page
 // rendered as clean markdown with title + content + image links. No key.
-async function fetchViaJina(url: string): Promise<PageExtract | null> {
+// Cached Jina fetch. Jina's free tier rate-limits to ~1-5 req/min per
+// caller IP. Cloudflare Workers share IP pools, so we hit 429 on any
+// burst. KV cache with 6h TTL keeps the demo reproducible — same URL
+// pasted twice in a minute returns instantly from KV, doesn't touch Jina.
+async function fetchViaJinaCached(url: string, env: Env): Promise<PageExtract> {
+  const key = `jina:${await sha256(url)}`;
+  if (env.LENS_KV) {
+    try {
+      const hit = await env.LENS_KV.get(key, "json");
+      if (hit && typeof hit === "object") {
+        const cached = hit as PageExtract;
+        (cached.raw as PageExtract["raw"] & { via?: string; cached?: boolean }).cached = true;
+        return cached;
+      }
+    } catch { /* fall through */ }
+  }
+  const fresh = await fetchViaJinaWithRetry(url);
+  if (env.LENS_KV && fresh.raw.bytes > 1000) {
+    try {
+      await env.LENS_KV.put(key, JSON.stringify(fresh), { expirationTtl: 6 * 3600 });
+    } catch { /* best-effort */ }
+  }
+  return fresh;
+}
+
+async function sha256(s: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
+}
+
+async function fetchViaJinaWithRetry(url: string): Promise<PageExtract> {
+  try {
+    return await fetchViaJina(url);
+  } catch (err) {
+    const first = (err as Error).message;
+    // Rate limits are common — one backoff-retry often succeeds.
+    await new Promise((r) => setTimeout(r, 6000));
+    try {
+      return await fetchViaJina(url);
+    } catch (err2) {
+      return diagPage(`jina: first=${first} retry=${(err2 as Error).message}`);
+    }
+  }
+}
+
+function diagPage(note: string): PageExtract {
+  return {
+    raw: { http: 0, bytes: 0, contentType: "application/json", via: "error" } as PageExtract["raw"] & { via?: string },
+    title: `(page-fetch failed: ${note.slice(0, 180)})`,
+  };
+}
+
+async function fetchViaJina(url: string): Promise<PageExtract> {
   const jinaUrl = "https://r.jina.ai/" + url;
   const res = await fetch(jinaUrl, {
     headers: {
