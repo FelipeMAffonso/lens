@@ -162,6 +162,22 @@ app.get("/health", (c) =>
   }),
 );
 
+// VISION #31 — OpenAPI 3.1 spec + interactive docs page. Public surface only
+// (auth, audit, sku, triggers, shopping-session, visual, embed, push, digest,
+// ticker, architecture). Internal cron/webhook/admin routes are omitted.
+app.get("/openapi.json", async (c) => {
+  const { buildOpenAPISpec } = await import("./openapi/spec.js");
+  const url = new URL(c.req.url);
+  const baseUrl = `${url.protocol}//${url.host}`;
+  return c.json(buildOpenAPISpec(baseUrl), 200, { "cache-control": "public, max-age=300" });
+});
+app.get("/docs", async (c) => {
+  const { renderDocsHtml } = await import("./openapi/docs.js");
+  const url = new URL(c.req.url);
+  const openApiUrl = `${url.protocol}//${url.host}/openapi.json`;
+  return c.html(renderDocsHtml(openApiUrl));
+});
+
 // ---- F1 auth endpoints ---------------------------------------------------
 app.post("/auth/request", (c) => authHandleRequest(c as never));
 app.post("/auth/verify", (c) => authHandleVerify(c as never));

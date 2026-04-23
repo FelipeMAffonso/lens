@@ -151,7 +151,7 @@
 | V-EXT-INLINE-f | Inline on cart pages | ✅ | `BLOCKS/V-EXT-INLINE-f-cart-summary.md` | `b7215c2` |
 | V-EXT-INLINE-g | Inline on product pages (price history) | ✅ | `BLOCKS/V-EXT-INLINE-g-product-price-history.md` | `d0e605c` |
 | V-EXT-INLINE-h | Inline on Amazon reviews | ✅ | `BLOCKS/V-EXT-INLINE-h-amazon-reviews.md` | `a15a355` |
-| V-EXT-INLINE-i | Inline on marketplace listings (counterfeit) | ✅ | `BLOCKS/V-EXT-INLINE-i-marketplace-counterfeit.md` | pending |
+| V-EXT-INLINE-i | Inline on marketplace listings (counterfeit) | ✅ | `BLOCKS/V-EXT-INLINE-i-marketplace-counterfeit.md` | `d0a9baa` |
 | V-MCP-audit | MCP tool `lens.audit` | ⬜ | 🔬 | |
 | V-MCP-spec-optimal | MCP tool `lens.spec_optimal` | ⬜ | 🔬 | |
 | V-MCP-dark-scan | MCP tool `lens.dark_pattern_scan` | ⬜ | 🔬 | |
