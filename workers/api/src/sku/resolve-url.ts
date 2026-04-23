@@ -33,8 +33,19 @@ export async function handleResolveUrl(c: Context<{ Bindings: Env }>): Promise<R
   const wantFetch = body.fetchPage !== false; // default on
 
   const parsed = parseRetailerUrl(raw);
+  // Unknown-retailer URLs still get the page-fetch pipeline (Jina fallback,
+  // extractors). We just can't canonicalise or persist without a retailer id.
   if (!parsed.retailer) {
-    return c.json({ parsed, candidates: [], matched: false, note: "unknown_retailer" });
+    const pageOnly = body.html
+      ? extractFromHtml(body.html, raw)
+      : await fetchAndExtract(raw, parsed).catch(() => null);
+    return c.json({
+      parsed,
+      candidates: [],
+      matched: false,
+      note: "unknown_retailer",
+      page: pageOnly,
+    });
   }
 
   // Page-fetch path:
