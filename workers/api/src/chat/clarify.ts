@@ -10,7 +10,9 @@ import { OPUS_4_7, client } from "../anthropic.js";
 import { STAGE1_ELICIT_SYSTEM, pickFallback } from "./prompts.js";
 import {
   type ChatTurn,
+  inferHostAI,
   isReadyToGenerate,
+  looksLikeAIRecommendation,
   userGaveEverything,
   userTurnCount,
 } from "./stops.js";
@@ -32,6 +34,16 @@ export type ChatClarifyRequest = z.infer<typeof ChatClarifyRequestSchema>;
 export type ChatClarifyResponse =
   | { kind: "clarify"; question: string; expectsOneOf?: string[]; source: "opus" | "fallback" }
   | { kind: "ready"; source: "stop-logic" | "opus" }
+  // improve-01 Job 2 short-circuit: the first user turn is a paste of an
+  // AI-generated product recommendation. Skip Stage 1 entirely and tell the
+  // caller to route straight to /audit with kind="text" using the paste as
+  // `raw`. The `hostAi` field is a best-guess source for that call.
+  | {
+      kind: "audit-now";
+      reason: "ai-recommendation-paste";
+      hostAi: "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
+      raw: string;
+    }
   | { kind: "error"; message: string };
 
 // CJ-W53 judge-hardening: strip tracking/affiliate params from any URL Opus
@@ -72,6 +84,25 @@ export async function handleChatClarify(
       question: scrubClarifierText(fb.question),
       ...(fb.expectsOneOf ? { expectsOneOf: fb.expectsOneOf } : {}),
       source: "fallback",
+    };
+    return c.json(out);
+  }
+
+  // improve-01 Job 2 short-circuit: before any clarifier, check whether the
+  // FIRST user turn looks like a pasted AI recommendation. Front-ends that
+  // already handle this locally will skip calling us for those pastes, but
+  // direct API callers (MCP clients, curl) need this path too.
+  const firstUser = turns.find((t) => t.role === "user");
+  if (
+    firstUser &&
+    userTurnCount(turns) === 1 &&
+    looksLikeAIRecommendation(firstUser.text)
+  ) {
+    const out: ChatClarifyResponse = {
+      kind: "audit-now",
+      reason: "ai-recommendation-paste",
+      hostAi: inferHostAI(firstUser.text),
+      raw: firstUser.text,
     };
     return c.json(out);
   }

@@ -8,7 +8,7 @@ import { botBubble, typingBubble, userBubble } from "./bubbleRenderer.js";
 import { mountComposer, type ComposerHandles } from "./composer.js";
 import { ConversationStore } from "./ConversationStore.js";
 import { mountRotatingStatus, type RotatingStatusHandle } from "./rotatingStatus.js";
-import { shouldTriggerAudit } from "./stages.js";
+import { inferHostAI, looksLikeAIRecommendation, shouldTriggerAudit } from "./stages.js";
 
 const API_BASE = import.meta.env.VITE_LENS_API_URL ?? "https://lens-api.webmarinelli.workers.dev";
 
@@ -93,6 +93,22 @@ export function mountChatView(opts: ChatViewOptions): void {
       return;
     }
 
+    // improve-01 Job 2 short-circuit: if this is the first user turn AND it
+    // looks like a pasted AI-generated product recommendation (cited reasons,
+    // explicit model code, explicit price), skip the clarifier and go
+    // straight to audit with kind="text". This is the marquee hackathon
+    // pitch: paste an AI answer, see the audit. Don't ask another question.
+    const userOnly = store.all().filter((t) => t.role === "user");
+    if (userOnly.length === 1 && looksLikeAIRecommendation(text)) {
+      // Acknowledge before the audit wall, so the user doesn't feel ignored.
+      const ack = "Got it, that reads like an AI recommendation. Let me audit the claims against real product data.";
+      const t = store.append("assistant", ack);
+      transcript.append(botBubble(t.text));
+      scrollBottom();
+      await runAudit({ pasteRaw: text, hostAi: inferHostAI(text) });
+      return;
+    }
+
     // Stage-1 loop: call /chat/clarify until ready or local gate says so.
     if (shouldTriggerAudit(store.all())) {
       await runAudit();
@@ -120,12 +136,25 @@ export function mountChatView(opts: ChatViewOptions): void {
       typing.remove();
       if (!res.ok) throw new Error(`clarify ${res.status}`);
       const body = (await res.json()) as {
-        kind: "clarify" | "ready" | "error";
+        kind: "clarify" | "ready" | "audit-now" | "error";
         question?: string;
         message?: string;
+        raw?: string;
+        hostAi?: "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
       };
       if (body.kind === "ready") {
         await runAudit();
+        return;
+      }
+      // improve-01: server also runs the Job 2 detector; if the local mirror
+      // ever misses (version skew) the server can still push us onto the
+      // paste route with the original raw text.
+      if (body.kind === "audit-now" && body.raw) {
+        const ack = "Got it, that reads like an AI recommendation. Let me audit the claims against real product data.";
+        const t = store.append("assistant", ack);
+        transcript.append(botBubble(t.text));
+        scrollBottom();
+        await runAudit({ pasteRaw: body.raw, hostAi: body.hostAi ?? "unknown" });
         return;
       }
       if (body.kind === "clarify" && body.question) {
@@ -147,25 +176,43 @@ export function mountChatView(opts: ChatViewOptions): void {
     }
   }
 
-  async function runAudit(): Promise<void> {
+  async function runAudit(
+    opts: { pasteRaw?: string; hostAi?: "chatgpt" | "claude" | "gemini" | "rufus" | "unknown" } = {},
+  ): Promise<void> {
     phase = "generating";
     composer.setDisabled(true);
-    composer.setPlaceholder("Hold on — Lens is searching real products…");
+    composer.setPlaceholder("Hold on, Lens is searching real products…");
     rotator = mountRotatingStatus(transcript, undefined, {
       // Judge P1-5: pause announcements while the user focuses the composer.
       pauseWhenFocused: composer.textarea,
     });
     scrollBottom();
 
-    // Fold the full conversation into a single audit prompt. Rank engine reads
-    // free text and extracts criteria from it.
-    const userPrompt = buildAuditPrompt();
+    // improve-01: two routes into /audit.
+    //   - Paste route: pasteRaw is the verbatim AI recommendation. Use
+    //     kind="text" with source=hostAi so the backend runs the Job 2
+    //     path (claim-verify against real catalog).
+    //   - Query route: build a folded Q/A prompt from the conversation.
+    //     kind="query". This is the Job 1 flow.
+    let body: string;
+    if (opts.pasteRaw && opts.pasteRaw.trim().length > 0) {
+      body = JSON.stringify({
+        kind: "text",
+        source: opts.hostAi ?? "unknown",
+        raw: opts.pasteRaw,
+      });
+    } else {
+      // Fold the full conversation into a single audit prompt. Rank engine reads
+      // free text and extracts criteria from it.
+      const userPrompt = buildAuditPrompt();
+      body = JSON.stringify({ kind: "query", userPrompt });
+    }
 
     try {
       const res = await fetch(`${API_BASE}/audit`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ kind: "query", userPrompt }),
+        body,
       });
       if (!res.ok) {
         const errText = await res.text().catch(() => "");
@@ -292,20 +339,21 @@ export function mountChatView(opts: ChatViewOptions): void {
   }
 
   function buildAuditPrompt(): string {
-    // Judge P0-4: fold assistant clarifier Qs as Q/A pairs so the extract
-    // node sees both the tradeoff that was offered AND the user's choice.
-    // Plain user-only blob was dropping all of that context.
+    // Judge P0-4 + 2026-04-22 calibration fix: fold assistant clarifier Qs as
+    // Q/A pairs, but SKIP the opening greeting so it doesn't get paired with
+    // the user's first real turn as if the user were "answering" the greeting.
+    // A clarifier only counts as Q if (a) it ends in "?" AND (b) a user turn
+    // preceded it (greeting is always the first assistant turn).
     const turns = store.all();
     const lines: string[] = [];
     let pendingQ: string | null = null;
+    let seenUserTurn = false;
     for (const t of turns) {
       if (t.role === "assistant") {
-        // Only the clarifier questions are useful as Q/A context; the
-        // initial greeting + final recap are not. Simple heuristic: if it
-        // ends in "?" we treat it as a clarifier.
-        if (t.text.trimEnd().endsWith("?")) pendingQ = t.text;
+        // Only treat as a clarifier if we've seen a user turn already.
+        if (seenUserTurn && t.text.trimEnd().endsWith("?")) pendingQ = t.text;
       } else {
-        // user turn
+        seenUserTurn = true;
         if (pendingQ) {
           lines.push(`Q: ${pendingQ}\nA: ${t.text}`);
           pendingQ = null;
@@ -373,10 +421,18 @@ export function mountChatView(opts: ChatViewOptions): void {
 
 function buildRecap(audit: AuditResult, topCriterion?: string): string {
   const pick = audit.specOptimal;
+  // If search came back empty, don't pretend we have a pick. Say so plainly.
+  const isEmpty = !pick || !pick.name || pick.name.startsWith("(no candidates");
+  if (isEmpty) {
+    return "I tried to find products but came back empty this time. Live web search may be rate-limited or the query is very niche. Try another phrasing, or scroll down to see what Lens did infer from what you said.";
+  }
   const brand = pick.brand ? `${pick.brand} ` : "";
   const price = pick.price != null ? ` ($${pick.price})` : "";
   const criterionPhrase = topCriterion
     ? ` matches your top criterion (${topCriterion.replace(/[_-]+/g, " ")})`
     : " fits your criteria best";
-  return `Based on what you told me, Lens's pick is ${brand}${pick.name}${price}. It${criterionPhrase} per the transparent utility math. The full ranking is below — drag the sliders to re-weight.`;
+  // User-feedback 2026-04-22: em-dashes banned repo-wide. Recap is hardcoded, so
+  // the fix is here in the string literal (the Opus-drafted turns already go
+  // through scrubClarifierText on the server).
+  return `Based on what you told me, Lens's pick is ${brand}${pick.name}${price}. It${criterionPhrase} per the transparent utility math. The full ranking is below. Drag the sliders to re-weight.`;
 }

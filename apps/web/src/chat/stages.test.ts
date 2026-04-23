@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  inferHostAI,
   lastAssistantEndedInQ,
+  looksLikeAIRecommendation,
   ROTATING_STATUS_PHRASES,
   shouldTriggerAudit,
   userTurns,
@@ -60,6 +62,40 @@ describe("shouldTriggerAudit (Study 3 gate)", () => {
         u("d"),
       ]),
     ).toBe(true);
+  });
+});
+
+// improve-01: front-end mirror of the Job 2 detector. Must agree with the
+// server-side version in stops.ts. These tests are deliberately a subset of
+// the worker tests — just enough to catch skew during dev.
+describe("looksLikeAIRecommendation (front-end mirror)", () => {
+  it("positive on De'Longhi paste", () => {
+    const t =
+      "I recommend the De'Longhi Stilosa EC260BK for your espresso machine under $400. Three reasons: (1) 15-bar pressure, (2) stainless-steel build, (3) manual steam wand. Priced around $249.";
+    expect(looksLikeAIRecommendation(t)).toBe(true);
+  });
+  it("positive on Sony headphones", () => {
+    const t =
+      "Based on your criteria, my top pick is the Sony WH-1000XM5. (1) industry-leading ANC, (2) 30-hour battery, (3) excellent call quality. Around $350.";
+    expect(looksLikeAIRecommendation(t)).toBe(true);
+  });
+  it("negative on short query", () => {
+    expect(looksLikeAIRecommendation("espresso under $400, build matters most")).toBe(false);
+  });
+  it("negative on bare URL", () => {
+    expect(looksLikeAIRecommendation("https://www.amazon.com/dp/B08N5WRWNW")).toBe(false);
+  });
+  it("negative on question", () => {
+    expect(looksLikeAIRecommendation("what's your take on the MacBook Air?")).toBe(false);
+  });
+});
+
+describe("inferHostAI (front-end mirror)", () => {
+  it("amazon → rufus", () => {
+    expect(inferHostAI("This Instant Pot is available on Amazon for $89.99")).toBe("rufus");
+  });
+  it("default → unknown", () => {
+    expect(inferHostAI("The Breville Bambino Plus is around $499.")).toBe("unknown");
   });
 });
 
