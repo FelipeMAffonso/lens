@@ -27,6 +27,7 @@ import { hibpIngester } from "./sources/hibp.js";
 import { ifixitIngester } from "./sources/ifixit.js";
 import { keepaIngester } from "./sources/keepa.js";
 import { manufacturerSitemapsIngester } from "./sources/manufacturer-sitemaps.js";
+import { nvdCveIngester } from "./sources/nvd-cve.js";
 import { openBeautyFactsIngester } from "./sources/openbeautyfacts.js";
 import { openFoodFactsIngester } from "./sources/openfoodfacts.js";
 import { redditBiflIngester } from "./sources/reddit-bifl.js";
@@ -54,6 +55,7 @@ export const REGISTERED: Record<string, DatasetIngester> = {
   "ifixit": ifixitIngester,
   "ftc-enforcement": ftcEnforcementIngester,
   "reddit": redditBiflIngester,
+  "nvd-cve": nvdCveIngester,
 };
 
 /** Called from the scheduled() handler in index.ts. */
