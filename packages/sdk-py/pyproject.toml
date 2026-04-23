@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lens-sdk"
+version = "0.1.0"
+description = "Thin, typed Python wrapper for the Lens welfare-audit API."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Felipe Affonso", email = "noreply@lens.webmarinelli.com" }]
+keywords = ["lens", "consumer", "audit", "ai-shopping", "welfare"]
+requires-python = ">=3.9"
+dependencies = [
+  "requests>=2.31",
+]
+
+[project.urls]
+Homepage = "https://lens-b1h.pages.dev"
+Repository = "https://github.com/FelipeMAffonso/lens"
+Documentation = "https://lens-api.webmarinelli.workers.dev/docs"
+
+[tool.setuptools.packages.find]
+where = ["src"]

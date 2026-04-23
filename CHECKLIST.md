@@ -163,7 +163,7 @@
 | V-MCP-stats | MCP tool `lens.architecture_stats` (new) | ✅ | `workers/mcp/src/tools.ts` | pending |
 | V-API-openapi | OpenAPI spec at /openapi.json + /docs | ✅ | `workers/api/src/openapi/spec.ts` + `docs.ts` | `577b9a5` |
 | V-API-sdk-js | JS/TS SDK `@lens/sdk` | ✅ | `packages/sdk/src/index.ts` | pending |
-| V-API-sdk-py | Python SDK `lens-sdk` | ⬜ | 🔬 | |
+| V-API-sdk-py | Python SDK `lens-sdk` | ✅ | `packages/sdk-py/src/lens_sdk/__init__.py` | pending |
 | V-EMAIL-outbound | Outbound email templates | ⬜ | 🔬 | |
 | V-EMAIL-inbound | Inbound receipt forwarder `lens+receipts@` | ⬜ | 🔬 | |
 | V-EMAIL-digest | Weekly digest email | ⬜ | 🔬 | |
