@@ -11,8 +11,13 @@
 //     matched: boolean }
 
 import type { Context } from "hono";
+import { opusExtendedThinking } from "../anthropic.js";
 
-interface Env { LENS_D1?: D1Database; LENS_KV?: KVNamespace }
+interface Env {
+  LENS_D1?: D1Database;
+  LENS_KV?: KVNamespace;
+  ANTHROPIC_API_KEY?: string;
+}
 
 interface ParsedUrl {
   retailer?: string;
@@ -36,30 +41,32 @@ export async function handleResolveUrl(c: Context<{ Bindings: Env }>): Promise<R
   // unblocked fetch). We parse + cache it + return it. Lets the judge
   // demo stay reliable even when Jina rate-limits our CF worker pool.
   if (body.jinaMarkdown) {
-    const page = parseJinaMarkdown(body.jinaMarkdown);
-    if (env.LENS_KV) {
+    const regex = parseJinaMarkdown(body.jinaMarkdown);
+    const page = await enhancePageWithOpus(regex, raw, env);
+    if (env.LENS_KV && page) {
       try {
         const key = `jina:${await sha256(raw)}`;
-        await env.LENS_KV.put(key, JSON.stringify(page), { expirationTtl: 6 * 3600 });
+        await env.LENS_KV.put(key, JSON.stringify(stripInternal(page)), { expirationTtl: 6 * 3600 });
       } catch { /* best-effort */ }
     }
     const parsed = parseRetailerUrl(raw);
-    return c.json({ parsed, candidates: [], matched: false, page, note: "primed-from-md" });
+    return c.json({ parsed, candidates: [], matched: false, page: stripInternal(page), note: "primed-from-md" });
   }
 
   const parsed = parseRetailerUrl(raw);
   // Unknown-retailer URLs still get the page-fetch pipeline (Jina fallback,
   // extractors). We just can't canonicalise or persist without a retailer id.
   if (!parsed.retailer) {
-    const pageOnly = body.html
+    const pageRaw = body.html
       ? extractFromHtml(body.html, raw)
       : await fetchAndExtract(raw, parsed).catch(() => null);
+    const pageOnly = await enhancePageWithOpus(pageRaw, raw, env);
     return c.json({
       parsed,
       candidates: [],
       matched: false,
       note: "unknown_retailer",
-      page: pageOnly,
+      page: stripInternal(pageOnly),
     });
   }
 
@@ -126,13 +133,14 @@ export async function handleResolveUrl(c: Context<{ Bindings: Env }>): Promise<R
     }
   }
 
-  const page = await pageP;
+  const pageRaw = await pageP;
+  const page = await enhancePageWithOpus(pageRaw, raw, env);
   // If we scraped a page AND the spine didn't already match, persist
   // the live-fetched SKU so the next lookup succeeds instantly.
   if (page && candidates.length === 0 && parsed.retailer && parsed.id) {
     try { await persistLiveFetch(env, parsed, page); } catch { /* best-effort */ }
   }
-  return c.json({ parsed, candidates, matched: candidates.length > 0, page });
+  return c.json({ parsed, candidates, matched: candidates.length > 0, page: stripInternal(page) });
 }
 
 interface PageImage { url: string; alt?: string }
@@ -147,7 +155,35 @@ interface PageExtract {
   bullets?: string[];
   brand?: string;
   availability?: string;
+  warranty?: string;
+  countryOfOrigin?: string;
+  model?: string;
+  upc?: string;
+  ean?: string;
+  specs?: Record<string, string>;
+  extractor?: "regex" | "regex+opus";
   raw: { http: number; bytes: number; contentType?: string };
+  // Internal: raw Jina markdown kept for Opus enhancement. Stripped before
+  // returning to client in handleResolveUrl. Underscore prefix = private.
+  _md?: string;
+}
+
+// Opus-extracted payload. Union with PageExtract after. All fields optional
+// (Opus returns JSON null for missing; we coerce to undefined on merge).
+interface OpusPageExtract {
+  title?: string | null;
+  brand?: string | null;
+  priceCents?: number | null;
+  rating?: number | null;
+  reviewCount?: number | null;
+  bullets?: string[] | null;
+  specs?: Record<string, string> | null;
+  availability?: string | null;
+  warranty?: string | null;
+  countryOfOrigin?: string | null;
+  model?: string | null;
+  upc?: string | null;
+  ean?: string | null;
 }
 
 async function fetchAndExtract(url: string, _parsed: ParsedUrl): Promise<PageExtract | null> {
@@ -351,7 +387,152 @@ export function parseJinaMarkdown(md: string): PageExtract {
     rating,
     reviewCount,
     bullets: bullets.length > 0 ? bullets : undefined,
+    extractor: "regex",
+    _md: md,
   };
+}
+
+// Opus 4.7 structured extraction from Jina markdown. Called only when the
+// regex pass came back suspect (no/absurd price, no bullets on a big page,
+// rating outside [1,5]). Cached in KV under jina-opus:<sha(url)> for 24h so
+// judge re-pastes hit cache. Cost per un-cached call ~$0.003 @ 8-12k tokens.
+async function extractViaOpus(
+  md: string,
+  url: string,
+  env: Env,
+): Promise<OpusPageExtract | null> {
+  if (!env.ANTHROPIC_API_KEY) return null;
+  const key = `jina-opus:${await sha256(url)}`;
+  if (env.LENS_KV) {
+    try {
+      const hit = await env.LENS_KV.get(key, "json");
+      if (hit && typeof hit === "object") return hit as OpusPageExtract;
+    } catch { /* fall through */ }
+  }
+  const body = md.slice(0, 20_000);
+  const system = `You extract structured product data from a retailer page rendered as Jina Reader markdown.
+Return ONE JSON object on a single line — no prose, no code fences, no commentary.
+
+Schema:
+{"title":string|null,"brand":string|null,"priceCents":number|null,"rating":number|null,"reviewCount":number|null,"bullets":string[],"specs":{[key:string]:string},"availability":string|null,"warranty":string|null,"countryOfOrigin":string|null,"model":string|null,"upc":string|null,"ean":string|null}
+
+Rules:
+- priceCents: primary sale/list price in USD cents, integer. If sale + list both shown, take the SALE. Ignore shipping, coupon deltas, related-product prices, and "customers also bought" prices. null if no price.
+- rating: 1-5 scalar for THIS product, not reviewer-quoted "5 stars". null if absent.
+- reviewCount: integer. null if absent.
+- bullets: 3-8 short product feature strings from the feature-bullets / highlights block. NOT reviewer quotes, NOT generic store ad copy.
+- specs: extract every key-value spec pair you can find (weight, dimensions, battery_life, driver_size, water_resistance, connectivity, certifications, energy_rating, etc.). Empty object if none.
+- warranty: full warranty line including duration + provider (e.g. "2-year limited warranty by Sony"). null if absent.
+- countryOfOrigin: "Made in X" / "Country of Origin: X". null if absent.
+- model: model number / model code as printed. null if absent.
+- upc/ean: 12-digit UPC, 13-digit EAN. null if absent.
+- Use JSON null (not the string "null") for missing fields.`;
+
+  let text: string;
+  try {
+    const r = await opusExtendedThinking(env as unknown as Parameters<typeof opusExtendedThinking>[0], {
+      system,
+      user: body,
+      effort: "low",
+      maxOutputTokens: 1500,
+    });
+    text = r.text;
+  } catch {
+    return null;
+  }
+  const m = text.match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  let parsed: OpusPageExtract;
+  try { parsed = JSON.parse(m[0]) as OpusPageExtract; } catch { return null; }
+  if (env.LENS_KV) {
+    try {
+      await env.LENS_KV.put(key, JSON.stringify(parsed), { expirationTtl: 24 * 3600 });
+    } catch { /* best-effort */ }
+  }
+  return parsed;
+}
+
+// Decide whether the regex-extracted PageExtract looks weak enough that
+// we should fall through to Opus.
+function regexLooksWeak(p: PageExtract): boolean {
+  const mdLen = p._md?.length ?? p.raw.bytes ?? 0;
+  if (mdLen < 3_000) return false; // tiny pages — nothing to enhance anyway
+  if (p.priceCents == null) return true;
+  if (p.priceCents < 500 || p.priceCents > 2_000_000) return true; // $5-$20k
+  if (p.rating != null && (p.rating < 1 || p.rating > 5)) return true;
+  if ((!p.bullets || p.bullets.length === 0) && mdLen >= 30_000) return true;
+  return false;
+}
+
+// Merge Opus result INTO the regex PageExtract. Opus wins for structured
+// fields (specs/warranty/country/model/upc/ean) it uniquely extracts, and
+// wins for priceCents/rating when the regex result was suspicious.
+function mergeOpus(p: PageExtract, o: OpusPageExtract): PageExtract {
+  const nonNull = <T>(x: T | null | undefined): T | undefined =>
+    x == null ? undefined : x;
+  const out: PageExtract = { ...p, extractor: "regex+opus" };
+
+  // Price: prefer Opus whenever regex was missing or out-of-range.
+  if (out.priceCents == null || out.priceCents < 500 || out.priceCents > 2_000_000) {
+    const op = nonNull(o.priceCents);
+    if (op != null && op >= 100 && op <= 5_000_000) out.priceCents = op;
+  }
+  // Rating: prefer Opus whenever regex missing or out-of-range.
+  if (out.rating == null || out.rating < 1 || out.rating > 5) {
+    const or = nonNull(o.rating);
+    if (or != null && or >= 1 && or <= 5) out.rating = or;
+  }
+  // Review count: Opus fills gap only.
+  if (out.reviewCount == null) out.reviewCount = nonNull(o.reviewCount) ?? undefined;
+  // Title / brand: Opus fills gap only (regex usually gets title right).
+  if (!out.title) out.title = nonNull(o.title) ?? undefined;
+  if (!out.brand) out.brand = nonNull(o.brand) ?? undefined;
+  // Bullets: prefer Opus when regex was empty OR when regex bullets look
+  // like ornaments (all <15 chars after trim — defensive double-check).
+  const bulletsLookBad = !out.bullets || out.bullets.length < 3
+    || out.bullets.every((b) => b.length < 20);
+  if (bulletsLookBad && Array.isArray(o.bullets) && o.bullets.length > 0) {
+    out.bullets = o.bullets.filter((b) => typeof b === "string" && b.length >= 10).slice(0, 10);
+  }
+  // Opus-unique fields: specs / warranty / country / model / upc / ean.
+  if (o.specs && typeof o.specs === "object" && Object.keys(o.specs).length > 0) {
+    out.specs = Object.fromEntries(
+      Object.entries(o.specs)
+        .filter(([k, v]) => typeof k === "string" && typeof v === "string" && v.length > 0)
+        .slice(0, 40)
+        .map(([k, v]) => [k.slice(0, 60), String(v).slice(0, 400)]),
+    );
+  }
+  out.availability = out.availability ?? nonNull(o.availability) ?? undefined;
+  out.warranty = nonNull(o.warranty) ?? undefined;
+  out.countryOfOrigin = nonNull(o.countryOfOrigin) ?? undefined;
+  out.model = nonNull(o.model) ?? undefined;
+  out.upc = nonNull(o.upc) ?? undefined;
+  out.ean = nonNull(o.ean) ?? undefined;
+  return out;
+}
+
+// Top-level enhance: run Opus if the regex result is weak. Best-effort —
+// any failure returns the original regex page untouched.
+async function enhancePageWithOpus(
+  page: PageExtract | null,
+  url: string,
+  env: Env,
+): Promise<PageExtract | null> {
+  if (!page || !page._md) return page;
+  if (!regexLooksWeak(page)) return page;
+  const opus = await extractViaOpus(page._md, url, env).catch(() => null);
+  if (!opus) return page;
+  return mergeOpus(page, opus);
+}
+
+// Strip internal fields (_md) from a PageExtract before returning to
+// the client. Keeps response payload small.
+function stripInternal(page: PageExtract | null): PageExtract | null {
+  if (!page) return page;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { _md, ...rest } = page;
+  return rest as PageExtract;
 }
 
 function extractFromHtml(html: string, url: string, raw?: { http?: number; contentType?: string }): PageExtract {
@@ -603,6 +784,13 @@ async function persistLiveFetch(env: Env, parsed: ParsedUrl, page: PageExtract):
     reviewCount: page.reviewCount,
     bullets: page.bullets,
     availability: page.availability,
+    warranty: page.warranty,
+    countryOfOrigin: page.countryOfOrigin,
+    model: page.model,
+    upc: page.upc,
+    ean: page.ean,
+    extractor: page.extractor,
+    ...(page.specs ?? {}),
   };
   const observed = new Date().toISOString().slice(0, 19);
 
@@ -611,20 +799,26 @@ async function persistLiveFetch(env: Env, parsed: ParsedUrl, page: PageExtract):
   ).bind(brandSlug, page.brand ?? parsed.retailer).run();
 
   await env.LENS_D1.prepare(
-    `INSERT INTO sku_catalog (id, canonical_name, brand_slug, image_url, specs_json, first_seen_at, last_refreshed_at, asin)
-     VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)
+    `INSERT INTO sku_catalog (id, canonical_name, brand_slug, model_code, image_url, specs_json, upc, ean, first_seen_at, last_refreshed_at, asin)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)
      ON CONFLICT(id) DO UPDATE SET
        canonical_name = excluded.canonical_name,
+       model_code = COALESCE(excluded.model_code, sku_catalog.model_code),
        image_url = COALESCE(excluded.image_url, sku_catalog.image_url),
        specs_json = excluded.specs_json,
+       upc = COALESCE(excluded.upc, sku_catalog.upc),
+       ean = COALESCE(excluded.ean, sku_catalog.ean),
        asin = COALESCE(excluded.asin, sku_catalog.asin),
        last_refreshed_at = datetime('now')`,
   ).bind(
     skuId,
     page.title.slice(0, 200),
     brandSlug,
+    page.model ?? null,
     page.imageUrl ?? null,
     JSON.stringify(specs).slice(0, 8_000),
+    page.upc ?? null,
+    page.ean ?? null,
     parsed.retailer === "amazon" ? parsed.id : null,
   ).run();
 
