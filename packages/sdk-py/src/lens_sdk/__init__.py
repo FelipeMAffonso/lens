@@ -242,3 +242,63 @@ class LensClient:
     def embed_score(self, url: str) -> Dict[str, Any]:
         """Lens Score for a retailer URL (same data the embed widget renders)."""
         return self._request("GET", "/embed/score", params={"url": url})
+
+    # ---- receipt forwarder + outbound letter (VISION #21, #23) --------
+
+    def email_receipt(
+        self,
+        *,
+        subject: str,
+        from_address: Optional[str] = None,
+        date: Optional[str] = None,
+        product: Optional[str] = None,
+        price_cents: Optional[int] = None,
+        retailer: Optional[str] = None,
+        raw_body: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Forward a parsed receipt (VISION #21). Needs session cookie or
+        the `x-lens-receipt-token` header (set via constructor headers).
+        """
+        body: Dict[str, Any] = {"subject": subject}
+        if from_address is not None:
+            body["from"] = from_address
+        if date is not None:
+            body["date"] = date
+        if product is not None:
+            body["product"] = product
+        if price_cents is not None:
+            body["priceCents"] = price_cents
+        if retailer is not None:
+            body["retailer"] = retailer
+        if raw_body is not None:
+            body["rawBody"] = raw_body
+        return self._request("POST", "/email/receipt", json=body)
+
+    def intervention_send(
+        self,
+        *,
+        to: str,
+        subject: str,
+        body: str,
+        pack_slug: Optional[str] = None,
+        meta: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Dispatch a drafted intervention letter via Resend (VISION #23).
+        Requires a session cookie; the worker must have RESEND_API_KEY set.
+        """
+        payload: Dict[str, Any] = {"to": to, "subject": subject, "body": body}
+        if pack_slug is not None:
+            payload["packSlug"] = pack_slug
+        if meta is not None:
+            payload["meta"] = meta
+        return self._request("POST", "/intervention/send", json=payload)
+
+    # ---- architecture trigger / introspection --------------------------
+
+    def architecture_next_due(self) -> Dict[str, Any]:
+        """Preview what the 15-min cron dispatcher picks on its next tick."""
+        return self._request("GET", "/architecture/next-due")
+
+    def architecture_trigger(self, source_id: str) -> Dict[str, Any]:
+        """Manually kick an ingester (idempotent). Judge-friendly demo path."""
+        return self._request("POST", f"/architecture/trigger/{source_id}", json={})

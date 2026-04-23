@@ -1,0 +1,21 @@
+{
+  "name": "@lens/cli",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Command-line wrapper over @lens/sdk for welfare-auditing AI shopping answers from the terminal.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "lens": "./bin/lens.mjs"
+  },
+  "files": ["bin", "src"],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lens/sdk": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  }
+}

@@ -178,6 +178,40 @@ export class LensClient {
     return this.send(`/embed/score?url=${encodeURIComponent(url)}`);
   }
 
+  /** POST /email/receipt — inbound receipt forwarder (VISION #21). */
+  emailReceipt(body: {
+    subject: string;
+    from?: string;
+    date?: string;
+    product?: string;
+    priceCents?: number;
+    retailer?: string;
+    rawBody?: string;
+  }): Promise<Record<string, unknown>> {
+    return this.send("/email/receipt", { method: "POST", body: JSON.stringify(body) });
+  }
+
+  /** POST /intervention/send — dispatch a drafted letter via Resend (VISION #23). */
+  interventionSend(body: {
+    to: string;
+    subject: string;
+    body: string;
+    packSlug?: string;
+    meta?: Record<string, unknown>;
+  }): Promise<Record<string, unknown>> {
+    return this.send("/intervention/send", { method: "POST", body: JSON.stringify(body) });
+  }
+
+  /** GET /architecture/next-due — dispatcher queue preview. */
+  architectureNextDue(): Promise<Record<string, unknown>> {
+    return this.send("/architecture/next-due");
+  }
+
+  /** POST /architecture/trigger/:id — manually run an ingester. */
+  architectureTrigger(id: string): Promise<Record<string, unknown>> {
+    return this.send(`/architecture/trigger/${encodeURIComponent(id)}`, { method: "POST", body: "{}" });
+  }
+
   /** /digest/preferences — user's weekly-digest settings (requires session cookie). */
   digest = {
     getPreferences: (): Promise<Record<string, unknown>> => this.send("/digest/preferences"),

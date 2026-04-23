@@ -170,7 +170,7 @@
 | V-PWA-mobile-audit | PWA mobile paste audit | ⬜ | 🔬 | |
 | V-PWA-share-sheet | Android share target (see F10) | ⬜ | 🔬 | |
 | V-PWA-push | Push notifications | ⬜ | 🔬 | |
-| V-CLI | CLI `npx @lens/cli audit <url>` | ⬜ | 🔬 | |
+| V-CLI | CLI `npx @lens/cli audit <url>` | ✅ | `packages/cli/bin/lens.mjs` | pending |
 
 ## Part D — Agent loops
 
