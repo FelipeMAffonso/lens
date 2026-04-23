@@ -54,9 +54,19 @@ export async function handleResolveUrl(c: Context<{ Bindings: Env }>): Promise<R
   //   / target), parse it directly — no server fetch.
   // - Otherwise, if fetchPage != false, fetch from the server.
   // - Otherwise, skip.
+  // Known-bot-blocker retailers (Amazon, Walmart, Target, Best Buy) are
+  // routed straight to Jina — skipping the direct fetch that we know
+  // returns a 5KB shell. Saves ~1s and removes ambiguity.
+  const isBotBlocker =
+    !!parsed.retailer &&
+    ["amazon", "walmart", "target", "bestbuy"].includes(parsed.retailer);
   const pageP = body.html
     ? Promise.resolve(extractFromHtml(body.html, raw))
-    : wantFetch ? fetchAndExtract(raw, parsed).catch(() => null) : Promise.resolve(null);
+    : wantFetch
+      ? (isBotBlocker
+          ? fetchViaJina(raw).catch(() => null)
+          : fetchAndExtract(raw, parsed).catch(() => null))
+      : Promise.resolve(null);
 
   // 1. Direct id match (e.g. wd:Q123, steam:123, fda510k:K123, visual:<hash>).
   const directId = toSkuId(parsed);
@@ -152,11 +162,18 @@ async function fetchAndExtract(url: string, _parsed: ParsedUrl): Promise<PageExt
     /amazon\.com|walmart\.com|target\.com|bestbuy\.com/i.test(url) &&
     !/productTitle|"@type":\s*"Product"/i.test(html);
   if (looksBlocked) {
-    const viaJina = await fetchViaJina(url).catch(() => null);
+    let jinaDebug: string | null = null;
+    let viaJina: PageExtract | null = null;
+    try {
+      viaJina = await fetchViaJina(url);
+    } catch (err) {
+      jinaDebug = `jina-throw:${(err as Error).message}`;
+    }
+    if (!viaJina) jinaDebug = jinaDebug ?? "jina-returned-null";
     if (viaJina) return viaJina;
     return {
-      raw: { http: res.status, bytes: html.length, contentType: ct },
-      title: "(retailer bot-blocked — paste the DOM as `html` or install the extension)",
+      raw: { http: res.status, bytes: html.length, contentType: ct, via: "direct-blocked" } as PageExtract["raw"] & { via?: string; jinaDebug?: string; },
+      title: `(retailer bot-blocked; ${jinaDebug}; paste DOM as html or install extension)`,
     };
   }
   if (!res.ok || !html) return { raw: { http: res.status, bytes: html.length, contentType: ct } };
@@ -169,13 +186,13 @@ async function fetchViaJina(url: string): Promise<PageExtract | null> {
   const jinaUrl = "https://r.jina.ai/" + url;
   const res = await fetch(jinaUrl, {
     headers: {
-      "User-Agent": "LensBot/1.0",
-      Accept: "text/markdown, text/plain",
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      Accept: "text/markdown, text/plain, */*",
     },
   });
-  if (!res.ok) return null;
+  if (!res.ok) throw new Error(`jina-http-${res.status}`);
   const md = await res.text();
-  if (!md) return null;
+  if (!md) throw new Error("jina-empty");
 
   // Parse the Jina Reader envelope. First few lines look like:
   //   Title: <full page title>
