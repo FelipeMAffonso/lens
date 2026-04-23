@@ -635,6 +635,15 @@ app.get("/ticker", async (c) => {
 app.get("/oauth/gmail/authorize", (c) => gmailAuthorize(c as never));
 app.get("/oauth/gmail/callback", (c) => gmailCallback(c as never));
 
+// VISION #21 — inbound receipt forwarder (HTTP parallel to Email Routing).
+// Accepts a parsed receipt from Zapier / Make.com / manual curl / Gmail
+// filter webhook → persists to purchases. Auth: session cookie or shared
+// bearer token (`x-lens-receipt-token`).
+app.post("/email/receipt", async (c) => {
+  const { handleReceiptInbound } = await import("./email/receipt-inbound.js");
+  return handleReceiptInbound(c as never);
+});
+
 // F11 — voice transcription surface.
 app.post("/voice/transcribe", async (c) => {
   const body = await c.req.json().catch(() => null);

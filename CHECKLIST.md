@@ -165,7 +165,7 @@
 | V-API-sdk-js | JS/TS SDK `@lens/sdk` | ✅ | `packages/sdk/src/index.ts` | pending |
 | V-API-sdk-py | Python SDK `lens-sdk` | ✅ | `packages/sdk-py/src/lens_sdk/__init__.py` | pending |
 | V-EMAIL-outbound | Outbound email templates | ⬜ | 🔬 | |
-| V-EMAIL-inbound | Inbound receipt forwarder `lens+receipts@` | ⬜ | 🔬 | |
+| V-EMAIL-inbound | Inbound receipt forwarder (HTTP) | ✅ | `workers/api/src/email/receipt-inbound.ts` | pending |
 | V-EMAIL-digest | Weekly digest email | ⬜ | 🔬 | |
 | V-PWA-mobile-audit | PWA mobile paste audit | ⬜ | 🔬 | |
 | V-PWA-share-sheet | Android share target (see F10) | ⬜ | 🔬 | |
