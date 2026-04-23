@@ -53,6 +53,8 @@ const WIKIDATA_CLASS_TO_GPT: Record<string, string> = {
 };
 
 const PREFIX_DEFAULTS: Array<{ prefix: string; code: string }> = [
+  { prefix: "feg:", code: "gpt:vehicles-parts" },
+  { prefix: "nhtsa:", code: "gpt:vehicles-parts" },
   { prefix: "fda510k:", code: "gpt:health-beauty" },
   { prefix: "steam:", code: "gpt:arts-entertainment" },
   { prefix: "usda:", code: "gpt:food-beverages-tobacco" },
