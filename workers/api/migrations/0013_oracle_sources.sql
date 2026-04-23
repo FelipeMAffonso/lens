@@ -1,0 +1,5 @@
+-- 0013_oracle_sources.sql — seed rows for GS1 origin enricher + EU EPREL.
+
+INSERT OR IGNORE INTO data_source (id, name, type, base_url, docs_url, auth_kind, cadence_minutes, description) VALUES
+  ('gs1-origin', 'GS1 country-of-origin enricher', 'open-data', 'internal', 'https://www.gs1.org/standards/id-keys/company-prefix', 'none', 60, 'Looks up GS1 barcode prefix to tag every indexed SKU with the country of company registration. Surfaces origin transparency (e.g. product branded as USA but registered under China prefix).'),
+  ('eu-eprel', 'EU EPREL Product Registry', 'government', 'https://eprel.ec.europa.eu/api/public/product/search', 'https://eprel.ec.europa.eu/screen/home', 'none', 10080, '500K+ products registered for EU sale with energy-efficiency labels and full spec sheets. Covers refrigerators, washers, dishwashers, displays, HVAC, vacuums, etc.');

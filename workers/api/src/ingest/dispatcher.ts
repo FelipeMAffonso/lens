@@ -21,8 +21,10 @@ import { epaFuelEconomyIngester } from "./sources/epa-fueleconomy.js";
 import { fccEquipmentIngester } from "./sources/fcc-equipment.js";
 import { fdaRecallsIngester } from "./sources/fda-recalls.js";
 import { nhtsaRecallsIngester } from "./sources/nhtsa-recalls.js";
+import { euEprelIngester } from "./sources/eu-eprel.js";
 import { federalRegisterIngester } from "./sources/federal-register.js";
 import { ftcEnforcementIngester } from "./sources/ftc-enforcement.js";
+import { gs1OriginIngester } from "./sources/gs1-origin.js";
 import { hibpIngester } from "./sources/hibp.js";
 import { ifixitIngester } from "./sources/ifixit.js";
 import { keepaIngester } from "./sources/keepa.js";
@@ -60,6 +62,8 @@ export const REGISTERED: Record<string, DatasetIngester> = {
   "nvd-cve": nvdCveIngester,
   "openlibrary": openLibraryIngester,
   "musicbrainz": musicBrainzIngester,
+  "gs1-origin": gs1OriginIngester,
+  "eu-eprel": euEprelIngester,
 };
 
 /** Called from the scheduled() handler in index.ts. */
