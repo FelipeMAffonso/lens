@@ -26,15 +26,21 @@ export async function handleResolveUrl(c: Context<{ Bindings: Env }>): Promise<R
   const env = c.env;
   if (!env.LENS_D1) return c.json({ error: "bootstrapping" }, 503);
 
-  let body: { url?: string };
-  try { body = (await c.req.json()) as { url?: string }; } catch { return c.json({ error: "invalid_json" }, 400); }
+  let body: { url?: string; fetchPage?: boolean };
+  try { body = (await c.req.json()) as { url?: string; fetchPage?: boolean }; } catch { return c.json({ error: "invalid_json" }, 400); }
   const raw = (body.url ?? "").trim();
   if (!raw) return c.json({ error: "missing_url" }, 400);
+  const wantFetch = body.fetchPage !== false; // default on
 
   const parsed = parseRetailerUrl(raw);
   if (!parsed.retailer) {
     return c.json({ parsed, candidates: [], matched: false, note: "unknown_retailer" });
   }
+
+  // Kick off the page fetch in parallel with the spine lookup. If the fetch
+  // returns a parseable page we extract title/price/image/bullets/rating
+  // and opportunistically upsert a sku_catalog row so the next lookup matches.
+  const pageP = wantFetch ? fetchAndExtract(raw, parsed).catch(() => null) : Promise.resolve(null);
 
   // 1. Direct id match (e.g. wd:Q123, steam:123, fda510k:K123, visual:<hash>).
   const directId = toSkuId(parsed);
@@ -79,7 +85,344 @@ export async function handleResolveUrl(c: Context<{ Bindings: Env }>): Promise<R
     }
   }
 
-  return c.json({ parsed, candidates, matched: candidates.length > 0 });
+  const page = await pageP;
+  // If we scraped a page AND the spine didn't already match, persist
+  // the live-fetched SKU so the next lookup succeeds instantly.
+  if (page && candidates.length === 0 && parsed.retailer && parsed.id) {
+    try { await persistLiveFetch(env, parsed, page); } catch { /* best-effort */ }
+  }
+  return c.json({ parsed, candidates, matched: candidates.length > 0, page });
+}
+
+interface PageImage { url: string; alt?: string }
+interface PageExtract {
+  title?: string;
+  priceCents?: number;
+  currency?: string;
+  imageUrl?: string;        // hero / og:image (best-guess primary)
+  images?: PageImage[];     // ALL product-gallery images with alt text
+  rating?: number;
+  reviewCount?: number;
+  bullets?: string[];
+  brand?: string;
+  availability?: string;
+  raw: { http: number; bytes: number; contentType?: string };
+}
+
+async function fetchAndExtract(url: string, parsed: ParsedUrl): Promise<PageExtract | null> {
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+      },
+      redirect: "follow",
+    });
+  } catch {
+    return null;
+  }
+  const ct = res.headers.get("content-type") ?? "";
+  const html = await res.text();
+  const raw = { http: res.status, bytes: html.length, contentType: ct };
+  if (!res.ok || !html) return { raw };
+
+  return {
+    ...raw,
+    raw,
+    title: extractTitle(html),
+    brand: extractBrand(html, parsed),
+    priceCents: extractPriceCents(html),
+    currency: "USD",
+    imageUrl: extractImageUrl(html),
+    images: extractImages(html, url),
+    rating: extractRating(html),
+    reviewCount: extractReviewCount(html),
+    bullets: extractBullets(html),
+    availability: extractAvailability(html),
+  };
+}
+
+function extractImages(html: string, baseUrl: string): PageImage[] | undefined {
+  const out: PageImage[] = [];
+  const seen = new Set<string>();
+
+  const pushOne = (u: string, alt?: string): void => {
+    if (!u) return;
+    // Skip data:, tracking pixels, tiny sprites.
+    if (u.startsWith("data:") || u.length < 12) return;
+    if (/\.(?:gif|svg)(?:$|[?#])/i.test(u)) return;
+    const abs = toAbsolute(u, baseUrl);
+    if (!abs || seen.has(abs)) return;
+    seen.add(abs);
+    out.push({ url: abs.slice(0, 800), alt: alt ? alt.slice(0, 240) : undefined });
+  };
+
+  // JSON-LD product image(s).
+  const ld = jsonLdFind(html, ["Product"]);
+  if (ld) {
+    const img = ld.image;
+    if (typeof img === "string") pushOne(img);
+    else if (Array.isArray(img)) for (const u of img) if (typeof u === "string") pushOne(u);
+  }
+
+  // og:image.
+  const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1];
+  if (og) pushOne(og);
+
+  // Amazon / generic <img> with src + alt.
+  const imgRe = /<img\b[^>]*>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = imgRe.exec(html)) !== null && out.length < 40) {
+    const tag = m[0]!;
+    const src = tag.match(/\ssrc=["']([^"']+)["']/i)?.[1]
+      ?? tag.match(/\sdata-src=["']([^"']+)["']/i)?.[1]
+      ?? tag.match(/\sdata-a-hires=["']([^"']+)["']/i)?.[1];
+    const alt = tag.match(/\salt=["']([^"']*)["']/i)?.[1];
+    if (src) pushOne(decodeEntities(src), alt ? decodeEntities(alt) : undefined);
+  }
+
+  return out.length > 0 ? out.slice(0, 40) : undefined;
+}
+
+function toAbsolute(u: string, base: string): string | null {
+  try {
+    if (/^https?:\/\//i.test(u)) return u;
+    if (u.startsWith("//")) return "https:" + u;
+    const b = new URL(base);
+    if (u.startsWith("/")) return `${b.protocol}//${b.host}${u}`;
+    return new URL(u, base).toString();
+  } catch { return null; }
+}
+
+function extractTitle(html: string): string | undefined {
+  // JSON-LD first (most retailers).
+  const ld = jsonLdFind(html, ["Product"]);
+  if (ld?.name) return String(ld.name).slice(0, 240);
+  // Amazon-specific productTitle.
+  const am = html.match(/<span[^>]*id=["']productTitle["'][^>]*>([\s\S]*?)<\/span>/i)?.[1];
+  if (am) return decodeEntities(stripTags(am)).trim().slice(0, 240);
+  // OG title.
+  const og = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)?.[1];
+  if (og) return decodeEntities(og).trim().slice(0, 240);
+  // <title> fallback.
+  const t = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1];
+  return t ? decodeEntities(stripTags(t)).trim().slice(0, 240) : undefined;
+}
+
+function extractBrand(html: string, parsed: ParsedUrl): string | undefined {
+  const ld = jsonLdFind(html, ["Product"]);
+  if (ld?.brand) {
+    const b = ld.brand as { name?: string } | string;
+    return typeof b === "string" ? b : b?.name;
+  }
+  const meta = html.match(/<meta[^>]+property=["']og:brand["'][^>]+content=["']([^"']+)["']/i)?.[1];
+  if (meta) return decodeEntities(meta).trim();
+  // Amazon "Visit the X Store" byline
+  const am = html.match(/<a[^>]+id=["']bylineInfo["'][^>]*>([^<]+)<\/a>/i)?.[1];
+  if (am) return decodeEntities(am).replace(/Visit the |Brand:\s*|Store$/gi, "").trim();
+  return parsed.brand;
+}
+
+function extractPriceCents(html: string): number | undefined {
+  const ld = jsonLdFind(html, ["Product", "Offer"]);
+  const offers = ld?.offers;
+  const priceFromOffer = (o: unknown): number | undefined => {
+    if (!o || typeof o !== "object") return undefined;
+    const p = (o as { price?: string | number }).price;
+    if (p == null) return undefined;
+    const n = parseFloat(String(p));
+    return Number.isFinite(n) ? Math.round(n * 100) : undefined;
+  };
+  if (Array.isArray(offers)) {
+    for (const o of offers) { const cents = priceFromOffer(o); if (cents != null) return cents; }
+  } else {
+    const cents = priceFromOffer(offers);
+    if (cents != null) return cents;
+  }
+  // Amazon classic: .a-price-whole + .a-price-fraction
+  const amWhole = html.match(/<span class="a-price-whole">([0-9,]+)<\/span>\s*<span class="a-price-fraction">(\d{2})</i);
+  if (amWhole) {
+    const whole = parseInt(amWhole[1]!.replace(/,/g, ""), 10);
+    const frac = parseInt(amWhole[2]!, 10);
+    if (Number.isFinite(whole)) return whole * 100 + (Number.isFinite(frac) ? frac : 0);
+  }
+  // Generic $12.34 near the top of the body
+  const near = html.match(/\$([0-9]{1,4}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/);
+  if (near) {
+    const n = parseFloat(near[1]!.replace(/,/g, ""));
+    if (Number.isFinite(n)) return Math.round(n * 100);
+  }
+  return undefined;
+}
+
+function extractImageUrl(html: string): string | undefined {
+  const ld = jsonLdFind(html, ["Product"]);
+  const img = ld?.image;
+  if (typeof img === "string") return img;
+  if (Array.isArray(img) && typeof img[0] === "string") return img[0];
+  const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1];
+  return og || undefined;
+}
+
+function extractRating(html: string): number | undefined {
+  const ld = jsonLdFind(html, ["Product", "AggregateRating"]);
+  const ar = (ld?.aggregateRating as { ratingValue?: string | number }) ?? null;
+  if (ar?.ratingValue != null) {
+    const n = parseFloat(String(ar.ratingValue));
+    if (Number.isFinite(n)) return n;
+  }
+  // Amazon: "out of 5 stars"
+  const am = html.match(/([0-5](?:\.\d)?)\s+out of 5 stars/i)?.[1];
+  if (am) {
+    const n = parseFloat(am);
+    if (Number.isFinite(n)) return n;
+  }
+  return undefined;
+}
+
+function extractReviewCount(html: string): number | undefined {
+  const ld = jsonLdFind(html, ["Product", "AggregateRating"]);
+  const ar = (ld?.aggregateRating as { reviewCount?: string | number; ratingCount?: string | number }) ?? null;
+  const rc = ar?.reviewCount ?? ar?.ratingCount;
+  if (rc != null) {
+    const n = parseInt(String(rc).replace(/[^0-9]/g, ""), 10);
+    if (Number.isFinite(n)) return n;
+  }
+  const am = html.match(/([\d,]+)\s+(?:global\s+)?ratings?/i)?.[1];
+  if (am) {
+    const n = parseInt(am.replace(/,/g, ""), 10);
+    if (Number.isFinite(n)) return n;
+  }
+  return undefined;
+}
+
+function extractBullets(html: string): string[] | undefined {
+  // Amazon feature bullets
+  const block = html.match(/<div[^>]*id=["']feature-bullets["'][\s\S]*?<\/div>/i)?.[0];
+  if (block) {
+    const out: string[] = [];
+    const re = /<li[^>]*>([\s\S]*?)<\/li>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(block)) !== null && out.length < 10) {
+      const t = decodeEntities(stripTags(m[1]!)).replace(/\s+/g, " ").trim();
+      if (t && t.length > 10) out.push(t.slice(0, 400));
+    }
+    if (out.length > 0) return out;
+  }
+  return undefined;
+}
+
+function extractAvailability(html: string): string | undefined {
+  const ld = jsonLdFind(html, ["Product", "Offer"]);
+  const offers = ld?.offers;
+  const readAvail = (o: unknown): string | undefined => {
+    if (!o || typeof o !== "object") return undefined;
+    const a = (o as { availability?: string }).availability;
+    return a ? String(a).replace("https://schema.org/", "") : undefined;
+  };
+  if (Array.isArray(offers)) { for (const o of offers) { const a = readAvail(o); if (a) return a; } }
+  else { const a = readAvail(offers); if (a) return a; }
+  const am = html.match(/<div[^>]*id=["']availability["'][\s\S]*?<span[^>]*>([^<]+)<\/span>/i)?.[1];
+  return am ? decodeEntities(am).trim() : undefined;
+}
+
+function jsonLdFind(html: string, wanted: string[]): Record<string, unknown> | null {
+  const re = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    let parsed: unknown;
+    try { parsed = JSON.parse(m[1]!); } catch { continue; }
+    const visit = (x: unknown): Record<string, unknown> | null => {
+      if (!x) return null;
+      if (Array.isArray(x)) {
+        for (const y of x) { const h = visit(y); if (h) return h; }
+        return null;
+      }
+      if (typeof x !== "object") return null;
+      const obj = x as Record<string, unknown>;
+      const t = obj["@type"];
+      if (typeof t === "string" && wanted.includes(t)) return obj;
+      if (Array.isArray(t) && t.some((tt: unknown) => wanted.includes(String(tt)))) return obj;
+      // Walk @graph
+      if (Array.isArray(obj["@graph"])) {
+        for (const g of obj["@graph"] as unknown[]) { const h = visit(g); if (h) return h; }
+      }
+      return null;
+    };
+    const hit = visit(parsed);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+function stripTags(s: string): string { return s.replace(/<[^>]+>/g, ""); }
+function decodeEntities(s: string): string {
+  return s
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, " ");
+}
+
+async function persistLiveFetch(env: Env, parsed: ParsedUrl, page: PageExtract): Promise<void> {
+  if (!page.title || !parsed.retailer || !parsed.id || !env.LENS_D1) return;
+  const skuId = `${parsed.retailer}:${parsed.id}`;
+  const brandSlug = (page.brand ?? parsed.brand ?? parsed.retailer).toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 60);
+  const specs = {
+    retailer: parsed.retailer,
+    retailerId: parsed.id,
+    rating: page.rating,
+    reviewCount: page.reviewCount,
+    bullets: page.bullets,
+    availability: page.availability,
+  };
+  const observed = new Date().toISOString().slice(0, 19);
+
+  await env.LENS_D1.prepare(
+    `INSERT OR IGNORE INTO brand_index (slug, name) VALUES (?, ?)`,
+  ).bind(brandSlug, page.brand ?? parsed.retailer).run();
+
+  await env.LENS_D1.prepare(
+    `INSERT INTO sku_catalog (id, canonical_name, brand_slug, image_url, specs_json, first_seen_at, last_refreshed_at, asin)
+     VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)
+     ON CONFLICT(id) DO UPDATE SET
+       canonical_name = excluded.canonical_name,
+       image_url = COALESCE(excluded.image_url, sku_catalog.image_url),
+       specs_json = excluded.specs_json,
+       asin = COALESCE(excluded.asin, sku_catalog.asin),
+       last_refreshed_at = datetime('now')`,
+  ).bind(
+    skuId,
+    page.title.slice(0, 200),
+    brandSlug,
+    page.imageUrl ?? null,
+    JSON.stringify(specs).slice(0, 8_000),
+    parsed.retailer === "amazon" ? parsed.id : null,
+  ).run();
+
+  await env.LENS_D1.prepare(
+    `INSERT INTO sku_source_link (sku_id, source_id, external_id, external_url, specs_json, price_cents, currency, observed_at, confidence, active)
+     VALUES (?, ?, ?, ?, ?, ?, 'USD', ?, 0.9, 1)
+     ON CONFLICT(sku_id, source_id, external_id) DO UPDATE SET
+       external_url = excluded.external_url,
+       price_cents = excluded.price_cents,
+       specs_json = excluded.specs_json,
+       observed_at = excluded.observed_at,
+       active = 1`,
+  ).bind(
+    skuId, `resolve-url-live:${parsed.retailer}`, parsed.id, parsed.urlClean,
+    JSON.stringify(specs).slice(0, 4_000),
+    page.priceCents ?? null, observed,
+  ).run();
+
+  if (page.priceCents != null) {
+    await env.LENS_D1.prepare(
+      `INSERT OR IGNORE INTO price_history (sku_id, source_id, observed_at, price_cents, currency, on_sale, sale_pct)
+       VALUES (?, ?, ?, ?, 'USD', 0, NULL)`,
+    ).bind(skuId, `resolve-url-live:${parsed.retailer}`, observed, page.priceCents).run();
+  }
 }
 
 function shape(r: Record<string, unknown>): Record<string, unknown> {
