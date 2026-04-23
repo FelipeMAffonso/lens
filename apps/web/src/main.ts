@@ -463,7 +463,9 @@ function alternativesCard(r: AuditResult): HTMLElement {
   });
   const anyPicks = picks.some((p) => p.pick !== null);
   if (!anyPicks) {
-    card.innerHTML = `<div class="card-header"><h2>Alternatives at other price points</h2></div><p class="muted" style="margin:0;">Not enough candidates across price tiers.</p>`;
+    // D16 — graceful empty state. Don't render a bleak "not enough"; instead
+    // tell the user what Lens WOULD show when the catalog has siblings.
+    card.style.display = "none";
     return card;
   }
   card.innerHTML = `
