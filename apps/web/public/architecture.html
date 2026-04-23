@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lens Architecture — live data spine</title>
+    <meta name="description" content="Live view of every data source, ingestion pipeline, and triangulation engine that powers Lens." />
+    <meta name="theme-color" content="#cc785c" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+    <style>
+      :root {
+        --bg: #faf9f5;
+        --surface: #fff;
+        --border: #e8e4dd;
+        --fg: #1a1a1a;
+        --fg-muted: #5a5a5a;
+        --fg-dim: #8a8a8a;
+        --accent: #cc785c;
+        --ok: #3fb27f;
+        --warn: #c78a1f;
+        --bad: #d85a5a;
+        --gray: #bfbfbf;
+      }
+      * { box-sizing: border-box; }
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        margin: 0;
+        padding: 0;
+        line-height: 1.5;
+      }
+      header {
+        background: linear-gradient(180deg, #fdf7f2, #faf4ee);
+        border-bottom: 1px solid #f0e3d4;
+        padding: 40px 20px;
+      }
+      header .container { max-width: 1100px; margin: 0 auto; }
+      h1 {
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0 0 10px;
+      }
+      header p {
+        max-width: 720px;
+        color: var(--fg-muted);
+        margin: 0 0 16px;
+        font-size: 15px;
+      }
+      header .crumbs { font-size: 13px; color: var(--fg-dim); }
+      header .crumbs a { color: var(--accent); text-decoration: none; }
+      main { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+      h2 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 16px;
+        padding-top: 24px;
+      }
+      .stats-ribbon {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin: 24px 0 40px;
+      }
+      .stats-ribbon .stat {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+      }
+      .stats-ribbon .stat .n {
+        display: block;
+        font-size: 26px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        font-variant-numeric: tabular-nums;
+      }
+      .stats-ribbon .stat .l {
+        font-size: 11px;
+        color: var(--fg-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        font-size: 13px;
+      }
+      th, td {
+        padding: 12px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        background: #faf6f0;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--fg-dim);
+        font-weight: 600;
+      }
+      tr:last-child td { border-bottom: 0; }
+      .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+      }
+      .dot.ok { background: var(--ok); box-shadow: 0 0 0 3px rgba(63,178,127,0.18); }
+      .dot.warn { background: var(--warn); box-shadow: 0 0 0 3px rgba(199,138,31,0.18); }
+      .dot.bad { background: var(--bad); box-shadow: 0 0 0 3px rgba(216,90,90,0.18); }
+      .dot.gray { background: var(--gray); }
+      .chip {
+        display: inline-block;
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: #faf4ee;
+        border: 1px solid #f0e3d4;
+        color: #8a5a3a;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      code {
+        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-size: 12px;
+        color: #8a5a3a;
+        background: #faf4ee;
+        padding: 1px 5px;
+        border-radius: 3px;
+      }
+      footer {
+        padding: 32px 20px;
+        border-top: 1px solid var(--border);
+        color: var(--fg-dim);
+        text-align: center;
+        font-size: 13px;
+      }
+      footer a { color: var(--accent); text-decoration: none; }
+      @media (max-width: 720px) {
+        th:nth-child(4), td:nth-child(4),
+        th:nth-child(5), td:nth-child(5) { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <div class="crumbs"><a href="/">Lens</a> / architecture</div>
+        <h1>Lens architecture, live</h1>
+        <p>
+          Every fact Lens shows is triangulated across ≥ 2 independent public sources. Every number
+          on this page is live from the worker. Dots turn green as each ingester succeeds; stats
+          refresh every 60 seconds.
+        </p>
+      </div>
+    </header>
+    <main>
+      <section>
+        <h2>Right now</h2>
+        <div class="stats-ribbon" id="stats-ribbon">
+          <div class="stat"><span class="n" data-k="skus_active">…</span><span class="l">indexed SKUs</span></div>
+          <div class="stat"><span class="n" data-k="categories_total">…</span><span class="l">categories</span></div>
+          <div class="stat"><span class="n" data-k="sources_configured">…</span><span class="l">pipelines</span></div>
+          <div class="stat"><span class="n" data-k="sources_healthy">…</span><span class="l">healthy</span></div>
+          <div class="stat"><span class="n" data-k="recalls_total">…</span><span class="l">recalls</span></div>
+          <div class="stat"><span class="n" data-k="regulations_in_force">…</span><span class="l">regulations</span></div>
+          <div class="stat"><span class="n" data-k="discrepancies_open">…</span><span class="l">discrepancies</span></div>
+          <div class="stat"><span class="n" data-k="brands_known">…</span><span class="l">brands</span></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Data sources</h2>
+        <table id="sources-table">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Type</th>
+              <th>Cadence</th>
+              <th>Rows</th>
+              <th>Last run</th>
+            </tr>
+          </thead>
+          <tbody id="sources-tbody"><tr><td colspan="5" style="text-align:center; color: var(--fg-dim);">Loading…</td></tr></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Live endpoints</h2>
+        <table>
+          <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>GET</code></td><td><code>/architecture/stats</code></td><td>Live counts driving this page.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/architecture/sources</code></td><td>All data-source pipelines with current status.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/architecture/sources/:id</code></td><td>One source + last 20 ingestion runs.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/sku/search?q=</code></td><td>FTS5 fuzzy over indexed catalog (p99 &lt; 50ms).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/sku/:id</code></td><td>SKU detail with sources + recalls.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/compare?skus=a,b,c</code></td><td>Side-by-side comparison of 2-6 SKUs + shared-spec matrix.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/audit</code></td><td>Full audit pipeline (extract → search → verify → rank → cross-check).</td></tr>
+            <tr><td><code>POST</code></td><td><code>/audit/stream</code></td><td>Same, SSE per-stage.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/passive-scan</code></td><td>Stage-2 dark-pattern verification with regulation citation.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/chat/clarify</code></td><td>Study-3 ecological-bot preference elicitor.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/chat/followup</code></td><td>Post-audit Q&amp;A.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/packs/stats</code></td><td>Knowledge-pack registry counts.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/packs/:slug</code></td><td>Full pack JSON.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/ticker</code></td><td>Public disagreement ticker (k-anonymity enforced).</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Schema (D1)</h2>
+        <table>
+          <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>sku_catalog</code></td><td>Canonical SKU identity rows. Target: millions.</td></tr>
+            <tr><td><code>sku_source_link</code></td><td>Many-to-one with sku_catalog. One row per (sku, source). The raw attestation layer.</td></tr>
+            <tr><td><code>sku_spec</code></td><td>Normalized spec key/value with per-source confidence.</td></tr>
+            <tr><td><code>triangulated_price</code></td><td>Consensus price (median, p25, p75) across active sources. Recomputed hourly.</td></tr>
+            <tr><td><code>price_history</code></td><td>Time-series prices per (sku, source).</td></tr>
+            <tr><td><code>discrepancy_log</code></td><td>Rows flagged when two sources disagree &gt; 15% on the same field.</td></tr>
+            <tr><td><code>recall</code></td><td>CPSC / NHTSA / FDA recalls, normalized.</td></tr>
+            <tr><td><code>recall_affects_sku</code></td><td>Junction populated by the daily matcher cron.</td></tr>
+            <tr><td><code>firmware_advisory</code></td><td>Vendor + NVD CVE advisories for connected devices.</td></tr>
+            <tr><td><code>regulation_event</code></td><td>Federal Register + FTC + HIBP breach entries.</td></tr>
+            <tr><td><code>brand_index</code></td><td>Brand slugs, canonical names, aliases, authorized-dealer URLs.</td></tr>
+            <tr><td><code>category_taxonomy</code></td><td>UNSPSC + Amazon browse-tree merged category codes.</td></tr>
+            <tr><td><code>data_source</code></td><td>One row per ingester. Status, cadence, last_run_at.</td></tr>
+            <tr><td><code>ingestion_run</code></td><td>One row per run. Rows seen / upserted / skipped, errors, duration.</td></tr>
+            <tr><td><code>sku_fts</code></td><td>FTS5 virtual table. Fuzzy search over name + brand + model + category + summary.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Cron schedule</h2>
+        <table>
+          <thead><tr><th>Pattern</th><th>Workflow</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>*/15 * * * *</code></td><td><code>ingest.dispatch</code></td><td>Every 15 min: rotate through due data sources, run up to 2 in parallel.</td></tr>
+            <tr><td><code>*/15 * * * *</code></td><td><code>email.poll</code></td><td>Gmail receipt inbox polling (F12 OAuth).</td></tr>
+            <tr><td><code>17 */2 * * *</code></td><td><code>price.poll</code></td><td>Every 2h: detect price drops inside retailer price-match windows.</td></tr>
+            <tr><td><code>7 9 * * *</code></td><td><code>recall.watch</code></td><td>Daily 07:09 UTC: cross-match new recalls against user purchases.</td></tr>
+            <tr><td><code>23 10 * * *</code></td><td><code>subs.renewal-watch</code></td><td>Daily: 7-day pre-charge subscription alerts.</td></tr>
+            <tr><td><code>31 7 * * 1</code></td><td><code>firmware.watch</code></td><td>Weekly: CVE + vendor advisory scan against owned devices.</td></tr>
+            <tr><td><code>41 * * * *</code></td><td><code>ticker.aggregate</code></td><td>Hourly: publish k≥5 anonymized disagreement buckets.</td></tr>
+            <tr><td><code>41 * * * *</code></td><td><code>triangulate.price</code></td><td>Hourly: recompute triangulated_price + discrepancy_log.</td></tr>
+            <tr><td><code>13 6 * * 1</code></td><td><code>pack.maintenance</code></td><td>Weekly: knowledge-pack validator + enricher + regulation-watcher.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Further reading</h2>
+        <p>
+          <a href="https://github.com/FelipeMAffonso/lens/blob/main/IMPROVEMENT_PLAN_V2.md">IMPROVEMENT_PLAN_V2.md</a> — the 4-day sprint plan ·
+          <a href="https://github.com/FelipeMAffonso/lens/blob/main/docs/DATA_SOURCES.md">DATA_SOURCES.md</a> — the ingester registry with triangulation contract ·
+          <a href="https://github.com/FelipeMAffonso/lens/blob/main/docs/PERSONAS.md">PERSONAS.md</a> — the four named people Lens is built for ·
+          <a href="https://github.com/FelipeMAffonso/lens/blob/main/VISION_COMPLETE.md">VISION_COMPLETE.md</a> — the canonical product thesis ·
+          <a href="https://github.com/FelipeMAffonso/lens/blob/main/AMBIENT_MODEL.md">AMBIENT_MODEL.md</a> — the three-mode (active / passive / background) design.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      Open source under MIT. Built with Claude Opus 4.7 for the <em>Built with Opus 4.7</em> hackathon.
+      Research anchor: Affonso et al., submitted to Nature (2026), 18 models × 382K trials.
+      &bull; <a href="/">Back to Lens</a>
+    </footer>
+
+    <script>
+      const API = "https://lens-api.webmarinelli.workers.dev";
+      function fmt(n) {
+        if (n == null) return "—";
+        if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
+        if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
+        return n.toLocaleString();
+      }
+      function rel(iso) {
+        if (!iso) return "never";
+        const t = new Date(iso.includes("T") ? iso : iso + "Z").getTime();
+        if (isNaN(t)) return iso;
+        const d = Date.now() - t;
+        if (d < 6e4) return Math.floor(d / 1e3) + "s ago";
+        if (d < 36e5) return Math.floor(d / 6e4) + "m ago";
+        if (d < 864e5) return Math.floor(d / 36e5) + "h ago";
+        return Math.floor(d / 864e5) + "d ago";
+      }
+      function humanCadence(min) {
+        if (min <= 60) return "every " + min + "m";
+        if (min <= 1440) return "every " + Math.round(min / 60) + "h";
+        if (min <= 10080) return "every " + Math.round(min / 1440) + "d";
+        return "every " + Math.round(min / 10080) + "w";
+      }
+      async function load() {
+        try {
+          const [s, so] = await Promise.all([
+            fetch(API + "/architecture/stats").then(r => r.json()),
+            fetch(API + "/architecture/sources").then(r => r.json()),
+          ]);
+          document.querySelectorAll("[data-k]").forEach(el => {
+            el.textContent = fmt(s[el.dataset.k]);
+          });
+          const rows = (so.sources || []).map(r => {
+            const dotCls = r.status === "ok" ? "ok" : r.status === "running" || r.status === "stale" ? "warn" : r.status === "failing" ? "bad" : "gray";
+            return `<tr>
+              <td><span class="dot ${dotCls}"></span><strong>${r.name || r.id}</strong><br><span style="color:var(--fg-dim); font-size:12px;">${r.description || ""}</span></td>
+              <td><span class="chip">${r.type}</span></td>
+              <td>${humanCadence(r.cadence_minutes)}</td>
+              <td style="text-align:right;">${fmt(r.rows_total)}</td>
+              <td>${rel(r.last_success_at || r.last_run_at)}</td>
+            </tr>`;
+          }).join("");
+          document.getElementById("sources-tbody").innerHTML = rows || `<tr><td colspan="5" style="text-align:center; color: var(--fg-dim);">(bootstrapping)</td></tr>`;
+        } catch (err) {
+          console.warn("arch load failed", err);
+        }
+      }
+      load();
+      setInterval(load, 60000);
+    </script>
+  </body>
+</html>
