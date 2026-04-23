@@ -15,6 +15,7 @@ import { bootPriceHistory } from "./content/retail/price-history-badge.js";
 import { bootCheckoutSummary, isCartOrCheckout } from "./content/retail/cart-summary-badge.js";
 import { bootReviewScan } from "./content/retail/review-scan-badge.js";
 import { bootCounterfeit } from "./content/retail/counterfeit-badge.js";
+import "./content/visual-audit.js"; // improve-V-VISUAL — "Lens this page" pill
 
 type HostAI = "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
 

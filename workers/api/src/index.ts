@@ -262,6 +262,15 @@ app.get("/architecture/sources/:id", async (c) => {
   }
 });
 
+// improve-V-VISUAL — /visual-audit — Chrome extension screenshots full page,
+// Opus 4.7 3.75MP vision extracts structured product data, we persist it
+// into sku_catalog + sku_source_link so robots.txt-blocked pages and
+// zero-SKU sites still flow into the triangulated oracle.
+app.post("/visual-audit", async (c) => {
+  const { handleVisualAudit } = await import("./visual/audit.js");
+  return handleVisualAudit(c as never);
+});
+
 // improve-A13 + B1 — /sku/search — FTS5 fuzzy over indexed catalog.
 app.get("/sku/search", async (c) => {
   const { handleSkuSearch } = await import("./sku/search.js");

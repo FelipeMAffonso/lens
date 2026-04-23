@@ -49,6 +49,52 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     sendResponse(tabId ? hitsByTab.get(tabId) ?? [] : []);
     return false;
   }
+  // improve-V-VISUAL — one-click visual audit. Content script captures the
+  // current tab's full-page screenshot (via chrome.tabs.captureVisibleTab +
+  // document.documentElement.scrollHeight stitching) and POSTs to our
+  // /visual-audit endpoint. Opus 4.7 3.75MP vision extracts the product.
+  if (msg?.type === "LENS_VISUAL_AUDIT") {
+    void (async () => {
+      try {
+        const tabId = sender.tab?.id;
+        if (!tabId) throw new Error("no active tab");
+        // Capture the visible viewport. For a full-page stitch, content
+        // script handles scroll+capture loop; here we just send what we got.
+        const screenshotBase64 = msg.screenshotBase64 as string | undefined;
+        if (!screenshotBase64) {
+          // Fall back to a single viewport capture.
+          const dataUrl: string = await new Promise((resolve, reject) => {
+            chrome.tabs.captureVisibleTab(
+              sender.tab?.windowId ?? chrome.windows.WINDOW_ID_CURRENT,
+              { format: "png" },
+              (url) => {
+                if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+                else resolve(url);
+              },
+            );
+          });
+          msg.screenshotBase64 = dataUrl;
+        }
+        const res = await fetch(`${API_URL}/visual-audit`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            url: msg.url ?? sender.tab?.url ?? "",
+            pageTitle: msg.pageTitle ?? sender.tab?.title ?? "",
+            screenshotBase64: msg.screenshotBase64,
+            userQuery: msg.userQuery,
+            viewport: msg.viewport,
+          }),
+        });
+        const data = await res.json();
+        sendResponse({ ok: res.ok, data });
+      } catch (err) {
+        sendResponse({ ok: false, error: (err as Error).message });
+      }
+    })();
+    return true;
+  }
+
   if (msg?.type === "LENS_AUDIT") {
     void (async () => {
       try {
