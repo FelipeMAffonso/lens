@@ -26,11 +26,26 @@ export async function handleResolveUrl(c: Context<{ Bindings: Env }>): Promise<R
   const env = c.env;
   if (!env.LENS_D1) return c.json({ error: "bootstrapping" }, 503);
 
-  let body: { url?: string; fetchPage?: boolean; html?: string };
-  try { body = (await c.req.json()) as { url?: string; fetchPage?: boolean; html?: string }; } catch { return c.json({ error: "invalid_json" }, 400); }
+  let body: { url?: string; fetchPage?: boolean; html?: string; jinaMarkdown?: string };
+  try { body = (await c.req.json()) as { url?: string; fetchPage?: boolean; html?: string; jinaMarkdown?: string }; } catch { return c.json({ error: "invalid_json" }, 400); }
   const raw = (body.url ?? "").trim();
   if (!raw) return c.json({ error: "missing_url" }, 400);
   const wantFetch = body.fetchPage !== false; // default on
+
+  // Prime path — caller supplies Jina-markdown body (from their own
+  // unblocked fetch). We parse + cache it + return it. Lets the judge
+  // demo stay reliable even when Jina rate-limits our CF worker pool.
+  if (body.jinaMarkdown) {
+    const page = parseJinaMarkdown(body.jinaMarkdown);
+    if (env.LENS_KV) {
+      try {
+        const key = `jina:${await sha256(raw)}`;
+        await env.LENS_KV.put(key, JSON.stringify(page), { expirationTtl: 6 * 3600 });
+      } catch { /* best-effort */ }
+    }
+    const parsed = parseRetailerUrl(raw);
+    return c.json({ parsed, candidates: [], matched: false, page, note: "primed-from-md" });
+  }
 
   const parsed = parseRetailerUrl(raw);
   // Unknown-retailer URLs still get the page-fetch pipeline (Jina fallback,
@@ -245,7 +260,13 @@ async function fetchViaJina(url: string): Promise<PageExtract> {
   if (!res.ok) throw new Error(`jina-http-${res.status}`);
   const md = await res.text();
   if (!md) throw new Error("jina-empty");
+  return parseJinaMarkdown(md);
+}
 
+// Exported so /resolve-url can also accept a pre-fetched `jinaMarkdown`
+// body from the caller (primes the KV cache when the worker IP pool
+// is rate-limited by Jina). Parses the envelope + body the same way.
+export function parseJinaMarkdown(md: string): PageExtract {
   // Parse the Jina Reader envelope. First few lines look like:
   //   Title: <full page title>
   //   URL Source: <url>
