@@ -262,6 +262,16 @@ app.get("/architecture/sources/:id", async (c) => {
   }
 });
 
+// VISION #32 / CJ-W52 — Lens Score embed widget for third-party publishers.
+app.get("/embed/lens-score.js", async (c) => {
+  const { handleEmbedJs } = await import("./embed/score.js");
+  return handleEmbedJs(c as never);
+});
+app.get("/embed/score", async (c) => {
+  const { handleEmbedScore } = await import("./embed/score.js");
+  return handleEmbedScore(c as never);
+});
+
 // improve-B-triggers — Lens Triggers, privacy-preserving passive monitoring.
 // docs/TRIGGERS.md for the full threat model + privacy contract. Server
 // stores only hashes. Zero content ever touches the wire.

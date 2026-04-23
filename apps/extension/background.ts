@@ -120,6 +120,58 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   inflightByTab.delete(tabId);
 });
 
+// VISION #13 — right-click "Audit with Lens" context menu. Fires on any page
+// where the user has selected text OR on any link. Sends the selection (or
+// link URL) to the web dashboard as a new audit. Works everywhere the
+// extension has activeTab — zero per-host permission cost.
+chrome.runtime.onInstalled.addListener(() => {
+  try {
+    chrome.contextMenus.create({
+      id: "lens-audit-selection",
+      title: "Audit with Lens",
+      contexts: ["selection"],
+    });
+    chrome.contextMenus.create({
+      id: "lens-audit-link",
+      title: "Audit this product with Lens",
+      contexts: ["link"],
+    });
+    chrome.contextMenus.create({
+      id: "lens-audit-page",
+      title: "Audit this page with Lens (visual)",
+      contexts: ["page"],
+      documentUrlPatterns: ["http://*/*", "https://*/*"],
+    });
+  } catch (e) {
+    console.warn("[lens] contextMenus unavailable:", (e as Error).message);
+  }
+});
+
+chrome.contextMenus?.onClicked.addListener(async (info, tab) => {
+  const dashboard = "https://lens-b1h.pages.dev/";
+  try {
+    if (info.menuItemId === "lens-audit-selection" && info.selectionText) {
+      // Ship the selection as a text-kind audit via URL params so the
+      // paste-box lights up with it already filled in.
+      const params = new URLSearchParams({
+        mode: "text",
+        source: "chatgpt", // guess — user can flip in the UI
+        raw: info.selectionText.slice(0, 8000),
+      });
+      await chrome.tabs.create({ url: `${dashboard}?${params.toString()}` });
+    } else if (info.menuItemId === "lens-audit-link" && info.linkUrl) {
+      const params = new URLSearchParams({ mode: "url", url: info.linkUrl });
+      await chrome.tabs.create({ url: `${dashboard}?${params.toString()}` });
+    } else if (info.menuItemId === "lens-audit-page" && tab?.id) {
+      // Reuse the visual-audit path — content script pill is faster, this
+      // is the shortcut for users who prefer the context menu.
+      chrome.tabs.sendMessage(tab.id, { type: "LENS_VISUAL_AUDIT_TRIGGER" });
+    }
+  } catch (err) {
+    console.warn("[lens:contextMenus] handler failed:", (err as Error).message);
+  }
+});
+
 /**
  * S4-W22 — send Stage-1 hits to /passive-scan and broadcast confirmations
  * back into the tab. Per-host consent is checked in the content script
