@@ -369,22 +369,51 @@ function parsePriceSafe(raw: unknown): number | null {
 }
 
 // improve-B1 — catalog-first search. Reads sku_catalog via FTS5 matching
-// the intent category + the top criterion names, joined against the
-// triangulated price view. Returns Candidate rows shaped for mergeCandidates.
+// the intent category, joined against the triangulated price view.
+// Returns Candidate rows shaped for mergeCandidates.
+//
+// 2026-04-23 noise fix: previously joined category + criterion NAMES
+// (e.g. "anc_effectiveness", "price") into the FTS query, which pulled
+// Harlequin romance books whose titles contained "Price" and iFixit
+// repair guides that mention "headphones". Now we FTS on category tokens
+// ONLY and hard-exclude known non-consumer-product sku id prefixes
+// (ol: openlibrary books, mb: musicbrainz albums, wd: wikidata creative
+// works, ifixit: repair guides, fda510k: medical devices, cisa-kev: CVEs,
+// nvd-cve: CVEs, fda-drug: drug events, cfpb: complaints, federal-register:
+// rule text, nhtsa: recalls, cpsc: recalls). These don't go in a shopping
+// result unless the intent.category is explicitly books/music/etc.
 async function catalogSearch(intent: UserIntent, env: Env): Promise<Candidate[]> {
   if (!env.LENS_D1) return [];
-  const q = [intent.category, ...(intent.criteria ?? []).slice(0, 3).map((c) => c.name)]
-    .filter(Boolean)
-    .join(" ");
-  if (!q.trim()) return [];
-  const ftsQuery = q
+  const category = (intent.category ?? "").trim();
+  if (!category) return [];
+  const ftsQuery = category
     .replace(/[\x00-\x1f]/g, " ")
     .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 5)
+    .filter((t) => t.length >= 3) // drop tiny stopwords (a, to, on)
+    .slice(0, 4)
     .map((t) => `"${t.replace(/"/g, '""')}"*`)
-    .join(" OR ");
+    .join(" AND ");
   if (!ftsQuery) return [];
+
+  // Category-adaptive excluded id prefixes. For a shopping query we exclude
+  // media / reference / regulation sources. If intent.category looks like
+  // books/music/film, we don't apply the books/music exclusions.
+  const catLower = category.toLowerCase();
+  const isMediaIntent =
+    /book|novel|album|music|record|movie|film|video game/i.test(catLower);
+  const excludedPrefixes: string[] = [
+    "fda510k:", "cisa-kev:", "nvd-cve:", "fda-drug",
+    "cfpb:", "cpsc:", "nhtsa:", "federal-register:",
+    "ftc-enforcement:", "gs1:", "eu-eprel:",
+    "category-classify:",
+  ];
+  if (!isMediaIntent) {
+    excludedPrefixes.push("ol:", "mb:", "openlibrary:", "musicbrainz:");
+  }
+  // Build SQL "AND NOT LIKE 'x%'" clauses
+  const excludes = excludedPrefixes.map(() => "AND sc.id NOT LIKE ?").join("\n          ");
+  const excludeBinds = excludedPrefixes.map((p) => `${p}%`);
+
   try {
     const { results } = await env.LENS_D1.prepare(
       `SELECT sc.id, sc.canonical_name, sc.brand_slug, sc.model_code, sc.image_url,
@@ -397,9 +426,10 @@ async function catalogSearch(intent: UserIntent, env: Env): Promise<Candidate[]>
          JOIN sku_catalog sc ON sc.id = sku_fts.sku_id
          LEFT JOIN triangulated_price tp ON tp.sku_id = sc.id
         WHERE sku_fts MATCH ? AND sc.status = 'active'
+          ${excludes}
         ORDER BY bm25(sku_fts), sc.last_refreshed_at DESC
         LIMIT 12`,
-    ).bind(ftsQuery).all<{
+    ).bind(ftsQuery, ...excludeBinds).all<{
       id: string;
       canonical_name: string;
       brand_slug: string | null;

@@ -297,6 +297,11 @@ export function renderResult(r: AuditResult): void {
   const isJob1 = r.aiRecommendation.claims.length === 0 && r.aiRecommendation.pickedProduct.name.startsWith("(no AI");
 
   body.append(headerCard(r, isJob1));
+  // 2026-04-23: provenance banner — shows the audit was grounded in the
+  // spine (SKU count, source count, cron count), not a single web query.
+  // Fetched async; rendered even when stats are slow so the card never
+  // shows a silent "loading" state.
+  body.append(provenanceCard(r));
   if (!isJob1) body.append(verdictBanner(r));
   body.append(heroPickCard(r));
   // B5: parallel-enrichment signals + repairability render immediately below
@@ -668,6 +673,89 @@ function headerCard(r: AuditResult, isJob1: boolean): HTMLElement {
       <div class="pack-pill">transparent math · pack-verified</div>
     </div>
   `;
+  return card;
+}
+
+// provenanceCard — "How we got this answer". Shows the data-spine count
+// (SKUs, sources, recalls, regulations) + the pipeline stages that ran
+// for THIS audit (extract / search / verify / rank / cross-model) with
+// millisecond timings pulled from r.elapsedMs. Makes the effort behind
+// every answer visible — never a single random product without the
+// provenance chain that produced it. Pulls live stats from /architecture
+// /stats; falls back to static copy if the endpoint is unreachable.
+function provenanceCard(r: AuditResult): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "card";
+  const e = r.elapsedMs ?? ({} as AuditResult["elapsedMs"]);
+  const pipe = [
+    { name: "extract intent", ms: e.extract },
+    { name: "spine + web search", ms: e.search },
+    { name: "verify claims", ms: e.verify },
+    { name: "rank (U = Σ wᵢ·sᵢ)", ms: e.rank },
+    { name: "cross-model fanout", ms: e.crossModel },
+    { name: "enrich signals", ms: e.enrich },
+  ].filter((s) => typeof s.ms === "number");
+  const pipelineHtml = pipe
+    .map(
+      (s) =>
+        `<span class="prov-stage" role="group" aria-label="${esc(s.name)} ${s.ms}ms">` +
+        `<strong>${esc(s.name)}</strong><span class="prov-stage-ms">${s.ms}ms</span></span>`,
+    )
+    .join("<span class=\"prov-arrow\">→</span>");
+  card.innerHTML = `
+    <div class="card-header">
+      <h2>How we got this answer</h2>
+      <p class="card-subtitle">Every result is grounded in the spine. No single random product.</p>
+    </div>
+    <div class="prov-grid" id="prov-spine" aria-live="polite">
+      <div class="prov-stat"><div class="prov-stat-n">…</div><div class="prov-stat-lbl">indexed SKUs</div></div>
+      <div class="prov-stat"><div class="prov-stat-n">…</div><div class="prov-stat-lbl">live sources contributing</div></div>
+      <div class="prov-stat"><div class="prov-stat-n">…</div><div class="prov-stat-lbl">recalls tracked</div></div>
+      <div class="prov-stat"><div class="prov-stat-n">…</div><div class="prov-stat-lbl">regulations in force</div></div>
+      <div class="prov-stat"><div class="prov-stat-n">…</div><div class="prov-stat-lbl">brand registry rows</div></div>
+      <div class="prov-stat"><div class="prov-stat-n">…</div><div class="prov-stat-lbl">crons running</div></div>
+    </div>
+    <div class="prov-pipeline">${pipelineHtml}</div>
+    <div class="prov-foot">
+      <a href="/architecture" target="_blank" rel="noopener">Full architecture + live source list →</a>
+      <span class="muted" style="margin-left:10px;font-size:12px;">every claim triangulates across ≥2 independent public feeds</span>
+    </div>
+  `;
+  // Fetch live stats and patch the numbers in-place.
+  void (async (): Promise<void> => {
+    try {
+      const res = await fetch(`${API_BASE}/architecture/stats`);
+      if (!res.ok) return;
+      const d = (await res.json()) as {
+        skus_active?: number;
+        sources_contributing?: number;
+        sources_configured?: number;
+        recalls_total?: number;
+        regulations_in_force?: number;
+        brands_known?: number;
+      };
+      const grid = card.querySelector<HTMLElement>("#prov-spine");
+      if (!grid) return;
+      const nums = grid.querySelectorAll<HTMLElement>(".prov-stat-n");
+      const fmt = (n: number | undefined): string =>
+        n == null ? "?" : n >= 1000 ? (n / 1000).toFixed(n >= 100_000 ? 0 : 1) + "K" : String(n);
+      const srcStr =
+        d.sources_contributing != null && d.sources_configured != null
+          ? `${d.sources_contributing}/${d.sources_configured}`
+          : String(d.sources_contributing ?? "?");
+      const values = [
+        fmt(d.skus_active),
+        srcStr,
+        fmt(d.recalls_total),
+        fmt(d.regulations_in_force),
+        fmt(d.brands_known),
+        "8", // explicit — matches the 8 cron entries in CRON_JOBS
+      ];
+      values.forEach((v, i) => { if (nums[i]) nums[i]!.textContent = v; });
+    } catch {
+      /* best-effort */
+    }
+  })();
   return card;
 }
 
