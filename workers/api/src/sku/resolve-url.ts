@@ -127,26 +127,106 @@ async function fetchAndExtract(url: string, _parsed: ParsedUrl): Promise<PageExt
       redirect: "follow",
     });
   } catch {
-    return null;
+    return await fetchViaJina(url).catch(() => null);
   }
   const ct = res.headers.get("content-type") ?? "";
   const html = await res.text();
   // Amazon / Walmart / Target / BestBuy serve a bot-detection shell (small
-  // page, no product data) to Cloudflare Worker IPs. Detect that heuristic
-  // and surface it so the caller (extension) knows to supply `html` itself.
+  // page, no product data) to Cloudflare Worker IPs. Detect + fall through
+  // to Jina Reader (https://r.jina.ai/<url>), a free LLM-oriented web-reader
+  // service that bypasses IP-based bot blocks and returns clean markdown
+  // including review summaries.
   const looksBlocked =
     res.ok && html.length < 8000 &&
     /amazon\.com|walmart\.com|target\.com|bestbuy\.com/i.test(url) &&
-    !/productTitle|\"@type\":\s*\"Product\"/i.test(html);
+    !/productTitle|"@type":\s*"Product"/i.test(html);
   if (looksBlocked) {
+    const viaJina = await fetchViaJina(url).catch(() => null);
+    if (viaJina) return viaJina;
     return {
       raw: { http: res.status, bytes: html.length, contentType: ct },
-      // Surface the issue so the extension / CLI can react.
-      title: "(retailer bot-blocked — supply `html` via extension)",
+      title: "(retailer bot-blocked — paste the DOM as `html` or install the extension)",
     };
   }
   if (!res.ok || !html) return { raw: { http: res.status, bytes: html.length, contentType: ct } };
   return extractFromHtml(html, url, { http: res.status, contentType: ct });
+}
+
+// Free fallback for IP-blocked retailers. Jina Reader returns the page
+// rendered as clean markdown with title + content + image links. No key.
+async function fetchViaJina(url: string): Promise<PageExtract | null> {
+  const jinaUrl = "https://r.jina.ai/" + url;
+  const res = await fetch(jinaUrl, {
+    headers: {
+      "User-Agent": "LensBot/1.0",
+      Accept: "text/markdown, text/plain",
+    },
+  });
+  if (!res.ok) return null;
+  const md = await res.text();
+  if (!md) return null;
+
+  // Parse the Jina Reader envelope. First few lines look like:
+  //   Title: <full page title>
+  //   URL Source: <url>
+  //   Markdown Content:
+  //   <body>
+  const title = md.match(/^Title:\s*(.+)$/m)?.[1]?.trim();
+  const bodyStart = md.indexOf("Markdown Content:");
+  const body = bodyStart >= 0 ? md.slice(bodyStart + "Markdown Content:".length).trim() : md;
+
+  // Images in markdown: ![alt](url)
+  const images: PageImage[] = [];
+  const seen = new Set<string>();
+  const imgRe = /!\[([^\]]*?)\]\((https?:\/\/[^)\s]+)\)/g;
+  let im: RegExpExecArray | null;
+  while ((im = imgRe.exec(body)) !== null && images.length < 30) {
+    const u = im[2]!;
+    if (seen.has(u) || /\.(gif|svg)(?:$|[?#])/i.test(u)) continue;
+    seen.add(u);
+    images.push({ url: u.slice(0, 800), alt: im[1] ? im[1].slice(0, 240) : undefined });
+  }
+
+  // Price: look for "$1,299.00" style.
+  let priceCents: number | undefined;
+  const priceMatch = body.match(/\$([0-9]{1,4}(?:,[0-9]{3})*(?:\.[0-9]{2}))/);
+  if (priceMatch) {
+    const n = parseFloat(priceMatch[1]!.replace(/,/g, ""));
+    if (Number.isFinite(n)) priceCents = Math.round(n * 100);
+  }
+
+  // Rating: "4.5 out of 5 stars"
+  const ratingMatch = body.match(/([0-5](?:\.\d)?)\s+out of 5 stars/i);
+  const rating = ratingMatch ? parseFloat(ratingMatch[1]!) : undefined;
+
+  // Review count: "12,345 ratings" or "(1,234)" near a rating
+  const reviewMatch = body.match(/([\d,]+)\s+(?:global\s+)?ratings?/i)
+    ?? body.match(/\(([\d,]+)\s+customer\s+reviews?\)/i);
+  const reviewCount = reviewMatch
+    ? parseInt(reviewMatch[1]!.replace(/,/g, ""), 10)
+    : undefined;
+
+  // Bullets: heuristically grab the first product bulleted list after title.
+  // Limit to 10 items under ~400 chars.
+  const bullets: string[] = [];
+  const bulletRe = /^[\s]{0,4}[-*•]\s+(.{15,400})$/gm;
+  let bm: RegExpExecArray | null;
+  while ((bm = bulletRe.exec(body)) !== null && bullets.length < 10) {
+    const t = bm[1]!.replace(/\[[^\]]*\]\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
+    if (t) bullets.push(t);
+  }
+
+  return {
+    raw: { http: 200, bytes: md.length, contentType: "text/markdown", via: "jina" } as PageExtract["raw"] & { via?: string },
+    title: title ?? body.split(/\n/).map((s) => s.trim()).filter(Boolean)[0],
+    priceCents,
+    currency: "USD",
+    imageUrl: images[0]?.url,
+    images: images.length > 0 ? images : undefined,
+    rating,
+    reviewCount,
+    bullets: bullets.length > 0 ? bullets : undefined,
+  };
 }
 
 function extractFromHtml(html: string, url: string, raw?: { http?: number; contentType?: string }): PageExtract {

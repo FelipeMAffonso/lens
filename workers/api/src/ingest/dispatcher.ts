@@ -49,6 +49,7 @@ import { retailerSitemapsIngester } from "./sources/retailer-sitemaps.js";
 import { unspscSeedIngester } from "./sources/unspsc-seed.js";
 import { usdaFoodsIngester } from "./sources/usda-foods.js";
 import { wikidataIngester } from "./sources/wikidata.js";
+import { wikidataEnrichIngester } from "./sources/wikidata-enrich.js";
 
 // Registry: ingesters by data_source.id. Adding one here wires it to the cron.
 export const REGISTERED: Record<string, DatasetIngester> = {
@@ -63,6 +64,7 @@ export const REGISTERED: Record<string, DatasetIngester> = {
   "openbeautyfacts": openBeautyFactsIngester,
   "usda-foods": usdaFoodsIngester,
   "wikidata": wikidataIngester,
+  "wikidata-enrich": wikidataEnrichIngester,
   "federal-register": federalRegisterIngester,
   "retailer-sitemaps": retailerSitemapsIngester,
   "manufacturer-sitemaps": manufacturerSitemapsIngester,
