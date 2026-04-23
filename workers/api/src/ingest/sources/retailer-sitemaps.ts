@@ -33,7 +33,9 @@ const RETAILERS: Retailer[] = [
     slug: "bestbuy",
     name: "Best Buy",
     sitemapIndexUrl: "https://www.bestbuy.com/sitemap.xml",
-    productUrlPattern: /\/site\/.+\.p\?skuId=(\d+)/,
+    // Best Buy sitemaps drop the ?skuId= query string — the canonical in
+    // the sitemap is "/site/.../NNNNNN.p". The regex tolerates both.
+    productUrlPattern: /\/site\/.+\/(\d{7,9})\.p(?:\?|$)/,
   },
   {
     slug: "walmart",
@@ -85,6 +87,11 @@ export const retailerSitemapsIngester: DatasetIngester = {
     } catch (err) {
       counters.errors.push(`index fetch: ${(err as Error).message}`);
       counters.log = logLines.join("\n");
+      // Advance to the next retailer so we don't retry the bot-blocking
+      // one (e.g. Amazon 500) forever. Without this, a single 500-prone
+      // retailer at the top of the list pins the cursor and every other
+      // retailer's sitemap stays unreached.
+      await writeState(ctx, { retailerIndex: state.retailerIndex + 1, childIndex: 0 });
       return counters;
     }
 
@@ -103,7 +110,19 @@ export const retailerSitemapsIngester: DatasetIngester = {
           signal: ctx.signal,
         });
         if (!res.ok) throw new Error(`child http ${res.status}`);
-        const childXml = await res.text();
+        // Best Buy / Walmart / Home Depot often publish *.xml.gz — application-
+        // level gzip, not transport-level. The CF Worker fetch() only auto-
+        // decompresses Content-Encoding. For .gz files we have to inflate the
+        // body manually with DecompressionStream.
+        const isGz = /\.gz(?:$|[?#])/i.test(child)
+          || (res.headers.get("content-type") ?? "").toLowerCase().includes("gzip");
+        let childXml: string;
+        if (isGz && typeof DecompressionStream !== "undefined" && res.body) {
+          const decompressed = res.body.pipeThrough(new DecompressionStream("gzip"));
+          childXml = await new Response(decompressed).text();
+        } else {
+          childXml = await res.text();
+        }
         urls = extractLocs(childXml).filter((u) => retailer.productUrlPattern.test(u));
       } catch (err) {
         counters.errors.push(`child fetch: ${(err as Error).message}`);
