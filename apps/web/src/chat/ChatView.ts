@@ -285,7 +285,7 @@ export function mountChatView(opts: ChatViewOptions): void {
     if (!lastAudit) {
       const t = store.append(
         "assistant",
-        "Start a new shopping question first — I don't have an audit to talk about yet.",
+        "Start a new shopping question first. I don't have an audit to talk about yet.",
       );
       transcript.append(botBubble(t.text));
       return;
@@ -317,7 +317,7 @@ export function mountChatView(opts: ChatViewOptions): void {
       typing.remove();
       const t = store.append(
         "assistant",
-        "I couldn't run that follow-up right now. The full ranking is still below — drag the sliders to re-weight if your priorities shifted.",
+        "I couldn't run that follow-up right now. The full ranking is still below. Drag the sliders to re-weight if your priorities shifted.",
       );
       transcript.append(botBubble(t.text));
       console.warn("[chat] followup failed:", (err as Error).message);
@@ -331,7 +331,7 @@ export function mountChatView(opts: ChatViewOptions): void {
   function renderSeedChips(): void {
     const seeds = opts.initialSeedChips ?? [
       { label: "☕ Espresso machine under $400", value: "I'm looking for an espresso machine under $400, and build quality + pressure matter most" },
-      { label: "💻 Laptop for coding under $1000", value: "I need a laptop under $1000 for coding — battery life, keyboard, and reliability matter most" },
+      { label: "💻 Laptop for coding under $1000", value: "I need a laptop under $1000 for coding, and battery life, keyboard, and reliability matter most" },
       { label: "🎧 ANC headphones under $300", value: "Over-ear ANC headphones under $300, comfort + battery + mic quality matter most" },
       { label: "🪑 Office chair under $500", value: "An office chair under $500 with lumbar support, 3D armrests, and a 10-year warranty" },
     ];

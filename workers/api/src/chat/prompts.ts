@@ -123,7 +123,7 @@ export const FALLBACK_CLARIFIERS: Record<
   },
   laptop: {
     question:
-      "What's your budget? And what matters most — **battery life**, **performance**, or **portability**?",
+      "What's your budget? And what matters most, **battery life**, **performance**, or **portability**?",
     expectsOneOf: ["battery life", "performance", "portability"],
   },
   headphones: {
