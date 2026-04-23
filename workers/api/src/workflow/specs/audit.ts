@@ -138,9 +138,9 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
     },
     {
       id: "verify",
-      label: "Verify AI claims against candidates",
+      label: "Verify AI claims against candidates + self-verify",
       inputsFrom: ["extract", "search"],
-      timeoutMs: 90_000,
+      timeoutMs: 120_000,
       handler: async (input, ctx) => {
         const env = ctx.env as unknown as Env;
         const { extract, search } = input as { extract: ExtractOut; search: SearchOut };
@@ -150,6 +150,28 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
           extract.intent,
           env,
         );
+
+        // improve-D-opus47 — self-verification pass. Opus 4.7 re-reads its
+        // own verdicts + the evidence + user criteria, flags mistakes, we
+        // apply the revisions in-place. Skipped when there are 0 claims.
+        try {
+          if (out.length > 0) {
+            const { runSelfVerification, applyCritiques } = await import("../../verify/self-verify.js");
+            const userCriteria = (extract.intent?.criteria ?? [])
+              .map((c: { name?: string }) => c.name ?? "")
+              .filter(Boolean)
+              .join(", ");
+            const critiques = await runSelfVerification(env, out, search, userCriteria);
+            const applied = applyCritiques(out, critiques);
+            if (applied > 0) {
+              ctx.log("info", "verify:self-critiqued", { applied, total: critiques.length });
+            }
+          }
+        } catch (err) {
+          // Self-verify is advisory; never block the original verify output.
+          ctx.log("warn", "verify:self-verify-error", { message: (err as Error).message });
+        }
+
         await ctx.writeState(tsKey("verify"), Date.now());
         ctx.log("info", "verify:done", { claims: out.length });
         return out;
