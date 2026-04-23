@@ -63,28 +63,38 @@ export function isReadyToGenerate(turns: ChatTurn[]): boolean {
 // one trade-off keyword from a small vocabulary. Paired with the hard
 // user-turns ceiling it gives Opus a fast-path exit.
 const BUDGET_PATTERN = /\$\s?\d+(?:[,\d]*)|\bunder\s+\d+|below\s+\d+|max(?:imum)?\s+\$?\d+|budget.*\$?\d+/i;
+// D15 — expanded from 21 → 60+ tradeoff keywords. Each is a
+// category-diagnostic decision word. Covers espresso, laptops, headphones,
+// TVs, coffee, vacuums, chairs, beds, bikes, audio, cameras, phones, watches.
 const TRADEOFF_KEYWORDS = [
-  "fully automatic",
-  "semi-automatic",
-  "true wireless",
-  "neckband",
-  "over-ear",
-  "in-ear",
-  "oled",
-  "lcd",
-  "qled",
-  "drip",
-  "pod",
-  "single-cup",
-  "mop",
-  "lumbar",
-  "mesh",
-  "leather",
-  "cordless",
-  "corded",
-  "ssd",
-  "hdd",
-  "hybrid",
+  // Espresso + coffee
+  "fully automatic", "semi-automatic", "super-automatic", "manual lever",
+  "drip", "pod", "capsule", "single-cup", "french press", "cold brew",
+  // Audio
+  "true wireless", "neckband", "over-ear", "on-ear", "in-ear",
+  "open-back", "closed-back", "anc", "noise cancelling", "transparency",
+  "soundbar", "bookshelf", "studio monitor",
+  // Displays / TVs
+  "oled", "lcd", "qled", "mini-led", "4k", "8k", "120hz", "240hz",
+  "ips", "va", "tn", "hdr",
+  // Vacuums
+  "cordless", "corded", "robot", "upright", "stick", "handheld", "mop",
+  // Chairs + furniture
+  "lumbar", "mesh", "leather", "standing", "sit-stand", "reclining",
+  "memory foam", "hybrid", "innerspring", "latex",
+  // Laptops
+  "ssd", "hdd", "nvme", "touchscreen", "2-in-1", "thin and light",
+  "gaming", "workstation", "chromebook",
+  // Phones / watches
+  "magsafe", "qi", "usb-c", "lightning", "cellular", "gps-only",
+  // Bikes + outdoor
+  "e-bike", "pedal-assist", "suspension", "hardtail", "full-sus",
+  "road", "gravel", "commuter",
+  // Cameras
+  "mirrorless", "dslr", "full-frame", "aps-c", "micro-four-thirds",
+  // Generic
+  "portable", "stationary", "smart", "dumb", "wired", "wireless",
+  "basic", "premium", "entry-level", "enthusiast", "pro",
 ];
 
 export function userGaveEverything(turns: ChatTurn[]): boolean {
@@ -93,6 +103,22 @@ export function userGaveEverything(turns: ChatTurn[]): boolean {
   const joined = userTexts.join(" \n ");
   const hasBudget = BUDGET_PATTERN.test(joined);
   const hasTradeoff = TRADEOFF_KEYWORDS.some((k) => joined.includes(k));
+  // D15 — count distinct constraints. If the user volunteered 3+ (budget +
+  // tradeoff + another factor like a specific feature or brand preference),
+  // skip the clarifier — they've done the work. Threshold calibrated against
+  // the Study-3 fast-path gate but more liberal (user is more impatient
+  // than study participants).
+  const FEATURE_PATTERNS = [
+    /\bmatter(?:s)?\s+most\b/i,
+    /\bprefer(?:s|red|ence)?\b/i,
+    /\bmust\s+have\b/i,
+    /\bbrand\s+like\b/i,
+    /\bnot\s+[a-z]+\b/i,  // "not plastic", "not Chinese", ...
+    /\b\d+\s*(?:hour|hr|minutes|minute|min|lbs|pounds|kg|inches|in|feet|ft|watts|w|amps|a)\b/i,
+  ];
+  const featureHits = FEATURE_PATTERNS.reduce((n, re) => (re.test(joined) ? n + 1 : n), 0);
+  const distinctConstraints = (hasBudget ? 1 : 0) + (hasTradeoff ? 1 : 0) + featureHits;
+  if (distinctConstraints >= 3) return true;
   return hasBudget && hasTradeoff;
 }
 
