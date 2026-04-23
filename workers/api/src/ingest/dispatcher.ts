@@ -31,6 +31,7 @@ import { keepaIngester } from "./sources/keepa.js";
 import { manufacturerSitemapsIngester } from "./sources/manufacturer-sitemaps.js";
 import { musicBrainzIngester } from "./sources/musicbrainz.js";
 import { nvdCveIngester } from "./sources/nvd-cve.js";
+import { cisaKevIngester } from "./sources/cisa-kev.js";
 import { openLibraryIngester } from "./sources/openlibrary.js";
 import { openBeautyFactsIngester } from "./sources/openbeautyfacts.js";
 import { openFoodFactsIngester } from "./sources/openfoodfacts.js";
@@ -61,6 +62,7 @@ export const REGISTERED: Record<string, DatasetIngester> = {
   "ftc-enforcement": ftcEnforcementIngester,
   "reddit": redditBiflIngester,
   "nvd-cve": nvdCveIngester,
+  "cisa-kev": cisaKevIngester,
   "openlibrary": openLibraryIngester,
   "musicbrainz": musicBrainzIngester,
   "gs1-origin": gs1OriginIngester,
