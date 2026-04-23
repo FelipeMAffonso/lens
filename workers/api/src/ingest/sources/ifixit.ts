@@ -9,7 +9,7 @@ const SOURCE_ID = "ifixit";
 const PAGE_LIMIT = 100;
 
 interface IFixitWiki {
-  wikiid: string;
+  wikiid: string | number;
   title: string;
   url: string;
   summary: string;
@@ -48,17 +48,14 @@ export const ifixitIngester: DatasetIngester = {
       if (ctx.signal.aborted) break;
       const stmts: unknown[] = [];
       for (const w of wikis.slice(i, i + BATCH)) {
-        if (!w.wikiid || !w.title) {
+        const wid = w.wikiid == null ? "" : String(w.wikiid);
+        if (!wid || !w.title) {
           counters.rowsSkipped++;
           continue;
         }
-        // iFixit wikis represent device categories or product families. Store
-        // as sku_catalog rows with brand = "ifixit-category" and the wiki id
-        // as model_code. Matching to actual product SKUs happens downstream
-        // via brand+model token search.
-        const skuId = `ifixit:${w.wikiid}`;
+        const skuId = `ifixit:${wid}`;
         const specsJson = JSON.stringify({
-          ifixit_wiki_id: w.wikiid,
+          ifixit_wiki_id: wid,
           type: w.type ?? null,
           difficulty: w.difficulty ?? null,
           repairability: w.repairability ?? null,
@@ -75,7 +72,7 @@ export const ifixitIngester: DatasetIngester = {
           ).bind(
             skuId,
             w.title.slice(0, 200),
-            w.wikiid.slice(0, 120),
+            wid.slice(0, 120),
             w.image?.medium ?? null,
             (w.summary ?? "").slice(0, 1000),
             specsJson,
@@ -90,7 +87,7 @@ export const ifixitIngester: DatasetIngester = {
                specs_json = excluded.specs_json,
                observed_at = datetime('now'),
                active = 1`,
-          ).bind(skuId, SOURCE_ID, w.wikiid, w.url ?? `https://www.ifixit.com/Device/${w.wikiid}`, specsJson),
+          ).bind(skuId, SOURCE_ID, wid, w.url ?? `https://www.ifixit.com/Device/${wid}`, specsJson),
         );
       }
       if (stmts.length === 0) continue;
