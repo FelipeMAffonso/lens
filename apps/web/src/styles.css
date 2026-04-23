@@ -641,6 +641,32 @@ details[open] summary { color: var(--fg-dim); }
   border-top: 1px dashed #eee;
 }
 .source-tile footer a { color: #cc785c; text-decoration: none; }
+.source-tile .source-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto;
+}
+.source-tile button.trigger-btn {
+  font-family: inherit;
+  font-size: 11px;
+  color: #6e6c66;
+  background: #f4f2ec;
+  border: 1px solid #e3dfd4;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.source-tile button.trigger-btn:hover:not(:disabled) {
+  background: #CC785C;
+  color: #fff;
+  border-color: #CC785C;
+}
+.source-tile button.trigger-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
 .triangulation-example {
   background: #fff;
   border: 1px solid #e8e4dd;

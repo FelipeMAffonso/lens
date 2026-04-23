@@ -109,11 +109,54 @@ function paintSources(sources: SourceRow[]): void {
       <p>${escapeHtml(s.description ?? "")}</p>
       <footer>
         <span class="last-run">${lastRun}${rowsLabel}</span>
-        ${s.docs_url ? `<a href="${escapeHtml(s.docs_url)}" target="_blank">docs ↗</a>` : ""}
+        <span class="source-actions">
+          <button class="trigger-btn" data-source-id="${escapeHtml(s.id)}" title="Run this ingester now">trigger ▸</button>
+          ${s.docs_url ? `<a href="${escapeHtml(s.docs_url)}" target="_blank">docs ↗</a>` : ""}
+        </span>
       </footer>
     `;
     host.append(tile);
   }
+  wireTriggerButtons();
+}
+
+function wireTriggerButtons(): void {
+  const host = document.getElementById("sources-grid");
+  if (!host) return;
+  host.querySelectorAll<HTMLButtonElement>("button.trigger-btn").forEach((btn) => {
+    if (btn.dataset["wired"] === "1") return;
+    btn.dataset["wired"] = "1";
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset["sourceId"];
+      if (!id) return;
+      const original = btn.textContent ?? "";
+      btn.disabled = true;
+      btn.textContent = "running…";
+      try {
+        const res = await fetch(`${API_BASE}/architecture/trigger/${encodeURIComponent(id)}`, {
+          method: "POST",
+          credentials: "omit",
+        });
+        const body = (await res.json()) as {
+          status?: string;
+          report?: { rowsUpserted?: number; errors?: string[] };
+          durationMs?: number;
+        };
+        const rows = body.report?.rowsUpserted ?? 0;
+        const errs = body.report?.errors?.length ?? 0;
+        btn.textContent = `${body.status ?? "done"} · ${rows} rows${errs ? ` · ${errs} errs` : ""}`;
+        // Refresh source grid after a short delay so new state reflects.
+        setTimeout(() => refresh(), 1500);
+      } catch (err) {
+        btn.textContent = `error: ${(err as Error).message.slice(0, 40)}`;
+      } finally {
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.textContent = original;
+        }, 5000);
+      }
+    });
+  });
 }
 
 function statusDot(s: SourceRow): { cls: string; title: string } {
