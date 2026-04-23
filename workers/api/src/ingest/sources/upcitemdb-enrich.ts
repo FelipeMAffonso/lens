@@ -61,6 +61,11 @@ export const upcitemdbEnrichIngester: DatasetIngester = {
 
     const brandMap = new Map<string, string>();
     const stmts: unknown[] = [];
+    // Track merchants seen in THIS run so we insert their synthetic
+    // data_source rows BEFORE the main batch. D1 batch() runs all
+    // statements in a single transaction but FK checks fire per-row
+    // at insert time, so the parent row has to exist already.
+    const merchantSeen = new Map<string, { label: string; link?: string; domain?: string }>();
 
     for (const r of rows) {
       if (ctx.signal.aborted) break;
@@ -120,12 +125,25 @@ export const upcitemdbEnrichIngester: DatasetIngester = {
       );
 
       // Record a per-merchant price observation for every listed offer.
+      // Each `upcitemdb:<merchant>` pseudo-source needs a data_source row
+      // to satisfy sku_source_link.source_id FK. We insert-or-ignore the
+      // row synthetically the first time we see each merchant — this is
+      // what lets triangulation see 2-5 retailer prices per UPC'd SKU.
       const offers = item.offers ?? [];
       const observed = new Date().toISOString().slice(0, 19);
       for (const off of offers.slice(0, 6)) {
         if (off.price == null) continue;
         const priceCents = Math.round(off.price * 100);
         const merchantSlug = (off.domain ?? off.merchant ?? "unknown").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+        const merchantSourceId = `upcitemdb:${merchantSlug}`;
+        // Remember this merchant for the pre-batch data_source upsert.
+        if (!merchantSeen.has(merchantSourceId)) {
+          merchantSeen.set(merchantSourceId, {
+            label: off.merchant ?? off.domain ?? merchantSlug,
+            link: off.link,
+            domain: off.domain,
+          });
+        }
         stmts.push(
           ctx.env.LENS_D1!.prepare(
             `INSERT INTO sku_source_link (sku_id, source_id, external_id, external_url, specs_json, price_cents, currency, observed_at, confidence, active)
@@ -137,7 +155,7 @@ export const upcitemdbEnrichIngester: DatasetIngester = {
                observed_at = excluded.observed_at,
                active = 1`,
           ).bind(
-            r.id, `upcitemdb:${merchantSlug}`, `${merchantSlug}:${r.code}`,
+            r.id, merchantSourceId, `${merchantSlug}:${r.code}`,
             off.link ?? null,
             JSON.stringify({ merchant: off.merchant, domain: off.domain, listPrice: off.list_price, availability: off.availability }).slice(0, 2000),
             priceCents, off.currency || "USD", observed,
@@ -147,7 +165,7 @@ export const upcitemdbEnrichIngester: DatasetIngester = {
           ctx.env.LENS_D1!.prepare(
             `INSERT OR IGNORE INTO price_history (sku_id, source_id, observed_at, price_cents, currency, on_sale, sale_pct)
              VALUES (?, ?, ?, ?, ?, 0, NULL)`,
-          ).bind(r.id, `upcitemdb:${merchantSlug}`, observed, priceCents, off.currency || "USD"),
+          ).bind(r.id, merchantSourceId, observed, priceCents, off.currency || "USD"),
         );
       }
 
@@ -171,6 +189,30 @@ export const upcitemdbEnrichIngester: DatasetIngester = {
 
     try { await ensureBrands(ctx.env, brandMap); } catch (err) {
       if (counters.errors.length < 5) counters.errors.push(`ensureBrands: ${(err as Error).message}`);
+    }
+    // Ensure every synthetic `upcitemdb:<merchant>` pseudo-source exists in
+    // data_source so the batched sku_source_link inserts satisfy the FK.
+    // Must happen before the main batch — D1 FK checks fire per-row.
+    if (merchantSeen.size > 0) {
+      const preBatch: unknown[] = [];
+      for (const [id, meta] of merchantSeen) {
+        preBatch.push(
+          ctx.env.LENS_D1!.prepare(
+            `INSERT OR IGNORE INTO data_source (id, name, type, base_url, status, cadence_minutes, description, created_at)
+             VALUES (?, ?, 'scrape', ?, 'derived', 1440, ?, datetime('now'))`,
+          ).bind(
+            id,
+            `UPCitemdb → ${meta.label}`.slice(0, 120),
+            meta.link ?? `https://${meta.domain ?? id.replace(/^upcitemdb:/, "")}`,
+            `Cross-retailer price observation from UPCitemdb for ${meta.label}. Derived pseudo-source.`.slice(0, 400),
+          ),
+        );
+      }
+      try {
+        await (ctx.env.LENS_D1 as unknown as { batch(s: unknown[]): Promise<unknown[]> }).batch(preBatch);
+      } catch (err) {
+        if (counters.errors.length < 5) counters.errors.push(`merchant-prebatch: ${(err as Error).message}`);
+      }
     }
     if (stmts.length > 0) {
       try {
