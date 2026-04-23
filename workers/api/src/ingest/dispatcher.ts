@@ -34,6 +34,7 @@ import { musicBrainzIngester } from "./sources/musicbrainz.js";
 import { nvdCveIngester } from "./sources/nvd-cve.js";
 import { cisaKevIngester } from "./sources/cisa-kev.js";
 import { cfpbComplaintsIngester } from "./sources/cfpb-complaints.js";
+import { slickdealsIngester } from "./sources/slickdeals.js";
 import { openLibraryIngester } from "./sources/openlibrary.js";
 import { openBeautyFactsIngester } from "./sources/openbeautyfacts.js";
 import { openFoodFactsIngester } from "./sources/openfoodfacts.js";
@@ -67,6 +68,7 @@ export const REGISTERED: Record<string, DatasetIngester> = {
   "nvd-cve": nvdCveIngester,
   "cisa-kev": cisaKevIngester,
   "cfpb-complaints": cfpbComplaintsIngester,
+  "slickdeals": slickdealsIngester,
   "openlibrary": openLibraryIngester,
   "musicbrainz": musicBrainzIngester,
   "gs1-origin": gs1OriginIngester,
