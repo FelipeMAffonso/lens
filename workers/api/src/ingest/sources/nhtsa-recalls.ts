@@ -56,10 +56,19 @@ export const nhtsaRecallsIngester: DatasetIngester = {
       return counters;
     }
 
-    // Dedupe model names; the API returns some duplicates.
+    // Normalize + dedupe model names. The /products endpoint returns
+    // trim-level variants like "F-150 (SUPER CAB) GAS" which /recallsByVehicle
+    // can't resolve (returns HTTP 400). Strip parenthetical qualifiers and
+    // trailing fuel/drivetrain suffixes to land on the canonical model name.
+    const normalize = (m: string) =>
+      m
+        .replace(/\([^)]*\)/g, " ") // drop parenthetical trim indicators
+        .replace(/\b(GAS|DIESEL|HEV|PHEV|EV|HYBRID|ELECTRIC|AWD|FWD|RWD|4WD|2WD)\b/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
     const seen = new Set<string>();
     const uniqModels = models
-      .map((m) => m.model ?? "")
+      .map((m) => normalize(m.model ?? ""))
       .filter((m) => m && !seen.has(m) && seen.add(m))
       .slice(0, MODELS_PER_RUN);
     logLines.push(`models=${uniqModels.length}`);
