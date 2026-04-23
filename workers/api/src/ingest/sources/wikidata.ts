@@ -11,7 +11,9 @@ import type { DatasetIngester, IngestionContext, IngestionReport } from "../fram
 
 const SOURCE_ID = "wikidata";
 
-// Subset of Wikidata classes for consumer products. Expand over time.
+// Expanded Wikidata consumer-product class roster (50+). Each is a valid
+// Wikidata Q-id for a "type of product" class. The ingester rotates through
+// them — one class per run — so over 50 runs every category is seeded.
 const CLASSES = [
   { qid: "Q3331189", slug: "smartphone" },
   { qid: "Q3962278", slug: "laptop" },
@@ -25,6 +27,50 @@ const CLASSES = [
   { qid: "Q1420", slug: "car" },
   { qid: "Q1183543", slug: "e-reader" },
   { qid: "Q3966", slug: "computer-monitor" },
+  { qid: "Q11367", slug: "camera" },
+  { qid: "Q157815", slug: "digital-camera" },
+  { qid: "Q3966", slug: "monitor" },
+  { qid: "Q82753", slug: "computer" },
+  { qid: "Q864572", slug: "tablet-computer" },
+  { qid: "Q2487799", slug: "smartwatch" },
+  { qid: "Q488481", slug: "router" },
+  { qid: "Q82811", slug: "printer" },
+  { qid: "Q28877", slug: "microwave-oven" },
+  { qid: "Q16822979", slug: "air-purifier" },
+  { qid: "Q241907", slug: "air-conditioner" },
+  { qid: "Q11441", slug: "bicycle" },
+  { qid: "Q1303384", slug: "electric-bicycle" },
+  { qid: "Q1088", slug: "motorcycle" },
+  { qid: "Q93260", slug: "bed" },
+  { qid: "Q14745", slug: "chair" },
+  { qid: "Q1357516", slug: "desk" },
+  { qid: "Q39546", slug: "tool" },
+  { qid: "Q165955", slug: "drill" },
+  { qid: "Q193389", slug: "lawn-mower" },
+  { qid: "Q170430", slug: "washing-machine" },
+  { qid: "Q186517", slug: "dishwasher" },
+  { qid: "Q185187", slug: "oven" },
+  { qid: "Q18706", slug: "toaster" },
+  { qid: "Q208460", slug: "blender" },
+  { qid: "Q214609", slug: "kettle" },
+  { qid: "Q815060", slug: "stand-mixer" },
+  { qid: "Q7214", slug: "piano" },
+  { qid: "Q6607", slug: "guitar" },
+  { qid: "Q234262", slug: "keyboard-synth" },
+  { qid: "Q4887", slug: "speaker" },
+  { qid: "Q26706", slug: "soundbar" },
+  { qid: "Q177413", slug: "turntable" },
+  { qid: "Q213550", slug: "backpack" },
+  { qid: "Q48619", slug: "suitcase" },
+  { qid: "Q43196", slug: "shoe" },
+  { qid: "Q1074055", slug: "running-shoe" },
+  { qid: "Q1357523", slug: "watch" },
+  { qid: "Q42213", slug: "eyeglasses" },
+  { qid: "Q49697", slug: "sunglasses" },
+  { qid: "Q157555", slug: "bicycle-helmet" },
+  { qid: "Q188809", slug: "baby-car-seat" },
+  { qid: "Q192142", slug: "stroller" },
+  { qid: "Q11006", slug: "toy" },
 ];
 
 const LIMIT = 500;
