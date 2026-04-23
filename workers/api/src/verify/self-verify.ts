@@ -71,7 +71,7 @@ ${claims
   .slice(0, 40)
   .map(
     (c, i) =>
-      `[${i}] claim="${c.raw}"  verdict="${c.verdict}"  evidence="${(c.evidence ?? "").slice(0, 200)}"`,
+      `[${i}] claim="${(c as { raw?: string; attribute?: string }).raw ?? (c as { attribute?: string }).attribute ?? ""}"  verdict="${c.verdict}"  evidence="${(((c as { evidence?: string; explanation?: string }).evidence ?? (c as { explanation?: string }).explanation) ?? "").slice(0, 200)}"`,
   )
   .join("\n")}
 
@@ -134,7 +134,9 @@ export function applyCritiques(claims: Claim[], critiques: SelfCritique[]): numb
     if (!c) continue;
     if (c.verdict !== crit.suggestedVerdict) {
       c.verdict = crit.suggestedVerdict as Claim["verdict"];
-      c.evidence = `[self-verification] ${crit.reasoning} (was: ${crit.originalVerdict})`;
+      const note = `[self-verification] ${crit.reasoning} (was: ${crit.originalVerdict})`;
+      (c as Record<string, unknown>).evidence = note;
+      (c as Record<string, unknown>).explanation = note;
       n++;
     }
   }

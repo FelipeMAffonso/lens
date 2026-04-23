@@ -115,7 +115,7 @@ export const cpscRecallsIngester: DatasetIngester = {
       if (stmts.length === 0) continue;
 
       try {
-        const results = await ctx.env.LENS_D1.batch(stmts);
+        const results = await ctx.env.LENS_D1!.batch(stmts);
         counters.rowsUpserted += results.filter((x) => x.success).length;
       } catch (err) {
         const msg = `batch ${i / BATCH} failed: ${(err as Error).message}`;
@@ -209,7 +209,7 @@ function parseUnitCount(s: string | undefined): number | null {
 }
 
 function prepareUpsert(env: Env, r: NormalizedRecall): ReturnType<Env["LENS_D1"]["prepare"]> {
-  return env.LENS_D1.prepare(
+  return env.LENS_D1!.prepare(
     `INSERT INTO recall (id, source_id, external_id, title, product_match_json, severity, hazard, published_at, url, remedy, affected_units, raw_json)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET
@@ -239,7 +239,7 @@ function prepareUpsert(env: Env, r: NormalizedRecall): ReturnType<Env["LENS_D1"]
 }
 
 async function readLastSuccessAt(env: Env): Promise<string | null> {
-  const row = await env.LENS_D1.prepare(
+  const row = await env.LENS_D1!.prepare(
     "SELECT last_success_at FROM data_source WHERE id = ?",
   )
     .bind(SOURCE_ID)
