@@ -107,7 +107,10 @@ export const categoryClassifyIngester: DatasetIngester = {
         }
       }
 
-      if (!code) { counters.rowsSkipped++; continue; }
+      // Catch-all: every SKU deserves a category. Prefer specific, fall
+      // back to the generic entertainment bucket so the UI can always
+      // filter by category_code IS NOT NULL.
+      if (!code) code = "gpt:arts-entertainment";
 
       stmts.push(
         ctx.env.LENS_D1!.prepare(
