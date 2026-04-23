@@ -363,6 +363,27 @@ app.post("/visual-audit", async (c) => {
   return handleVisualAudit(c as never);
 });
 
+// improve-E4 — /architecture/schema — sanitized D1 schema for landing diagram.
+app.get("/architecture/schema", async (c) => {
+  if (!c.env.LENS_D1) return c.json({ bootstrapping: true, tables: [] });
+  try {
+    const { results } = await c.env.LENS_D1.prepare(
+      `SELECT name, sql FROM sqlite_master
+        WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'
+        ORDER BY name`,
+    ).all<{ name: string; sql: string }>();
+    const tables = (results ?? []).map((t) => {
+      // Strip inline CHECK (json_valid(...)) and keep just column names + types for the diagram.
+      const colMatches = Array.from(t.sql.matchAll(/^\s{2,}([a-zA-Z_][\w]*)\s+(TEXT|INTEGER|REAL|BLOB|NUMERIC)/gm));
+      const cols = colMatches.map((m) => ({ name: m[1], type: m[2] }));
+      return { name: t.name, columnCount: cols.length, columns: cols.slice(0, 20) };
+    });
+    return c.json({ tables, tableCount: tables.length }, 200, { "cache-control": "public, max-age=300" });
+  } catch (err) {
+    return c.json({ error: (err as Error).message, tables: [] });
+  }
+});
+
 // improve-A13 + B1 — /sku/search — FTS5 fuzzy over indexed catalog.
 app.get("/sku/search", async (c) => {
   const { handleSkuSearch } = await import("./sku/search.js");

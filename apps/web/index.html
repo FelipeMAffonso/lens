@@ -187,6 +187,53 @@
           <p class="arch-sub">
             Every claim Lens makes triangulates across multiple independent sources. If one source lies or goes stale, Lens catches it.
           </p>
+          <!-- improve-E6 — inline SVG showing the triangulation topology -->
+          <svg viewBox="0 0 640 240" width="100%" style="max-width: 640px; display: block; margin: 0 auto 24px;" aria-labelledby="spine-diagram-title">
+            <title id="spine-diagram-title">Lens data-spine topology diagram</title>
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#cc785c"/>
+              </marker>
+            </defs>
+            <!-- source nodes (top row) -->
+            <g font-family="system-ui, sans-serif" font-size="10" fill="#6a6a6a" text-anchor="middle">
+              <g><circle cx="70"  cy="40" r="28" fill="#fff" stroke="#e8e4dd" stroke-width="1"/><text x="70"  y="38">CPSC</text><text x="70"  y="50">recalls</text></g>
+              <g><circle cx="180" cy="40" r="28" fill="#fff" stroke="#e8e4dd" stroke-width="1"/><text x="180" y="38">FCC</text><text x="180" y="50">equipment</text></g>
+              <g><circle cx="290" cy="40" r="28" fill="#fff" stroke="#e8e4dd" stroke-width="1"/><text x="290" y="38">EPA</text><text x="290" y="50">Energy Star</text></g>
+              <g><circle cx="400" cy="40" r="28" fill="#fff" stroke="#e8e4dd" stroke-width="1"/><text x="400" y="38">Wikidata</text><text x="400" y="50">SPARQL</text></g>
+              <g><circle cx="510" cy="40" r="28" fill="#fff" stroke="#e8e4dd" stroke-width="1"/><text x="510" y="38">OpenFood</text><text x="510" y="50">+OpenLib</text></g>
+              <g><circle cx="605" cy="40" r="25" fill="#fff" stroke="#e8e4dd" stroke-width="1" stroke-dasharray="3,3"/><text x="605" y="38">...18</text><text x="605" y="50">more</text></g>
+            </g>
+            <!-- sku_source_link (middle) -->
+            <g>
+              <rect x="180" y="100" width="280" height="44" rx="8" fill="#fdf7f2" stroke="#f0e3d4" stroke-width="1"/>
+              <text x="320" y="119" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#8a5a3a">sku_source_link</text>
+              <text x="320" y="135" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6a6a6a">one row per (sku, source) · price · specs · confidence · timestamp</text>
+            </g>
+            <!-- arrows top→middle -->
+            <g stroke="#cc785c" stroke-width="1.2" fill="none" marker-end="url(#arrow)">
+              <line x1="70"  y1="68" x2="250" y2="100"/>
+              <line x1="180" y1="68" x2="280" y2="100"/>
+              <line x1="290" y1="68" x2="320" y2="100"/>
+              <line x1="400" y1="68" x2="360" y2="100"/>
+              <line x1="510" y1="68" x2="390" y2="100"/>
+              <line x1="605" y1="65" x2="430" y2="100"/>
+            </g>
+            <!-- sku_catalog + triangulated_price (bottom) -->
+            <g>
+              <rect x="130" y="175" width="180" height="44" rx="8" fill="#cc785c" stroke="#a8593f" stroke-width="1"/>
+              <text x="220" y="195" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#fff">sku_catalog</text>
+              <text x="220" y="210" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fdd8c4">canonical identity · fts5 fuzzy</text>
+              <rect x="330" y="175" width="190" height="44" rx="8" fill="#fff" stroke="#cc785c" stroke-width="1.5"/>
+              <text x="425" y="195" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#8a5a3a">triangulated_price</text>
+              <text x="425" y="210" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6a6a6a">median / p25 / p75 / n_sources</text>
+            </g>
+            <g stroke="#cc785c" stroke-width="1.2" fill="none" marker-end="url(#arrow)">
+              <line x1="260" y1="144" x2="220" y2="175"/>
+              <line x1="380" y1="144" x2="425" y2="175"/>
+            </g>
+          </svg>
+
           <div class="sources-grid" id="sources-grid">
             <div class="source-loading">Loading live source status…</div>
           </div>
