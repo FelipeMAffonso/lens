@@ -29,6 +29,22 @@ import { scrubCandidateUrls } from "./url-scrub.js";
 export async function searchCandidates(intent: UserIntent, env: Env): Promise<Candidate[]> {
   const seedCandidates = collectSeeds(intent);
 
+  // improve-B1 — catalog-first path. Query sku_catalog FTS5 for matches
+  // before falling through to the slow web_search. When Phase A ingesters
+  // have populated the category, this returns real SKUs in <50ms and the
+  // full audit drops from 20s+ to <8s.
+  let catalogCandidates: Candidate[] = [];
+  try {
+    catalogCandidates = await catalogSearch(intent, env);
+    if (catalogCandidates.length >= 6) {
+      console.log("[search] catalog hit (%d) — skipping web_search", catalogCandidates.length);
+      const merged = mergeCandidates(seedCandidates, catalogCandidates);
+      return merged.slice(0, 12).map((c) => scrubCandidateUrls(c));
+    }
+  } catch (err) {
+    console.warn("[search] catalog lookup failed:", (err as Error).message);
+  }
+
   // Fixture-only mode (CI regression, offline demo) — skip the web call.
   // Kept as the escape hatch so hermetic tests don't hit the network.
   // Judge P0 #2: emit a loud warning if this mode is active in production.
@@ -65,9 +81,95 @@ export async function searchCandidates(intent: UserIntent, env: Env): Promise<Ca
     webCandidates.length,
     merged.length,
   );
+  // User-feedback fallback (2026-04-22): if the merged list is still empty
+  // (no pack seeds + web_search aborted on the 27s CF subrequest ceiling),
+  // do ONE fast Opus call WITHOUT web_search — use the model's training
+  // knowledge to list 4-6 plausible products. Much faster (~3s, no tool
+  // loop), marked honestly in specs.source so the UI can annotate.
+  if (merged.length === 0) {
+    console.warn("[search] merged=0 — falling back to model-knowledge candidates");
+    try {
+      const fromKnowledge = await knowledgeFallback(intent, env);
+      if (fromKnowledge.length > 0) {
+        console.log("[search] knowledge fallback produced %d", fromKnowledge.length);
+        return fromKnowledge.slice(0, 8).map((c) => scrubCandidateUrls(c));
+      }
+    } catch (err) {
+      console.warn("[search] knowledge fallback failed:", (err as Error).message);
+    }
+  }
   // Judge P0 #1: strip every tracking / affiliate param before returning.
   // VISION_COMPLETE §13 #8 — no affiliate links ever.
   return merged.slice(0, 12).map((c) => scrubCandidateUrls(c));
+}
+
+/**
+ * Zero-candidate fallback: when web_search times out or returns empty and we
+ * have no pack seeds, ask Opus (no tools) to name 4-6 real products it knows
+ * for this category + budget from its training data. Fast (~3s) and lets the
+ * pipeline produce a real card instead of "(no candidates available)".
+ *
+ * Honesty: the resulting candidates are flagged with `specs.__source` = "model-knowledge"
+ * so the UI can annotate "from model memory, not live search" if needed.
+ */
+async function knowledgeFallback(intent: UserIntent, env: Env): Promise<Candidate[]> {
+  const hasKey = typeof env.ANTHROPIC_API_KEY === "string" && env.ANTHROPIC_API_KEY.length > 0;
+  if (!hasKey) return [];
+  const anthropic = client(env);
+  const criteriaText = (intent.criteria ?? [])
+    .slice(0, 6)
+    .map((c) => c.name)
+    .join(", ");
+  const budgetText = intent.budget?.max
+    ? `under $${intent.budget.max}`
+    : "reasonable consumer budget";
+  const system = `You are a shopping knowledge fallback. Live search failed.
+List 4-6 real products you know in this category that match the criteria.
+For each: name, brand, typical current retail price in USD (integer ok),
+and a specs object with 3-6 criterion-relevant values.
+Return ONLY JSON: {"candidates":[{"name":"...","brand":"...","price":123,"specs":{...}}]}.
+No prose. No markdown fences. Do NOT fabricate spec values you are unsure of.`;
+  const user = `Category: ${intent.category}\nBudget: ${budgetText}\nCriteria: ${criteriaText}`;
+  const controller = new AbortController();
+  const timeoutHandle = setTimeout(() => controller.abort(), 8_000);
+  try {
+    const res = (await anthropic.messages.create(
+      {
+        model: OPUS_4_7,
+        max_tokens: 1200,
+        system,
+        messages: [{ role: "user", content: user }],
+      } as never,
+      { signal: controller.signal } as never,
+    )) as unknown as { content: Array<{ type: string; text?: string }> };
+    let text = "";
+    for (const b of res.content) if (b.type === "text" && b.text) text += b.text;
+    const json = stripFences(text);
+    const parsed = JSON.parse(json) as { candidates?: Array<Record<string, unknown>> };
+    if (!parsed.candidates || !Array.isArray(parsed.candidates)) return [];
+    return parsed.candidates
+      .map((c) => {
+        const name = typeof c.name === "string" ? c.name.trim() : "";
+        if (!name) return null;
+        const specs = (c.specs && typeof c.specs === "object"
+          ? (c.specs as Record<string, string | number | boolean>)
+          : {}) as Record<string, string | number | boolean>;
+        specs.__source = "model-knowledge";
+        return {
+          name,
+          brand: typeof c.brand === "string" ? c.brand : "",
+          price: parsePriceSafe(c.price),
+          currency: "USD",
+          specs,
+          attributeScores: {},
+          utilityScore: 0,
+          utilityBreakdown: [],
+        } satisfies Candidate;
+      })
+      .filter((c): c is Candidate => c !== null);
+  } finally {
+    clearTimeout(timeoutHandle);
+  }
 }
 
 function collectSeeds(intent: UserIntent): Candidate[] {
@@ -264,4 +366,63 @@ function parsePriceSafe(raw: unknown): number | null {
   if (!m || !m[1]) return null;
   const n = Number.parseFloat(m[1]);
   return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+// improve-B1 — catalog-first search. Reads sku_catalog via FTS5 matching
+// the intent category + the top criterion names, joined against the
+// triangulated price view. Returns Candidate rows shaped for mergeCandidates.
+async function catalogSearch(intent: UserIntent, env: Env): Promise<Candidate[]> {
+  if (!env.LENS_D1) return [];
+  const q = [intent.category, ...(intent.criteria ?? []).slice(0, 3).map((c) => c.name)]
+    .filter(Boolean)
+    .join(" ");
+  if (!q.trim()) return [];
+  const ftsQuery = q
+    .replace(/[\x00-\x1f]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 5)
+    .map((t) => `"${t.replace(/"/g, '""')}"*`)
+    .join(" OR ");
+  if (!ftsQuery) return [];
+  try {
+    const { results } = await env.LENS_D1.prepare(
+      `SELECT sc.id, sc.canonical_name, sc.brand_slug, sc.model_code, sc.image_url,
+              sc.specs_json, sc.asin,
+              tp.median_cents
+         FROM sku_fts
+         JOIN sku_catalog sc ON sc.id = sku_fts.sku_id
+         LEFT JOIN triangulated_price tp ON tp.sku_id = sc.id
+        WHERE sku_fts MATCH ? AND sc.status = 'active'
+        ORDER BY bm25(sku_fts), sc.last_refreshed_at DESC
+        LIMIT 12`,
+    ).bind(ftsQuery).all<{
+      id: string;
+      canonical_name: string;
+      brand_slug: string | null;
+      model_code: string | null;
+      image_url: string | null;
+      specs_json: string | null;
+      asin: string | null;
+      median_cents: number | null;
+    }>();
+    return (results ?? []).map((r) => {
+      let specs: Record<string, unknown> = {};
+      try { if (r.specs_json) specs = JSON.parse(r.specs_json); } catch { /* ignore */ }
+      specs.__source = "catalog";
+      const c: Candidate = {
+        name: r.canonical_name,
+        brand: r.brand_slug ?? undefined,
+        model: r.model_code ?? undefined,
+        price: r.median_cents != null ? Math.round(r.median_cents / 100) : undefined,
+        url: r.asin ? `https://www.amazon.com/dp/${r.asin}` : undefined,
+        imageUrl: r.image_url ?? undefined,
+        specs,
+      } as Candidate;
+      return c;
+    });
+  } catch (err) {
+    // FTS table not populated yet. Return empty, not an error.
+    return [];
+  }
 }
