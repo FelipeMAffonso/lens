@@ -898,7 +898,7 @@ function criteriaCard(r: AuditResult): HTMLElement {
     <div class="card-header">
       <div>
         <h2>Your criteria</h2>
-        <p class="card-subtitle">Drag sliders to re-weight. Ranking below updates live.</p>
+        <p class="card-subtitle">Tell Oracle in plain language what to change ("make it quieter", "budget is tight at $300"). Ranking below re-computes.</p>
       </div>
     </div>
     <div class="criteria-detail" id="sliders-wrap"></div>

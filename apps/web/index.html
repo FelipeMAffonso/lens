@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Lens — your independent AI shopping agent</title>
-    <meta name="description" content="Paste any AI shopping recommendation or just describe what you want. Lens verifies every claim, shows transparent spec-optimal alternatives, and catches AI confabulations across 100+ knowledge packs." />
+    <title>Oracle — your AI shopping companion, by Lens</title>
+    <meta name="description" content="Meet Oracle: the one AI shopping companion that works for you, not retailers. Tell Oracle what you want, paste what another AI told you, or drop a product URL. Oracle consults every frontier model, every retailer, and every public dataset, and gives you the one answer that actually fits. Open source. No affiliate links. Ever." />
     <meta name="theme-color" content="#DA7756" />
     <meta name="color-scheme" content="light" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -33,16 +33,18 @@
 
     <main class="container">
       <section class="hero">
-        <h1>Your independent AI shopping agent</h1>
+        <p class="hero-kicker">Lens introduces</p>
+        <h1>Meet Oracle.</h1>
         <p class="hero-sub">
-          Paste an AI shopping recommendation from ChatGPT, Claude, Gemini, or Rufus, or just
-          describe what you're looking for. Lens verifies every claim against live product data,
-          shows the <strong>transparent spec-optimal pick</strong>, flags confabulations, and
-          checks what other frontier models picked.
+          Your AI shopping companion. One agent that works for you — before, during, and after
+          every purchase. Oracle consults <strong>every frontier model</strong>,
+          <strong>every retailer</strong>, and <strong>every public dataset</strong>, and gives
+          you the one answer that actually fits.
         </p>
         <p class="hero-anchor">
           Grounded in peer-reviewed research: <em>18 AI models, 382,000 shopping trials, submitted to Nature.</em>
           AI shopping assistants pick non-optimal products 21% of the time and confabulate reasons 86% of the time.
+          Oracle is the fix.
         </p>
       </section>
 
@@ -154,10 +156,10 @@
            all live from /architecture/stats + /architecture/sources. -->
       <section id="architecture-reveal" class="architecture-reveal">
         <div class="arch-hero">
-          <span class="arch-kicker">The machine behind the audit</span>
-          <h2>Lens is the consumer's independent agent across every point of every purchase.</h2>
+          <span class="arch-kicker">The machine behind Oracle</span>
+          <h2>Oracle is the consumer's independent agent across every point of every purchase.</h2>
           <p class="arch-lede">
-            Every fact Lens shows you is triangulated from at least two independent public sources.
+            Every fact Oracle shows you is triangulated from at least two independent public sources.
             No affiliate links. No ranking bias. No proprietary catalog. The schema, the sources, the
             pipelines, the crons, the agents — all open, all below, all live.
           </p>
@@ -174,22 +176,22 @@
         </div>
 
         <div class="arch-band">
-          <h3>Three places Lens protects you</h3>
+          <h3>Three places Oracle works for you</h3>
           <div class="three-places">
             <div class="place">
               <div class="place-icon">🗣️</div>
-              <h4>When you ask</h4>
-              <p><strong>Active audit.</strong> Paste a ChatGPT / Claude / Gemini / Rufus answer, paste a retailer URL, or just describe what you want. Lens runs the 5-stage pipeline below and returns one transparent, slider-tunable card.</p>
+              <h4>Before you buy</h4>
+              <p><strong>The Oracle chat.</strong> Tell Oracle what you want, paste what another AI said, or drop a product URL. Oracle runs the 5-stage pipeline below and returns one transparent answer you can adjust in plain language.</p>
             </div>
             <div class="place">
               <div class="place-icon">🛒</div>
-              <h4>When you shop</h4>
-              <p><strong>Passive protection.</strong> The Chrome extension watches every retailer page for dark patterns, hidden fees, fake sales, counterfeits, fake reviews, and breach history. Silent unless there's something worth interrupting for.</p>
+              <h4>While you shop</h4>
+              <p><strong>The Oracle extension.</strong> Watches every retailer page for dark patterns, hidden fees, fake sales, counterfeits, fake reviews, and breach history. Silent unless there's something worth interrupting for.</p>
             </div>
             <div class="place">
               <div class="place-icon">🌙</div>
-              <h4>When you sleep</h4>
-              <p><strong>Background monitoring.</strong> Cloudflare crons cross-match recalls, price drops, subscription renewals, and firmware advisories against your purchases. Draft letters and claims ready when you wake up.</p>
+              <h4>After you buy</h4>
+              <p><strong>The Oracle watchers.</strong> Cloudflare crons cross-match recalls, price drops, subscription renewals, and firmware advisories against your purchases. Draft letters and claims ready when you wake up.</p>
             </div>
           </div>
         </div>
@@ -295,7 +297,7 @@
               <span class="stage-num">4</span>
               <div>
                 <h4>Rank <span class="stage-cap">deterministic math</span></h4>
-                <p>U = Σ wᵢ·sᵢ. No LLM. Sliders re-weight live in the UI. Every contribution inspectable.</p>
+                <p>U = Σ wᵢ·sᵢ. No LLM. Tell Oracle in plain language what to change ("make it quieter", "budget is tight at $300") and the ranking re-computes live with every contribution visible.</p>
               </div>
             </li>
             <li>
@@ -405,7 +407,7 @@
           <div class="pref-layers">
             <div class="pref-layer"><span class="pref-n">L1</span><div><strong>Goal parsing.</strong> Opus 4.7 adaptive thinking extracts weighted criteria from one sentence. 5 seconds.</div></div>
             <div class="pref-layer"><span class="pref-n">L2</span><div><strong>Adaptive clarification.</strong> When confidence is low, Lens asks 2-4 conjoint-style binary tradeoff questions. Converges 5× faster than classical preference elicitation.</div></div>
-            <div class="pref-layer"><span class="pref-n">L3</span><div><strong>Explicit editing.</strong> Every weight is a slider. You inspect the math, you move the dials, ranking recomputes live. Your call is final.</div></div>
+            <div class="pref-layer"><span class="pref-n">L3</span><div><strong>Explicit editing, in plain language.</strong> Tell Oracle what to change ("care more about quiet", "budget is tight at $300"). Oracle parses the change into weight deltas and re-ranks live. No sliders. No forms. Your call is final.</div></div>
             <div class="pref-layer"><span class="pref-n">L4</span><div><strong>Revealed-preference updating.</strong> After 5-10 audits, Lens learns from what you actually pick over what it ranked top. If you chose the #2 over the #1, the weight that discriminates them adjusts.</div></div>
             <div class="pref-layer"><span class="pref-n">L5</span><div><strong>Cross-category transfer.</strong> Meta-preferences (durability, repairability, country of origin, ethical supply chain) carry from one category to the next. New category, informed priors.</div></div>
           </div>
@@ -456,15 +458,15 @@
           <div class="how-card">
             <div class="how-icon">4</div>
             <h4>Rank + cross-check</h4>
-            <p>Deterministic <strong>transparent utility math</strong>. Sliders re-weight live. A <strong>Claude Managed Agent</strong> fans out to three other frontier models.</p>
+            <p>Deterministic <strong>transparent utility math</strong>. Tell Oracle in plain language what to change and the ranking re-computes live. A <strong>Claude Managed Agent</strong> fans out to three other frontier models.</p>
           </div>
         </div>
       </section>
 
       <section class="cta-band">
-        <h3>Every AI shopping recommendation deserves a second opinion.</h3>
-        <p>Lens is open source, runs on your profile's weights, and never stores your queries. Audit any recommendation in under 20 seconds.</p>
-        <a class="primary-btn" href="#audit-btn" onclick="document.querySelector('.paste-box')?.scrollIntoView({behavior:'smooth',block:'center'})">Try an audit now</a>
+        <h3>Every purchase deserves an agent working for you.</h3>
+        <p>Oracle is open source, consults every frontier AI in parallel, and never stores your queries. Tell Oracle what you're shopping for and get the answer that actually fits.</p>
+        <a class="primary-btn" href="#chat-view" onclick="document.getElementById('chat-view')?.scrollIntoView({behavior:'smooth',block:'start'})">Ask Oracle</a>
       </section>
     </main>
 

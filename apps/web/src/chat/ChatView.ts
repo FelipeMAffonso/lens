@@ -47,13 +47,13 @@ export function mountChatView(opts: ChatViewOptions): void {
   let rotator: RotatingStatusHandle | null = null;
   let lastAudit: AuditResult | null = null;
 
-  // First bot greeting. improve-D17 2026-04-22: voice aligned with
-  // LENS_VOICE_COVENANT in prompts.ts. Independent, transparent, no
-  // affiliates. Em-dash-free.
+  // First bot greeting. 2026-04-23 Oracle identity lock: the product speaks
+  // as Oracle (the AI shopping companion). Brand remains Lens. Voice aligned
+  // with LENS_VOICE_COVENANT in prompts.ts. Em-dash-free. No affiliates.
   const preExisting = store.all();
   if (preExisting.length === 0) {
     const greeting =
-      "Hi, I'm Lens. I work for you, not the retailers. Paste an AI recommendation to audit it, drop a product URL, or just tell me what you're shopping for.";
+      "I'm Oracle, your AI shopping companion. I work for you, not the retailers. Tell me what you're after, paste what another AI told you, or drop a product URL — I'll consult every frontier model plus real product data and give you the answer that actually fits.";
     const t = store.append("assistant", greeting);
     transcript.append(botBubble(t.text));
     renderSeedChips();
@@ -317,7 +317,7 @@ export function mountChatView(opts: ChatViewOptions): void {
       typing.remove();
       const t = store.append(
         "assistant",
-        "I couldn't run that follow-up right now. The full ranking is still below. Drag the sliders to re-weight if your priorities shifted.",
+        "I couldn't run that follow-up right now. The full ranking is still below. Tell me what you'd change and I'll re-rank.",
       );
       transcript.append(botBubble(t.text));
       console.warn("[chat] followup failed:", (err as Error).message);
@@ -430,10 +430,10 @@ export function mountChatView(opts: ChatViewOptions): void {
       lastAudit = null;
       phase = "elicit";
       const greeting =
-        "Hey, I'm Lens. What are you shopping for this time?";
+        "What are you shopping for this time?";
       const t = store.append("assistant", greeting);
       transcript.append(botBubble(t.text));
-      composer.setPlaceholder("Tell Lens what you're shopping for…");
+      composer.setPlaceholder("Tell Oracle what you're shopping for…");
       composer.clear();
       composer.focus();
     });
@@ -455,5 +455,5 @@ function buildRecap(audit: AuditResult, topCriterion?: string): string {
   const criterionPhrase = topCriterion
     ? ` scores highest on your top criterion (${topCriterion.replace(/[_-]+/g, " ")})`
     : " fits the spread of your criteria best";
-  return `Top pick: ${brand}${pick.name}${price}. It${criterionPhrase} on the transparent utility math (U = Σ wᵢ·sᵢ). The full ranking and every contribution are below. Drag the sliders to re-weight.`;
+  return `Top pick: ${brand}${pick.name}${price}. It${criterionPhrase} on the transparent utility math (U = Σ wᵢ·sᵢ). The full ranking and every contribution are below. Tell me what you'd change and I'll re-rank.`;
 }
