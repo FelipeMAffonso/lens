@@ -47,13 +47,12 @@ export function mountChatView(opts: ChatViewOptions): void {
   let rotator: RotatingStatusHandle | null = null;
   let lastAudit: AuditResult | null = null;
 
-  // First bot greeting. 2026-04-23 Oracle identity lock: the product speaks
-  // as Oracle (the AI shopping companion). Brand remains Lens. Voice aligned
-  // with LENS_VOICE_COVENANT in prompts.ts. Em-dash-free. No affiliates.
+  // First bot greeting. Voice aligned with LENS_VOICE_COVENANT in
+  // prompts.ts. Em-dash-free. No affiliates. Product speaks as Lens.
   const preExisting = store.all();
   if (preExisting.length === 0) {
     const greeting =
-      "I'm Oracle, your AI shopping companion. I work for you, not the retailers. Tell me what you're after, paste what another AI told you, or drop a product URL — I'll consult every frontier model plus real product data and give you the answer that actually fits.";
+      "Hi, I'm Lens — your AI shopping companion. I work for you, not the retailers. Tell me what you're after, paste what another AI told you, or drop a product URL — I'll consult every frontier model plus real product data and give you the answer that actually fits.";
     const t = store.append("assistant", greeting);
     transcript.append(botBubble(t.text));
     renderSeedChips();
@@ -72,14 +71,13 @@ export function mountChatView(opts: ChatViewOptions): void {
   }
   composer.focus();
 
-  // Oracle phase-2 workflow coverage — photo upload path. The composer's
-  // 📎 button fires this with a data-URL. We strip the prefix, route to
-  // /audit kind="photo" (Opus 4.7 3.75MP vision), and render a preview
-  // bubble so the user sees what they uploaded.
+  // Photo upload path. The composer's 📎 button fires this with a data-URL.
+  // We strip the prefix, route to /audit kind="photo" (Opus 4.7 3.75MP
+  // vision), and render a preview bubble so the user sees what they uploaded.
   composer.onImageSubmit(async (dataUrl, mime, filename) => {
     if (phase === "generating") return;
     chipsHost.remove();
-    const ack = `Got it, looking at your photo (${filename || "uploaded image"}). Oracle's vision pipeline will parse the product and run the audit.`;
+    const ack = `Got it, looking at your photo (${filename || "uploaded image"}). Lens's vision pipeline will parse the product and run the audit.`;
     // Render a user "bubble" with the preview.
     const previewBubble = document.createElement("div");
     previewBubble.className = "lc-user lc-user-image";
@@ -116,12 +114,11 @@ export function mountChatView(opts: ChatViewOptions): void {
       return;
     }
 
-    // Oracle phase-2 workflow coverage — any http(s) URL short-circuit.
-    // Routes to /audit kind="url". Backend runs S3-W15 per-host parsers for
-    // known retailers and falls through to Jina-markdown + Opus structured
-    // extraction for any other site. The client just needs to recognize
-    // "this is a URL paste" and the server degrades gracefully if the page
-    // blocks bots or has no structured data.
+    // Any http(s) URL short-circuit. Routes to /audit kind="url". Backend
+    // runs S3-W15 per-host parsers for known retailers and falls through to
+    // Jina-markdown + Opus structured extraction for any other site. The
+    // client just needs to recognize "this is a URL paste" and the server
+    // degrades gracefully if the page blocks bots or has no structured data.
     const userOnly = store.all().filter((t) => t.role === "user");
     if (userOnly.length === 1) {
       const urlMatch = looksLikeAnyProductUrl(text);
@@ -237,14 +234,14 @@ export function mountChatView(opts: ChatViewOptions): void {
   ): Promise<void> {
     phase = "generating";
     composer.setDisabled(true);
-    composer.setPlaceholder("Hold on, Oracle is consulting every frontier model and real products…");
+    composer.setPlaceholder("Hold on, Lens is consulting every frontier model and real products…");
     rotator = mountRotatingStatus(transcript, undefined, {
       // Judge P1-5: pause announcements while the user focuses the composer.
       pauseWhenFocused: composer.textarea,
     });
     scrollBottom();
 
-    // Oracle runs 4 audit kinds depending on input:
+    // Lens runs 4 audit kinds depending on input:
     //   photo  — user-uploaded product photo. Opus 4.7 3.75MP vision parses.
     //   url    — any http(s) URL. Per-host parsers + Jina/Opus fallback.
     //   text   — verbatim AI recommendation to audit.
@@ -476,7 +473,7 @@ export function mountChatView(opts: ChatViewOptions): void {
         "What are you shopping for this time?";
       const t = store.append("assistant", greeting);
       transcript.append(botBubble(t.text));
-      composer.setPlaceholder("Tell Oracle what you're shopping for…");
+      composer.setPlaceholder("Tell Lens what you're shopping for…");
       composer.clear();
       composer.focus();
     });

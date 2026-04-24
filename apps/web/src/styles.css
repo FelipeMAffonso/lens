@@ -381,7 +381,7 @@ textarea { font-family: inherit; resize: vertical; min-height: 80px; font-size: 
 }
 .tri-chip-single .tri-chip-dot { color: var(--fg-muted); }
 
-/* Oracle phase-1 commit 3: NL preference adjustment card. Replaces the
+/* Lens phase-1 commit 3: NL preference adjustment card. Replaces the
    slider-driven criteria editor with a chip grid + single NL input. */
 .criteria-card { }
 .nl-adjust {
@@ -478,7 +478,7 @@ textarea { font-family: inherit; resize: vertical; min-height: 80px; font-size: 
   transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Oracle phase-2 — Sarah's day. Four inline beats with install CTAs. Placed
+/* Lens phase-2 — Sarah's day. Four inline beats with install CTAs. Placed
    between the audit result and the architecture reveal so reviewers see the
    product story before the receipts. */
 .sarahs-day {

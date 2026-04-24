@@ -1,4 +1,4 @@
-// Oracle phase-1 commit 3 — natural-language preference adjustment.
+// Lens phase-1 commit 3 — natural-language preference adjustment.
 //
 // Replaces the sliders on the criteriaCard. The user types a plain-language
 // change ("make it quieter", "budget is tight at $300", "care more about
@@ -46,7 +46,7 @@ interface OpusOut {
   summary?: string;
 }
 
-const SYSTEM = `You are Oracle's preference-adjustment engine. The user has a set of weighted criteria for a product ranking and wants to change them in plain language. Parse the change into per-criterion weight deltas.
+const SYSTEM = `You are Lens's preference-adjustment engine. The user has a set of weighted criteria for a product ranking and wants to change them in plain language. Parse the change into per-criterion weight deltas.
 
 Return STRICT JSON matching exactly this schema (no prose before or after):
 {

@@ -1,9 +1,8 @@
 // CJ-W53 — composer input (textarea + send button).
-// Oracle phase-2 workflow coverage (2026-04-23): adds photo attach button
-// so users can drop a product photo directly into the chat. Clicking the
-// 📎 opens the file picker on desktop / camera on mobile
-// (capture="environment"). Image is read as base64 and fired via
-// onImageSubmit. Text path is unchanged.
+// Workflow coverage (2026-04-23/24): adds photo attach button so users can
+// drop a product photo directly into the chat. Clicking the 📎 opens the
+// file picker on desktop / camera on mobile (capture="environment").
+// Image is read as base64 and fired via onImageSubmit. Text path is unchanged.
 
 export interface ComposerHandles {
   root: HTMLElement;
@@ -34,7 +33,7 @@ export function mountComposer(host: HTMLElement): ComposerHandles {
       class="lc-composer-input"
       rows="1"
       aria-label="Describe what you're shopping for, paste a URL, or paste an AI's recommendation"
-      placeholder="Tell Oracle what you're shopping for, paste a URL, or attach a photo…"></textarea>
+      placeholder="Tell Lens what you're shopping for, paste a URL, or attach a photo…"></textarea>
     <button type="submit" class="lc-composer-send" aria-label="Send message">Send</button>
   `;
   host.append(root);
@@ -75,7 +74,7 @@ export function mountComposer(host: HTMLElement): ComposerHandles {
     if (!file) return;
     if (file.size > MAX_IMAGE_BYTES) {
       alert(
-        `That photo is ${(file.size / 1024 / 1024).toFixed(1)} MB — Oracle's vision pipeline caps at ${MAX_IMAGE_BYTES / 1024 / 1024} MB. Try a smaller photo or a screenshot.`,
+        `That photo is ${(file.size / 1024 / 1024).toFixed(1)} MB — Lens's vision pipeline caps at ${MAX_IMAGE_BYTES / 1024 / 1024} MB. Try a smaller photo or a screenshot.`,
       );
       fileInput.value = "";
       return;

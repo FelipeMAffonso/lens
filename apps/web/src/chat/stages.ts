@@ -70,7 +70,7 @@ export function looksLikeAIRecommendation(text: string): boolean {
   return score >= 2;
 }
 
-// D2 / Oracle phase-2 workflow coverage — detect ANY http(s) URL in chat.
+// D2 / workflow coverage — detect ANY http(s) URL in chat.
 // Short-circuits to /audit with kind="url". The backend /audit url path runs
 // S3-W15 per-host parsers first (amazon/bestbuy/walmart/target/homedepot/
 // shopify/universal JSON-LD/OpenGraph/microdata) and falls through to the

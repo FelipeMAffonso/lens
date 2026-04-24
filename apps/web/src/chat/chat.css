@@ -134,8 +134,8 @@
   cursor: not-allowed;
 }
 
-/* Oracle phase-2 — photo attach button in the composer. Sits left of the
-   textarea, opens file picker on desktop + camera on mobile. */
+/* Photo attach button in the composer. Sits left of the textarea, opens
+   file picker on desktop + camera on mobile. */
 .lc-composer-attach {
   flex: 0 0 auto;
   width: 40px;

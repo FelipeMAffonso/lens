@@ -630,7 +630,7 @@ function welfareDeltaCard(): HTMLElement {
   if (history.length < 3) {
     card.innerHTML = `
       <div class="card-header"><h2>Welfare-delta (your history)</h2></div>
-      <p class="muted" style="margin:0;">After ~10 audits, Oracle will show you the utility + dollar delta between the AI's picks and Oracle's picks across your history. Currently at ${history.length} audit${history.length === 1 ? "" : "s"}.</p>
+      <p class="muted" style="margin:0;">After ~10 audits, Lens will show you the utility + dollar delta between the AI's picks and Lens's picks across your history. Currently at ${history.length} audit${history.length === 1 ? "" : "s"}.</p>
     `;
     return card;
   }
@@ -656,7 +656,7 @@ function welfareDeltaCard(): HTMLElement {
         <div style="color:var(--fg-dim);font-size:12px;margin-top:4px;">AI pick vs Lens pick</div>
       </div>
     </div>
-    <p class="muted" style="margin-top:12px;font-size:12px;">This runs entirely in your browser (localStorage). Nothing is sent to Oracle's server. Clear with devtools application → storage → lens.history.v1.</p>
+    <p class="muted" style="margin-top:12px;font-size:12px;">This runs entirely in your browser (localStorage). Nothing is sent to Lens's server. Clear with devtools application → storage → lens.history.v1.</p>
   `;
   return card;
 }
@@ -837,16 +837,16 @@ function renderPriceLine(c: {
     c.priceMin > 0 &&
     c.priceMax > c.priceMin;
   const rangeChip = hasRange
-    ? `<span class="tri-chip" title="Range across the sources Oracle consulted (triangulated).">
+    ? `<span class="tri-chip" title="Range across the sources Lens consulted (triangulated).">
         <span class="tri-chip-dot" aria-hidden="true">◎</span>
         <span>median <strong>$${c.price}</strong> · ${n} retailer${n === 1 ? "" : "s"} · $${c.priceMin}–$${c.priceMax}</span>
       </span>`
     : n >= 2
-      ? `<span class="tri-chip" title="Oracle consulted ${n} independent sources and took the median.">
+      ? `<span class="tri-chip" title="Lens consulted ${n} independent sources and took the median.">
           <span class="tri-chip-dot" aria-hidden="true">◎</span>
           <span>median <strong>$${c.price}</strong> · triangulated across ${n} sources</span>
         </span>`
-      : `<span class="tri-chip tri-chip-single" title="Only one source so far. Oracle will triangulate once more retailers index this SKU.">
+      : `<span class="tri-chip tri-chip-single" title="Only one source so far. Lens will triangulate once more retailers index this SKU.">
           <span class="tri-chip-dot" aria-hidden="true">◌</span>
           <span><strong>$${c.price}</strong> · single source, not yet triangulated</span>
         </span>`;
@@ -881,7 +881,7 @@ function heroPickCard(r: AuditResult): HTMLElement {
     ? `<a href="${esc(o.url)}" target="_blank" rel="noopener noreferrer" aria-label="View ${esc(o.name)} at retailer (opens in new tab)" style="color:var(--hl-hi);text-decoration:underline;font-size:13px;">View at retailer <span aria-hidden="true">↗</span></a>`
     : `<span class="muted" style="font-size:13px;">No retailer URL available</span>`;
   card.innerHTML = `
-    <div class="card-header"><h2>Oracle's top pick</h2></div>
+    <div class="card-header"><h2>Lens's top pick</h2></div>
     <div class="hero-pick">
       <div>
         <div class="pick-product"><span class="brand">${esc(o.brand ?? "")}</span> <span class="name">${esc(o.name)}</span></div>
@@ -918,7 +918,7 @@ function criteriaCard(r: AuditResult): HTMLElement {
     <div class="card-header">
       <div>
         <h2>Your criteria</h2>
-        <p class="card-subtitle">Oracle built these from what you told it. To change them, just say what matters more (or less) in plain language.</p>
+        <p class="card-subtitle">Lens built these from what you told it. To change them, just say what matters more (or less) in plain language.</p>
       </div>
     </div>
     <form class="nl-adjust" id="nl-adjust-form" autocomplete="off">
@@ -979,7 +979,7 @@ function wireNlAdjustForm(card: HTMLElement, r: AuditResult): void {
     btn.disabled = true;
     const originalBtn = btn.textContent;
     btn.textContent = "…";
-    status.textContent = "Oracle is parsing your change.";
+    status.textContent = "Lens is parsing your change.";
     status.className = "nl-adjust-status nl-adjust-working";
     try {
       const res = await fetch(`${API_BASE}/rank/nl-adjust`, {
@@ -1149,7 +1149,7 @@ function crossModelCard(r: AuditResult): HTMLElement {
   card.innerHTML = `
     <div class="card-header">
       <h2>What other frontier models picked</h2>
-      <p class="card-subtitle">Oracle consulted every frontier model in parallel. Here's what each of them recommends for your question.</p>
+      <p class="card-subtitle">Lens consulted every frontier model in parallel. Here's what each of them recommends for your question.</p>
     </div>
     <div class="cross-model-list">
       ${r.crossModel
@@ -1160,7 +1160,7 @@ function crossModelCard(r: AuditResult): HTMLElement {
           <span class="cross-model-pick">${esc((c.pickedProduct.name || "").split("\n")[0]!.slice(0, 60))}</span>
         </div>
         <div class="cross-model-verdict ${c.agreesWithLens ? "agrees" : "disagrees"}">
-          ${c.agreesWithLens ? "✓ agrees with Oracle" : "picks differently"}
+          ${c.agreesWithLens ? "✓ agrees with Lens" : "picks differently"}
         </div>
       </div>`,
         )
@@ -1178,7 +1178,7 @@ function elapsedFooter(r: AuditResult): HTMLElement {
   return el;
 }
 
-// Oracle phase-1 commit 3: re-rank client-side from a criteria array (replaces
+// Lens phase-1 commit 3: re-rank client-side from a criteria array (replaces
 // the old slider-driven reRank). Input is the (already-normalized sum=1)
 // criteria returned from /rank/nl-adjust. Rescoring is deterministic — same
 // rank.ts math as the server, using the per-candidate normalized scores that
