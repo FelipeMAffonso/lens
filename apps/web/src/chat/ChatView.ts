@@ -383,14 +383,25 @@ export function mountChatView(opts: ChatViewOptions): void {
       { label: "🪑 Office chair under $500", value: "An office chair under $500 with lumbar support, 3D armrests, and a 10-year warranty" },
     ];
     chipsHost.innerHTML = "";
+    // Polish 2026-04-24: chips were fill-only (click → populate textarea, user
+    // then hits Enter). Changed to fill-AND-submit so a first-time visitor
+    // lands on live results with one click. Power users can ignore the chips
+    // and type directly; that path is unchanged. Shift-click preserves the
+    // old fill-only behaviour so someone can edit before submitting.
     for (const s of seeds) {
       const b = document.createElement("button");
       b.className = "lc-chip";
       b.type = "button";
       b.textContent = s.label;
-      b.addEventListener("click", () => {
+      b.setAttribute("title", "Click to run this audit. Shift+click to fill the composer without submitting.");
+      b.addEventListener("click", (ev) => {
         composer.textarea.value = s.value;
         composer.textarea.focus();
+        if ((ev as MouseEvent).shiftKey) return; // fill-only path
+        // Submit via the composer's form submit so the same onSubmit
+        // handler registered earlier fires (keeps all of the AI-paste /
+        // URL / clarifier routing in one code path).
+        composer.send.click();
       });
       chipsHost.append(b);
     }
