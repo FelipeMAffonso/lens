@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Your Shelf — what Lens is watching</title>
+  <meta name="description" content="Your Shelf on Lens. Every purchase, every watcher Lens has active — recall feeds, price-drop windows, firmware advisories, warranty expiry, subscription renewals."/>
+  <meta name="theme-color" content="#CC785C"/>
+  <link rel="icon" type="image/png" href="/icons/icon-192.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#faf9f5; --surface:#fff; --surface-hi:#f4f1ea;
+      --fg:#1a1a1a; --fg-dim:#3a3a3a; --muted:#6a6a6a;
+      --accent:#CC785C; --accent-hi:#a8593f; --accent-subtle:rgba(204,120,92,0.09);
+      --line:#e8e4dd; --border-hi:#d9d2c6;
+      --good:#1f8c5b; --good-bg:rgba(36,180,126,0.12);
+      --warn:#b3791f; --warn-bg:rgba(245,190,88,0.16);
+      --error:#b13b30; --error-bg:rgba(226,89,80,0.12);
+      --info:#2563eb; --info-bg:rgba(37,99,235,0.08);
+      --radius:4px; --radius-pill:999px;
+      --font-display:"Source Serif 4",Georgia,serif;
+      --font-body:"Inter",-apple-system,system-ui,sans-serif;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      font:14.5px/1.55 var(--font-body);
+      background:var(--bg);
+      color:var(--fg);
+      -webkit-font-smoothing:antialiased;
+    }
+    header.nav {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:14px 28px; border-bottom:1px solid var(--line); background:var(--surface);
+    }
+    header.nav .brand {
+      font-family:var(--font-display); font-size:20px; font-weight:700;
+      color:var(--fg); display:flex; align-items:center; gap:8px;
+    }
+    header.nav .brand .logo { color:var(--accent); font-size:22px; line-height:1; }
+    header.nav nav { display:flex; gap:18px; }
+    header.nav a {
+      color:var(--fg-dim); text-decoration:none; font-size:13px;
+      transition:color 150ms ease;
+    }
+    header.nav a:hover { color:var(--accent); }
+
+    main.wrap { max-width:1040px; margin:0 auto; padding:36px 28px 56px; }
+    .hero { max-width:760px; margin-bottom:32px; }
+    .hero .kicker {
+      font-size:12px; letter-spacing:0.16em; text-transform:uppercase;
+      color:var(--accent); font-weight:600; margin:0 0 10px;
+    }
+    .hero h1 {
+      font-family:var(--font-display); font-size:clamp(28px,3.6vw,40px);
+      line-height:1.12; letter-spacing:-0.02em; margin:0 0 14px;
+      font-weight:700; color:var(--fg);
+    }
+    .hero p.lede {
+      font-size:15.5px; line-height:1.6; color:var(--fg-dim); margin:0;
+    }
+    .preview-note {
+      max-width:760px; margin-bottom:24px; padding:12px 16px;
+      border-left:3px solid var(--accent); background:var(--accent-subtle);
+      border-radius:var(--radius); font-size:13px; color:var(--fg-dim);
+    }
+    .preview-note strong { color:var(--fg); }
+    .preview-note a { color:var(--accent); text-decoration:underline; }
+
+    .summary-row {
+      display:flex; gap:12px; flex-wrap:wrap;
+      margin:0 0 28px; padding:14px 16px;
+      background:var(--surface); border:1px solid var(--line); border-radius:8px;
+    }
+    .summary-stat {
+      display:flex; flex-direction:column; gap:4px;
+      padding:0 16px;
+      border-right:1px solid var(--line);
+    }
+    .summary-stat:last-child { border-right:none; }
+    .summary-stat .n {
+      font-family:var(--font-display); font-size:24px; font-weight:700;
+      color:var(--fg); line-height:1;
+    }
+    .summary-stat .l {
+      font-size:11px; text-transform:uppercase; letter-spacing:0.05em;
+      color:var(--muted);
+    }
+    .summary-stat.alert .n { color:var(--error); }
+    .summary-stat.warn .n { color:var(--warn); }
+    .summary-stat.good .n { color:var(--good); }
+
+    .shelf-grid {
+      display:grid; gap:16px;
+      grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+    }
+
+    .shelf-card {
+      background:var(--surface); border:1px solid var(--line); border-radius:10px;
+      padding:18px 20px 20px;
+      display:flex; flex-direction:column; gap:12px;
+      transition:border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+    }
+    .shelf-card:hover {
+      border-color:var(--border-hi);
+      box-shadow:0 2px 8px rgba(15,20,30,0.08);
+      transform:translateY(-1px);
+    }
+    .shelf-card.alert { border-color:var(--error); background:var(--error-bg); }
+    .shelf-card.alert:hover { border-color:var(--error); }
+
+    .shelf-card-head {
+      display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+    }
+    .shelf-card .brand {
+      font-size:11px; text-transform:uppercase; letter-spacing:0.06em;
+      color:var(--muted); margin:0;
+    }
+    .shelf-card .name {
+      font-family:var(--font-display); font-size:17px; font-weight:600;
+      line-height:1.3; color:var(--fg); margin:0; letter-spacing:-0.01em;
+    }
+    .shelf-card .price-line {
+      font-size:13px; color:var(--fg-dim); font-family:ui-monospace,"SF Mono",Menlo,monospace;
+    }
+    .shelf-card .price-line .muted { color:var(--muted); }
+    .shelf-card .price-line .drop { color:var(--good); font-weight:600; }
+
+    .watchers {
+      display:flex; flex-direction:column; gap:6px;
+      margin-top:4px; padding-top:12px;
+      border-top:1px dashed var(--line);
+    }
+    .watcher {
+      display:flex; gap:8px; align-items:flex-start; font-size:12.5px; line-height:1.4;
+    }
+    .watcher .dot {
+      flex:0 0 auto; width:8px; height:8px; border-radius:50%; margin-top:5px;
+    }
+    .watcher.good .dot { background:var(--good); }
+    .watcher.warn .dot { background:var(--warn); }
+    .watcher.alert .dot { background:var(--error); }
+    .watcher.info .dot { background:var(--info); }
+    .watcher .body { flex:1; color:var(--fg-dim); }
+    .watcher .body strong { color:var(--fg); font-weight:600; }
+
+    .card-actions {
+      display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;
+    }
+    .card-btn {
+      padding:7px 12px; font-size:12px; font-weight:600;
+      border:1px solid var(--line); background:var(--surface-hi);
+      color:var(--fg-dim); border-radius:var(--radius);
+      cursor:pointer; text-decoration:none; display:inline-block;
+      transition:all 150ms ease;
+    }
+    .card-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .card-btn.primary {
+      background:var(--accent); color:#fff; border-color:var(--accent);
+    }
+    .card-btn.primary:hover { background:var(--accent-hi); border-color:var(--accent-hi); color:#fff; }
+
+    footer.page-footer {
+      margin-top:56px; padding-top:24px; border-top:1px solid var(--line);
+      text-align:center; font-size:13px; color:var(--muted);
+    }
+    footer.page-footer a { color:var(--accent); text-decoration:none; }
+    footer.page-footer a:hover { text-decoration:underline; }
+
+    @media (max-width:560px) {
+      main.wrap { padding:24px 18px; }
+      .shelf-grid { grid-template-columns:1fr; }
+      .summary-row { flex-direction:column; gap:16px; }
+      .summary-stat { border-right:none; border-bottom:1px solid var(--line); padding:0 0 14px; }
+      .summary-stat:last-child { border-bottom:none; padding-bottom:0; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="brand">
+    <span class="logo">◉</span>
+    <span>Lens · Your Shelf</span>
+  </div>
+  <nav>
+    <a href="/">← Back to Lens</a>
+    <a href="/architecture.html">Architecture</a>
+    <a href="https://lens-api.webmarinelli.workers.dev/docs" target="_blank">API docs ↗</a>
+  </nav>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <p class="kicker">After you buy</p>
+    <h1>Your Shelf.</h1>
+    <p class="lede">
+      Every purchase you tell Lens about lives here. For each one, Lens keeps live watchers —
+      recall feeds, price-drop refund windows, firmware CVE scans, warranty expiry, subscription
+      renewals — and drafts the intervention before you realise you need it. You stay silent
+      unless something worth interrupting for fires.
+    </p>
+  </section>
+
+  <aside class="preview-note">
+    <strong>Preview mode.</strong> You're not signed in, so the shelf below is populated with the
+    canonical Sarah scenario from the Lens paper (Affonso et al., <em>Nature</em>, 2026). Once you
+    sign in and tell Lens you bought something — via the chat, Gmail connect, or a manual add —
+    your real purchases replace these cards. <a href="/">Start an audit →</a>
+  </aside>
+
+  <div class="summary-row">
+    <div class="summary-stat">
+      <span class="n">6</span>
+      <span class="l">purchases tracked</span>
+    </div>
+    <div class="summary-stat alert">
+      <span class="n">1</span>
+      <span class="l">recall fired</span>
+    </div>
+    <div class="summary-stat warn">
+      <span class="n">2</span>
+      <span class="l">renewals this week</span>
+    </div>
+    <div class="summary-stat good">
+      <span class="n">1</span>
+      <span class="l">price-drop refund</span>
+    </div>
+    <div class="summary-stat">
+      <span class="n">+$312</span>
+      <span class="l">welfare delta (10 audits)</span>
+    </div>
+  </div>
+
+  <section class="shelf-grid">
+
+    <!-- 1. Breville Bambino — calm, all green -->
+    <article class="shelf-card">
+      <div class="shelf-card-head">
+        <div>
+          <p class="brand">Breville</p>
+          <h3 class="name">Bambino espresso machine</h3>
+        </div>
+      </div>
+      <div class="price-line">
+        $347 paid · <span class="muted">Feb 14 · Williams-Sonoma</span>
+      </div>
+      <div class="watchers">
+        <div class="watcher good">
+          <span class="dot"></span>
+          <span class="body"><strong>No recalls.</strong> CPSC scanned daily · last clean run 3h ago.</span>
+        </div>
+        <div class="watcher good">
+          <span class="dot"></span>
+          <span class="body"><strong>Price stable.</strong> Median $345 across 5 retailers over the last 30 days. Below 10% band.</span>
+        </div>
+        <div class="watcher info">
+          <span class="dot"></span>
+          <span class="body"><strong>Warranty.</strong> Williams-Sonoma 30-day return expired · manufacturer 1-year through Feb 2027.</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <a class="card-btn" href="/sku.html?id=amazon:B07NVSXLF4">SKU detail ↗</a>
+        <a class="card-btn" href="/?q=Breville+Bambino">Ask Lens a question</a>
+      </div>
+    </article>
+
+    <!-- 2. Roborock S8 — RECALL fired -->
+    <article class="shelf-card alert">
+      <div class="shelf-card-head">
+        <div>
+          <p class="brand">Roborock</p>
+          <h3 class="name">S8 robot vacuum</h3>
+        </div>
+      </div>
+      <div class="price-line">
+        $649 paid · <span class="muted">Feb 28 · Amazon</span>
+      </div>
+      <div class="watchers">
+        <div class="watcher alert">
+          <span class="dot"></span>
+          <span class="body"><strong>CPSC recall #24-189</strong> · battery overheat risk, fire hazard on some units in the Feb 2026 manufacturing window. Lens matched your serial prefix to the affected lot.</span>
+        </div>
+        <div class="watcher info">
+          <span class="dot"></span>
+          <span class="body"><strong>Magnuson-Moss letter drafted</strong> with your Amazon order number + Roborock authorized-service address. Ready to send from your Gmail.</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="card-btn primary" type="button">Send the return letter</button>
+        <a class="card-btn" href="https://www.cpsc.gov/Recalls" target="_blank">View CPSC listing ↗</a>
+      </div>
+    </article>
+
+    <!-- 3. Sony WH-1000XM5 — price-drop refund -->
+    <article class="shelf-card">
+      <div class="shelf-card-head">
+        <div>
+          <p class="brand">Sony</p>
+          <h3 class="name">WH-1000XM5 headphones</h3>
+        </div>
+      </div>
+      <div class="price-line">
+        $399 paid · <span class="muted">Mar 04 · Best Buy</span> · <span class="drop">Now $352 ↓ $47</span>
+      </div>
+      <div class="watchers">
+        <div class="watcher good">
+          <span class="dot"></span>
+          <span class="body"><strong>Price-match refund available.</strong> Best Buy's 15-day window closes Mar 19. Lens drafted the claim with your receipt attached.</span>
+        </div>
+        <div class="watcher good">
+          <span class="dot"></span>
+          <span class="body"><strong>No recalls.</strong> No CVE against the paired firmware 2.3.1.</span>
+        </div>
+        <div class="watcher info">
+          <span class="dot"></span>
+          <span class="body"><strong>Warranty.</strong> Sony 12-month · Best Buy Geek Squad 15-month add-on (not enrolled).</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="card-btn primary" type="button">File the $47 refund</button>
+        <a class="card-btn" href="/sku.html?id=amazon:B09XS7JWHH">SKU detail ↗</a>
+      </div>
+    </article>
+
+    <!-- 4. ThinkPad E14 — firmware patched -->
+    <article class="shelf-card">
+      <div class="shelf-card-head">
+        <div>
+          <p class="brand">Lenovo</p>
+          <h3 class="name">ThinkPad E14 Gen 5 (AMD)</h3>
+        </div>
+      </div>
+      <div class="price-line">
+        $912 paid · <span class="muted">Jan 21 · Lenovo.com</span>
+      </div>
+      <div class="watchers">
+        <div class="watcher good">
+          <span class="dot"></span>
+          <span class="body"><strong>Firmware current.</strong> Last BIOS advisory (R0AUJ30W, AMD LFENCE serialisation) applied 2026-03-11. No open CVEs against your config.</span>
+        </div>
+        <div class="watcher good">
+          <span class="dot"></span>
+          <span class="body"><strong>No recalls.</strong> NVD weekly scan + Lenovo advisory feed both clean.</span>
+        </div>
+        <div class="watcher info">
+          <span class="dot"></span>
+          <span class="body"><strong>Warranty.</strong> Lenovo depot 1-year · Lens will nudge you 60 days before expiry.</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <a class="card-btn" href="/sku.html?id=lenovo:len101t0043">SKU detail ↗</a>
+        <a class="card-btn" href="https://support.lenovo.com" target="_blank">Lenovo support ↗</a>
+      </div>
+    </article>
+
+    <!-- 5. Marriott hotel — intervention filed -->
+    <article class="shelf-card">
+      <div class="shelf-card-head">
+        <div>
+          <p class="brand">Marriott</p>
+          <h3 class="name">Courtyard Downtown · 2-night stay</h3>
+        </div>
+      </div>
+      <div class="price-line">
+        $298/night · <span class="muted">Feb 17–19 · Marriott.com</span>
+      </div>
+      <div class="watchers">
+        <div class="watcher warn">
+          <span class="dot"></span>
+          <span class="body"><strong>Hidden cost logged.</strong> $49/night destination amenity fee was absent from the product page — surfaced only at checkout. Covered by FTC Junk Fees Rule (16 CFR Part 464).</span>
+        </div>
+        <div class="watcher info">
+          <span class="dot"></span>
+          <span class="body"><strong>FTC complaint filed</strong> via reportfraud.ftc.gov on Feb 18 · case #FTC-2026-INQ-99412 · itemised receipt attached for expense dispute.</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <a class="card-btn" href="#" onclick="return false">Download itemised receipt</a>
+        <a class="card-btn" href="https://reportfraud.ftc.gov" target="_blank">FTC case status ↗</a>
+      </div>
+    </article>
+
+    <!-- 6. Netflix — auto-renew in 6 days -->
+    <article class="shelf-card">
+      <div class="shelf-card-head">
+        <div>
+          <p class="brand">Netflix</p>
+          <h3 class="name">Standard (with ads) subscription</h3>
+        </div>
+      </div>
+      <div class="price-line">
+        $6.99/mo · <span class="muted">since Jul 2024 · autorenew Apr 30</span>
+      </div>
+      <div class="watchers">
+        <div class="watcher warn">
+          <span class="dot"></span>
+          <span class="body"><strong>Auto-renew fires in 6 days</strong> · used 0 hours this month · flagged for review by Lens's subscription watcher.</span>
+        </div>
+        <div class="watcher info">
+          <span class="dot"></span>
+          <span class="body"><strong>Cancellation letter drafted</strong> citing CA SB-313 (automatic renewal reminder rule). Ready to send from your Gmail + close the account.</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="card-btn primary" type="button">Cancel and keep $83.88/yr</button>
+        <button class="card-btn" type="button">Keep watching</button>
+      </div>
+    </article>
+
+  </section>
+
+  <footer class="page-footer">
+    <p>
+      Every watcher is live today — CPSC / NHTSA / FDA recall feeds · Keepa + 8-retailer
+      price-match-window table · NVD + Lenovo/ASUS/Netgear/Philips/Bose firmware advisories
+      · state-by-state subscription-cancellation law library · FTC Junk Fees Rule.
+      <a href="/architecture.html">See the architecture receipts ↗</a>
+    </p>
+    <p style="margin-top:16px;font-size:12px;">
+      Open source MIT · <a href="https://github.com/FelipeMAffonso/lens" target="_blank">github.com/FelipeMAffonso/lens</a>
+    </p>
+  </footer>
+</main>
+
+</body>
+</html>
