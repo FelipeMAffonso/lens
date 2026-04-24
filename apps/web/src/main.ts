@@ -968,11 +968,33 @@ function criteriaCard(r: AuditResult): HTMLElement {
       />
       <button type="submit" class="nl-adjust-btn">Re-rank</button>
     </form>
+    <div class="nl-adjust-presets" aria-label="Quick preset adjustments">
+      <span class="nl-adjust-presets-label">or try:</span>
+      <button type="button" class="nl-adjust-preset" data-preset="make it quieter">make it quieter</button>
+      <button type="button" class="nl-adjust-preset" data-preset="make it cheaper">make it cheaper</button>
+      <button type="button" class="nl-adjust-preset" data-preset="care more about durability">more durable</button>
+      <button type="button" class="nl-adjust-preset" data-preset="better battery life">better battery</button>
+      <button type="button" class="nl-adjust-preset" data-preset="easier to repair">easier to repair</button>
+    </div>
     <div class="nl-adjust-status" id="nl-adjust-status" role="status" aria-live="polite"></div>
     <div class="criteria-chips" id="criteria-chips"></div>
   `;
   renderCriteriaChips(card.querySelector<HTMLElement>("#criteria-chips")!, r.intent.criteria);
   wireNlAdjustForm(card, r);
+  // Polish 2026-04-24: preset chips feed the NL-adjust form + auto-submit.
+  // Teaches discoverability ("oh, these are the things I can change") AND
+  // gives one-click re-rank for the demo recorder — no typing needed.
+  card.querySelectorAll<HTMLButtonElement>(".nl-adjust-preset").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const preset = btn.dataset["preset"];
+      if (!preset) return;
+      const input = card.querySelector<HTMLInputElement>("#nl-adjust-input");
+      const submit = card.querySelector<HTMLButtonElement>(".nl-adjust-btn");
+      if (!input || !submit) return;
+      input.value = preset;
+      submit.click();
+    });
+  });
   return card;
 }
 

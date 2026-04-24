@@ -436,6 +436,43 @@ textarea { font-family: inherit; resize: vertical; min-height: 80px; font-size: 
 .nl-adjust-btn:hover:not(:disabled) { background: var(--accent-hi); }
 .nl-adjust-btn:active:not(:disabled) { transform: translateY(1px); }
 .nl-adjust-btn:disabled { opacity: 0.6; cursor: progress; }
+/* Polish 2026-04-24: preset chip row under the NL-adjust input. One-click
+   re-rank without typing. Each chip fills the input + submits. */
+.nl-adjust-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.nl-adjust-presets-label {
+  margin-right: 4px;
+}
+.nl-adjust-preset {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--surface-hi);
+  color: var(--fg-dim);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease;
+}
+.nl-adjust-preset:hover {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent-hi);
+}
+.nl-adjust-preset:active { transform: scale(0.97); }
+.nl-adjust-preset:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-ring);
+}
+
 .nl-adjust-status {
   min-height: 18px;
   font-size: 13px;
