@@ -17,8 +17,27 @@ export async function rankCandidates(
   // Judge P0 #1 / P1 #4: filter blank / whitespace-only names before any downstream
   // string op. P1 #7: treat malformed intent as an empty criteria bag.
   const safeIntent = intent ?? ({} as UserIntent);
-  const safeCandidates = candidates.filter(
-    (c): c is Candidate => !!c && typeof c.name === "string" && c.name.trim().length > 0,
+  // Polish 2026-04-24: when the user stated a budget max, respect it. Previously
+  // "under $400" was just fed into the search prompt but rank.ts treated price
+  // as a weighted criterion, so an over-budget item with great build could win
+  // the top pick (e.g. $499 Bambino Plus for a $400 query). Now drop candidates
+  // priced above budget.max * 1.10 (10 % grace for currency rounding + tax
+  // wiggle). If the filter empties the set, keep the original candidates —
+  // better to show over-budget picks than an empty result.
+  const budgetMax = safeIntent.budget?.max;
+  const filterByBudget = (cs: Candidate[]): Candidate[] => {
+    if (!budgetMax || budgetMax <= 0) return cs;
+    const ceiling = budgetMax * 1.1;
+    const under = cs.filter(
+      (c): c is Candidate => !!c && (c.price == null || c.price <= ceiling),
+    );
+    if (under.length === 0) return cs; // fall back rather than return empty
+    return under;
+  };
+  const safeCandidates = filterByBudget(
+    candidates.filter(
+      (c): c is Candidate => !!c && typeof c.name === "string" && c.name.trim().length > 0,
+    ),
   );
   const VALID_DIRECTIONS = new Set(["higher_is_better", "lower_is_better", "target", "binary"] as const);
   type CriterionShape = {

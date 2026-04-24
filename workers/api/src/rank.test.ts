@@ -262,4 +262,75 @@ describe("rankCandidates", () => {
       expect(c.utilityScore).toBeLessThanOrEqual(1);
     }
   });
+
+  // Polish 2026-04-24: budget.max is a constraint, not just a weight.
+  it("filters out candidates above budget.max * 1.10", async () => {
+    const intent: UserIntent = {
+      category: "espresso",
+      criteria: [{ name: "build_quality", weight: 1, direction: "higher_is_better" }],
+      budget: { max: 400, currency: "USD" },
+      rawCriteriaText: "under $400",
+    };
+    const ranked = await rankCandidates(intent, [
+      candidate("Cheap but mediocre", { build_quality: 3 }, 200),
+      candidate("On-budget great build", { build_quality: 9 }, 395),
+      candidate("Over-budget perfect", { build_quality: 10 }, 600), // should be dropped
+      candidate("Just over grace ceiling", { build_quality: 10 }, 500), // should be dropped (ceiling = 440)
+    ]);
+    // With budget 400 + 10% grace = 440 ceiling. 500 and 600 dropped.
+    expect(ranked).toHaveLength(2);
+    expect(ranked.map((c) => c.name)).not.toContain("Over-budget perfect");
+    expect(ranked.map((c) => c.name)).not.toContain("Just over grace ceiling");
+    // Top pick should be on-budget great build (highest build_quality under $440).
+    expect(ranked[0]!.name).toBe("On-budget great build");
+  });
+
+  it("falls back to unfiltered candidates if budget filter empties the set", async () => {
+    const intent: UserIntent = {
+      category: "tv",
+      criteria: [{ name: "screen_size", weight: 1, direction: "higher_is_better" }],
+      budget: { max: 100, currency: "USD" }, // unrealistic
+      rawCriteriaText: "under $100",
+    };
+    const ranked = await rankCandidates(intent, [
+      candidate("Small", { screen_size: 32 }, 300),
+      candidate("Mid", { screen_size: 50 }, 600),
+      candidate("Big", { screen_size: 75 }, 1200),
+    ]);
+    // Budget 100 + 10% = 110 ceiling — no candidate qualifies. Fall back to full set.
+    expect(ranked).toHaveLength(3);
+  });
+
+  it("skips budget filter when budget.max is absent", async () => {
+    const intent: UserIntent = {
+      category: "test",
+      criteria: [{ name: "build_quality", weight: 1, direction: "higher_is_better" }],
+      rawCriteriaText: "no budget stated",
+    };
+    const ranked = await rankCandidates(intent, [
+      candidate("A", { build_quality: 5 }, 100),
+      candidate("B", { build_quality: 7 }, 500),
+      candidate("C", { build_quality: 9 }, 999),
+    ]);
+    expect(ranked).toHaveLength(3);
+    expect(ranked[0]!.name).toBe("C"); // highest build wins with no budget filter
+  });
+
+  it("ignores candidates with null price in budget filter (price-not-verified)", async () => {
+    const intent: UserIntent = {
+      category: "test",
+      criteria: [{ name: "build_quality", weight: 1, direction: "higher_is_better" }],
+      budget: { max: 400, currency: "USD" },
+      rawCriteriaText: "under $400",
+    };
+    const ranked = await rankCandidates(intent, [
+      { ...candidate("Unknown price", { build_quality: 8 }, 100), price: null as unknown as number },
+      candidate("Cheap good", { build_quality: 7 }, 300),
+      candidate("Over budget", { build_quality: 10 }, 900),
+    ]);
+    // Null-price candidate must NOT be filtered out (we don't know if it's over budget).
+    const names = ranked.map((c) => c.name);
+    expect(names).toContain("Unknown price");
+    expect(names).not.toContain("Over budget");
+  });
 });
