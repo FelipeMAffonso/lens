@@ -315,10 +315,12 @@ export function mountChatView(opts: ChatViewOptions): void {
       rotator?.stop();
       rotator = null;
       const msg = (err as Error).message;
-      const t = store.append(
-        "assistant",
-        "I ran into a problem running the search. Check the console for details, or try again in a moment.",
-      );
+      // Polish 2026-04-24: turn the generic "hit a problem" catch into a
+      // specific diagnostic + recovery hint so the user knows whether to
+      // retry, rephrase, or wait. Inspect the thrown message for known
+      // failure modes.
+      const friendly = diagnoseAuditError(msg);
+      const t = store.append("assistant", friendly);
       transcript.append(botBubble(t.text));
       console.warn("[chat] audit failed:", msg);
       phase = "elicit";
@@ -503,6 +505,32 @@ export function mountChatView(opts: ChatViewOptions): void {
     }
     chipsHost.append(b);
   }
+}
+
+/**
+ * Polish 2026-04-24: turn a raw error message from the audit stream into
+ * a specific, actionable sentence for the user. Distinguishes timeouts,
+ * server 5xx, stream cut-off, and network loss so the user knows whether
+ * to retry verbatim, rephrase, or wait.
+ */
+function diagnoseAuditError(msg: string): string {
+  const m = (msg ?? "").toLowerCase();
+  if (m.includes("aborted") || m.includes("timeout") || m.includes("abort")) {
+    return "That took longer than 30 seconds to come back. The upstream AI may be slow right now — try again in a moment, or narrow the query with a budget and one or two firm criteria.";
+  }
+  if (m.includes("stream closed without result")) {
+    return "The audit got cut off before Lens could finalise. This usually means the upstream AI hit a rate limit mid-run. Try again in ~20 seconds.";
+  }
+  if (/\baudit\/stream 5\d\d/.test(m) || /\baudit\/stream (500|502|503|504)/.test(m)) {
+    return "Lens's backend hit a hiccup on this run (5xx response). Try again in a moment — if it keeps failing, check the Cloudflare Worker logs at lens-api.webmarinelli.workers.dev.";
+  }
+  if (m.includes("audit/stream 4")) {
+    return "Lens rejected the request (4xx). Double-check the URL or re-type the query — it may have unusual characters.";
+  }
+  if (m.includes("failed to fetch") || m.includes("networkerror") || m.includes("load failed")) {
+    return "I couldn't reach Lens's backend. Check your internet connection and try again.";
+  }
+  return "I ran into a problem running the audit. Check the browser console for details, or try again in a moment. If it keeps failing, try a simpler query like the example chips above.";
 }
 
 /**
