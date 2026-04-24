@@ -6,6 +6,10 @@ export interface RotatingStatusHandle {
   root: HTMLElement;
   stop(): void;
   finalize(finalText?: string): void;
+  /** Judge P0-3 (2026-04-24): externally set the phrase (from /audit/stream SSE
+   * events). Calling setPhrase disables the internal rotation timer so the
+   * real pipeline events don't fight the canned phrase cycle. */
+  setPhrase(text: string): void;
 }
 
 export interface RotatingStatusOptions {
@@ -97,6 +101,17 @@ export function mountRotatingStatus(
         root.classList.add("lc-rotator-done");
       }
       setTimeout(() => root.remove(), 600);
+    },
+    setPhrase(text: string): void {
+      // Judge P0-3: once caller drives updates, silence the canned timer.
+      clearInterval(timer);
+      if (!text || stopped) return;
+      textEl.classList.add("lc-rotator-text-out");
+      setTimeout(() => {
+        if (stopped) return;
+        textEl.textContent = text;
+        textEl.classList.remove("lc-rotator-text-out");
+      }, 120);
     },
   };
 }

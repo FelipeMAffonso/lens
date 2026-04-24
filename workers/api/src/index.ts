@@ -711,7 +711,10 @@ app.get("/trace/:runId", async (c) => {
 
 app.post("/audit/stream", async (c) => {
   // Server-sent-events variant for the live streaming sub-agent panel.
-  // Emits events: "extract", "search", "verify", "rank", "crossModel:<provider>", "done", "error".
+  // Emits events: "extract", "search", "verify", "rank", "crossModel:<provider>", "result", "done", "error".
+  // Judge P1-5 (2026-04-24): adds a final "result" event carrying the full
+  // AuditResult so clients can skip a separate /audit POST (was double-firing
+  // the pipeline). Backward compat: "done" still fires after "result".
   const body = await c.req.json().catch(() => null);
   const parsed = AuditInputSchema.safeParse(body);
   if (!parsed.success) {
@@ -725,7 +728,8 @@ app.post("/audit/stream", async (c) => {
         controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
       };
       try {
-        await runAuditPipeline(parsed.data, c.env, { onEvent: send });
+        const result = await runAuditPipeline(parsed.data, c.env, { onEvent: send });
+        send("result", result);
         send("done", { ok: true });
       } catch (err) {
         send("error", { message: (err as Error).message });

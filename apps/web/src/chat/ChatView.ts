@@ -279,16 +279,15 @@ export function mountChatView(opts: ChatViewOptions): void {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/audit`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body,
+      // Judge P0-3 + P1-5 (2026-04-24): use /audit/stream as the ONE
+      // pipeline call. SSE events drive the rotator with real pipeline
+      // progress ("Understanding what you need → Looking at 12 real
+      // products → …"), and the final "result" event carries the full
+      // AuditResult so we never fire /audit + /audit/stream concurrently
+      // (was a double-pipeline charge).
+      const audit = await streamAudit(body, (label) => {
+        if (rotator && label) rotator.setPhrase(label);
       });
-      if (!res.ok) {
-        const errText = await res.text().catch(() => "");
-        throw new Error(`audit ${res.status} ${errText.slice(0, 200)}`);
-      }
-      const audit = (await res.json()) as AuditResult;
       lastAudit = audit;
 
       // Bot's one-paragraph recap — use specOptimal + top criterion from the audit.
@@ -493,6 +492,93 @@ export function mountChatView(opts: ChatViewOptions): void {
     }
     chipsHost.append(b);
   }
+}
+
+/**
+ * Judge P0-3 + P1-5 (2026-04-24): /audit/stream SSE consumer that feeds
+ * human-readable progress labels into the chat rotator AND returns the
+ * final AuditResult emitted by the server's "result" event. Replaces the
+ * prior "fire runStream in parallel with /audit POST" pattern (double
+ * pipeline call). Throws on the "error" event or if no "result" arrives
+ * before the stream closes.
+ */
+async function streamAudit(body: string, onStatus: (label: string) => void): Promise<AuditResult> {
+  const res = await fetch(`${API_BASE}/audit/stream`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body,
+  });
+  if (!res.ok || !res.body) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(`audit/stream ${res.status} ${errText.slice(0, 200)}`);
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let result: AuditResult | null = null;
+  let lastErr: string | null = null;
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() ?? "";
+    for (const chunk of parts) {
+      const eventMatch = chunk.match(/^event: (.+)$/m);
+      const dataMatch = chunk.match(/^data: (.+)$/m);
+      if (!eventMatch || !dataMatch) continue;
+      const event = eventMatch[1]!;
+      let data: unknown;
+      try {
+        data = JSON.parse(dataMatch[1]!);
+      } catch {
+        continue;
+      }
+      if (event === "result") {
+        result = data as AuditResult;
+      } else if (event === "error") {
+        lastErr = ((data as { message?: string }).message ?? "unknown").slice(0, 200);
+      } else if (event === "done") {
+        // final event; loop will exit next iteration
+      } else {
+        const label = humanizeStreamEvent(event, data);
+        if (label) onStatus(label);
+      }
+    }
+  }
+  if (!result) {
+    throw new Error(lastErr ?? "audit stream closed without result");
+  }
+  return result;
+}
+
+function humanizeStreamEvent(event: string, data: unknown): string | null {
+  const d = data as Record<string, unknown>;
+  if (event === "extract:done") {
+    const cat = (d.intent as { category?: string } | undefined)?.category;
+    return cat && cat !== "product" ? `Understanding what you need (${cat})` : "Understanding what you need";
+  }
+  if (event === "search:done") {
+    const count = d.count ?? "?";
+    return `Looking at ${count} real products across retailers`;
+  }
+  if (event === "verify:done") {
+    const n = Array.isArray(d.claims) ? (d.claims as unknown[]).length : 0;
+    return n === 0 ? "No AI claims to check" : `Double-checking ${n} AI claim${n === 1 ? "" : "s"}`;
+  }
+  if (event === "rank:done") {
+    const top = (d.top as { name?: string } | undefined)?.name;
+    return top ? `Best match so far: ${top}` : "Ranking with transparent utility math";
+  }
+  if (event === "crossModel:done") {
+    const r = d.results as Array<{ agreesWithLens?: boolean }> | undefined;
+    if (!r || r.length === 0) return "Other-model comparison skipped";
+    const agree = r.filter((x) => x.agreesWithLens).length;
+    return `Other frontier models: ${agree} of ${r.length} agree with Lens`;
+  }
+  if (event === "enrich:done") return "Checking scam, breach, price-history, provenance";
+  return null;
 }
 
 function buildRecap(audit: AuditResult, topCriterion?: string): string {

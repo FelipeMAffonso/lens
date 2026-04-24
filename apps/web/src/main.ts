@@ -155,19 +155,12 @@ async function runAudit(): Promise<void> {
     body = { kind: "text", source, raw, userPrompt };
   }
 
-  void runStream(body, logEl);
-
-  const res = await fetch(`${API_BASE}/audit`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const err = await res.text().catch(() => "");
-    logEl.append(logLine(`Error: ${res.status}. ${err.slice(0, 200)}`));
-    return;
-  }
-  const result = (await res.json()) as AuditResult;
+  // Judge P1-5 (2026-04-24): use /audit/stream as the ONE pipeline call.
+  // The SSE stream emits human-readable stage events into the log AND a
+  // final "result" event with the AuditResult. Previous code fired
+  // /audit/stream AND /audit concurrently → double pipeline cost.
+  const result = await runStream(body, logEl);
+  if (!result) return;
   currentResult = result;
 
   // Save preference profile for this category (W50)
@@ -200,17 +193,22 @@ async function runAudit(): Promise<void> {
   renderResult(result);
 }
 
-async function runStream(body: unknown, logEl: HTMLElement): Promise<void> {
+async function runStream(body: unknown, logEl: HTMLElement): Promise<AuditResult | null> {
   try {
     const res = await fetch(`${API_BASE}/audit/stream`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     });
-    if (!res.ok || !res.body) return;
+    if (!res.ok || !res.body) {
+      logEl.append(logLine(`Error: audit/stream ${res.status}`));
+      return null;
+    }
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let result: AuditResult | null = null;
+    let lastErr: string | null = null;
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
@@ -221,12 +219,29 @@ async function runStream(body: unknown, logEl: HTMLElement): Promise<void> {
         const event = chunk.match(/^event: (.+)$/m)?.[1];
         const dataJson = chunk.match(/^data: (.+)$/m)?.[1];
         if (!event || !dataJson) continue;
-        const data = JSON.parse(dataJson);
-        logEl.append(logLine(`${event.replace(":", " → ")} · ${summarize(event, data)}`));
+        let data: unknown;
+        try {
+          data = JSON.parse(dataJson);
+        } catch {
+          continue;
+        }
+        if (event === "result") {
+          result = data as AuditResult;
+        } else if (event === "error") {
+          lastErr = ((data as { message?: string }).message ?? "unknown").slice(0, 200);
+          logEl.append(logLine(`Error: ${lastErr}`));
+        } else if (event !== "done") {
+          logEl.append(logLine(`${event.replace(":", " → ")} · ${summarize(event, data)}`));
+        }
       }
     }
-  } catch {
-    // silent
+    if (!result && lastErr === null) {
+      logEl.append(logLine("Error: audit stream closed without result"));
+    }
+    return result;
+  } catch (err) {
+    logEl.append(logLine(`Error: ${(err as Error).message.slice(0, 200)}`));
+    return null;
   }
 }
 
