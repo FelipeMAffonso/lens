@@ -357,6 +357,30 @@ textarea { font-family: inherit; resize: vertical; min-height: 80px; font-size: 
 .hero-pick .pick-price { font-size: 16px; color: var(--fg-dim); }
 .hero-pick .pick-price .amount { color: var(--fg); font-weight: 700; }
 
+/* Triangulation chip — shows "median $X · N retailers · $Y-$Z" on the hero pick.
+   The dot icon prefix signals triangulated (◎ filled) vs single-source (◌ open). */
+.pick-price-line { display: inline-flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.tri-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent-ring);
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  color: var(--fg-dim);
+  line-height: 1.3;
+}
+.tri-chip strong { color: var(--fg); font-weight: 700; }
+.tri-chip-dot { color: var(--accent); font-size: 15px; line-height: 1; }
+.tri-chip-single {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--fg-muted);
+}
+.tri-chip-single .tri-chip-dot { color: var(--fg-muted); }
+
 .match-bar { display: flex; align-items: center; gap: 10px; }
 .match-bar-fill { flex: 1; height: 8px; background: var(--surface-hi); border-radius: var(--radius-pill); overflow: hidden; }
 .match-bar-fill > div { height: 100%; background: var(--accent); transition: width 0.4s ease; }

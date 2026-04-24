@@ -630,7 +630,7 @@ function welfareDeltaCard(): HTMLElement {
   if (history.length < 3) {
     card.innerHTML = `
       <div class="card-header"><h2>Welfare-delta (your history)</h2></div>
-      <p class="muted" style="margin:0;">After ~10 audits, Lens will show you the utility + dollar delta between the AI's picks and Lens's picks across your history. Currently at ${history.length} audit${history.length === 1 ? "" : "s"}.</p>
+      <p class="muted" style="margin:0;">After ~10 audits, Oracle will show you the utility + dollar delta between the AI's picks and Oracle's picks across your history. Currently at ${history.length} audit${history.length === 1 ? "" : "s"}.</p>
     `;
     return card;
   }
@@ -656,7 +656,7 @@ function welfareDeltaCard(): HTMLElement {
         <div style="color:var(--fg-dim);font-size:12px;margin-top:4px;">AI pick vs Lens pick</div>
       </div>
     </div>
-    <p class="muted" style="margin-top:12px;font-size:12px;">This runs entirely in your browser (localStorage). Nothing is sent to Lens's server. Clear with devtools application → storage → lens.history.v1.</p>
+    <p class="muted" style="margin-top:12px;font-size:12px;">This runs entirely in your browser (localStorage). Nothing is sent to Oracle's server. Clear with devtools application → storage → lens.history.v1.</p>
   `;
   return card;
 }
@@ -820,21 +820,41 @@ function fitLabel(score: number): string {
 // lie by saying "$279 IS the price" — it says "we last observed ~$279 here, and
 // if you find a lower price elsewhere, that's good for you, click through to
 // verify". Price-from-outside-retailer discounts are a *feature*, not a bug.
-function renderPriceLine(c: { price: number | null; priceSources?: number; priceObservedAt?: string }): string {
+function renderPriceLine(c: {
+  price: number | null;
+  priceSources?: number;
+  priceMin?: number;
+  priceMax?: number;
+  priceObservedAt?: string;
+}): string {
   if (c.price == null || c.price <= 0) {
     return `<span class="muted">Price not verified yet, check the retailer link below for the current number.</span>`;
   }
   const n = c.priceSources ?? 0;
-  const sourceNote =
-    n >= 3 ? `triangulated across ${n} sources`
-    : n === 2 ? `triangulated across 2 sources`
-    : n === 1 ? `from one source, not yet triangulated`
-    : `last observation, not yet triangulated`;
+  const hasRange =
+    typeof c.priceMin === "number" &&
+    typeof c.priceMax === "number" &&
+    c.priceMin > 0 &&
+    c.priceMax > c.priceMin;
+  const rangeChip = hasRange
+    ? `<span class="tri-chip" title="Range across the sources Oracle consulted (triangulated).">
+        <span class="tri-chip-dot" aria-hidden="true">◎</span>
+        <span>median <strong>$${c.price}</strong> · ${n} retailer${n === 1 ? "" : "s"} · $${c.priceMin}–$${c.priceMax}</span>
+      </span>`
+    : n >= 2
+      ? `<span class="tri-chip" title="Oracle consulted ${n} independent sources and took the median.">
+          <span class="tri-chip-dot" aria-hidden="true">◎</span>
+          <span>median <strong>$${c.price}</strong> · triangulated across ${n} sources</span>
+        </span>`
+      : `<span class="tri-chip tri-chip-single" title="Only one source so far. Oracle will triangulate once more retailers index this SKU.">
+          <span class="tri-chip-dot" aria-hidden="true">◌</span>
+          <span><strong>$${c.price}</strong> · single source, not yet triangulated</span>
+        </span>`;
   const freshness = relativePriceFreshness(c.priceObservedAt);
+  const freshnessNote = freshness ? `<span class="muted" style="font-size:11px;margin-left:6px;">${freshness}</span>` : "";
   return `
-    <span class="amount">~$${c.price}</span>
-    <span class="muted">&nbsp;· ${sourceNote}${freshness ? `, ${freshness}` : ""}</span>
-    <div class="muted" style="font-size:11px;margin-top:2px;">Retailer price may differ, check the link. If the retailer is lower that's good, take it.</div>
+    <div class="pick-price-line">${rangeChip}${freshnessNote}</div>
+    <div class="muted" style="font-size:11px;margin-top:4px;">Retailer price may differ. If the retailer is lower, take it.</div>
   `;
 }
 
@@ -861,7 +881,7 @@ function heroPickCard(r: AuditResult): HTMLElement {
     ? `<a href="${esc(o.url)}" target="_blank" rel="noopener noreferrer" aria-label="View ${esc(o.name)} at retailer (opens in new tab)" style="color:var(--hl-hi);text-decoration:underline;font-size:13px;">View at retailer <span aria-hidden="true">↗</span></a>`
     : `<span class="muted" style="font-size:13px;">No retailer URL available</span>`;
   card.innerHTML = `
-    <div class="card-header"><h2>Lens's top pick</h2></div>
+    <div class="card-header"><h2>Oracle's top pick</h2></div>
     <div class="hero-pick">
       <div>
         <div class="pick-product"><span class="brand">${esc(o.brand ?? "")}</span> <span class="name">${esc(o.name)}</span></div>
@@ -1030,7 +1050,7 @@ function crossModelCard(r: AuditResult): HTMLElement {
   card.innerHTML = `
     <div class="card-header">
       <h2>What other frontier models picked</h2>
-      <p class="card-subtitle">Parallel fan-out via Claude Managed Agent</p>
+      <p class="card-subtitle">Oracle consulted every frontier model in parallel. Here's what each of them recommends for your question.</p>
     </div>
     <div class="cross-model-list">
       ${r.crossModel
@@ -1041,7 +1061,7 @@ function crossModelCard(r: AuditResult): HTMLElement {
           <span class="cross-model-pick">${esc((c.pickedProduct.name || "").split("\n")[0]!.slice(0, 60))}</span>
         </div>
         <div class="cross-model-verdict ${c.agreesWithLens ? "agrees" : "disagrees"}">
-          ${c.agreesWithLens ? "✓ agrees with Lens" : "sides with host AI"}
+          ${c.agreesWithLens ? "✓ agrees with Oracle" : "picks differently"}
         </div>
       </div>`,
         )
