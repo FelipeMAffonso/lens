@@ -134,6 +134,43 @@
   cursor: not-allowed;
 }
 
+/* Oracle phase-2 — photo attach button in the composer. Sits left of the
+   textarea, opens file picker on desktop + camera on mobile. */
+.lc-composer-attach {
+  flex: 0 0 auto;
+  width: 40px;
+  min-height: 44px;
+  border: 1px solid rgba(15,20,30,0.14);
+  border-radius: 12px;
+  background: #fff;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 150ms var(--lc-ease), border-color 150ms var(--lc-ease), transform 150ms var(--lc-ease);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.lc-composer-attach:hover:not(:disabled) {
+  background: #faf9f5;
+  border-color: var(--lc-accent);
+}
+.lc-composer-attach:active:not(:disabled) { transform: scale(0.97); }
+.lc-composer-attach:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.lc-user-image {
+  padding: 6px;
+  background: var(--lc-user-bg);
+  border-radius: 12px;
+  align-self: flex-end;
+  max-width: 80%;
+}
+.lc-user-image img {
+  display: block;
+  border-radius: 8px;
+}
+
 .lc-rotator {
   display: inline-flex;
   align-items: center;

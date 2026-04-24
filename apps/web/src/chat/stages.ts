@@ -70,20 +70,58 @@ export function looksLikeAIRecommendation(text: string): boolean {
   return score >= 2;
 }
 
-// D2 — detect a pasted retailer URL in chat. Short-circuits to /audit with
-// kind="url" so the S3-W15 per-host parsers can fetch the PDP directly.
-const RETAILER_URL_RE = /^https?:\/\/(?:www\.)?(amazon|bestbuy|walmart|target|homedepot|costco|ebay|etsy|sams|newegg|bhphotovideo|adorama|rei|dickssportinggoods|academy|zappos|zappo|wayfair|potterybarn|ikea|apple|microsoft|sony|samsung|lg|lenovo|dell|hp|breville|dyson|delonghi|bose|sennheiser|logitech|anker|nike|adidas|patagonia|northface|columbia|llbean|tesla|peloton|temu|aliexpress|shein|wish|rakuten|jd|tmall|mercadolibre|argos|currys|johnlewis|mediamarkt|otto|zalando)\./i;
+// D2 / Oracle phase-2 workflow coverage — detect ANY http(s) URL in chat.
+// Short-circuits to /audit with kind="url". The backend /audit url path runs
+// S3-W15 per-host parsers first (amazon/bestbuy/walmart/target/homedepot/
+// shopify/universal JSON-LD/OpenGraph/microdata) and falls through to the
+// Jina-markdown + Opus structured-extraction pipeline for any site. So the
+// client only needs to recognize "this is a URL" — the server figures out
+// the rest and will degrade gracefully (insufficient-data stub) if a page
+// blocks bots and lacks any structured hints.
+const KNOWN_RETAILER_RE = /^https?:\/\/(?:www\.)?(amazon|bestbuy|walmart|target|homedepot|costco|ebay|etsy|sams|newegg|bhphotovideo|adorama|rei|dickssportinggoods|academy|zappos|zappo|wayfair|potterybarn|ikea|apple|microsoft|sony|samsung|lg|lenovo|dell|hp|breville|dyson|delonghi|bose|sennheiser|logitech|anker|nike|adidas|patagonia|northface|columbia|llbean|tesla|peloton|temu|aliexpress|shein|wish|rakuten|jd|tmall|mercadolibre|argos|currys|johnlewis|mediamarkt|otto|zalando)\./i;
 
-export function looksLikeRetailerUrl(text: string): { ok: true; url: string } | { ok: false } {
+function hostFromUrl(url: string): string | null {
+  try {
+    return new URL(url).host.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
+export function looksLikeAnyProductUrl(text: string): { ok: true; url: string; knownRetailer: boolean } | { ok: false } {
   const t = text.trim();
   // Accept a line that's just a URL, or a URL with minimal prefix text.
   const match = t.match(/https?:\/\/\S+/);
   if (!match) return { ok: false };
-  const url = match[0].replace(/[.,;]+$/, "");
-  if (!RETAILER_URL_RE.test(url)) return { ok: false };
-  // Reject if the message also contains full sentences — that's a reco paste.
+  const url = match[0].replace(/[.,;:!)\]}"'>]+$/, "");
+  const host = hostFromUrl(url);
+  if (!host) return { ok: false };
+  // Reject obvious non-product hosts (search engines, social, doc tools,
+  // AI chat hosts). Anything else is fair game for the resolver pipeline.
+  const NON_PRODUCT_HOSTS = new Set([
+    "google.com", "bing.com", "duckduckgo.com",
+    "twitter.com", "x.com", "facebook.com", "instagram.com", "tiktok.com", "linkedin.com",
+    "chatgpt.com", "chat.openai.com", "claude.ai", "gemini.google.com", "perplexity.ai",
+    "docs.google.com", "notion.so", "figma.com",
+    "github.com", "stackoverflow.com", "reddit.com",
+    "wikipedia.org", "wikidata.org",
+    "youtube.com", "vimeo.com",
+    "mail.google.com", "outlook.live.com",
+  ]);
+  const bareHost = host.replace(/:\d+$/, "");
+  if (NON_PRODUCT_HOSTS.has(bareHost)) return { ok: false };
+  // Reject if the message has multiple sentences — that's a reco-paste that
+  // happens to contain a URL, not a URL paste.
   if (t.split(/[.!?]\s/).length > 2) return { ok: false };
-  return { ok: true, url };
+  return { ok: true, url, knownRetailer: KNOWN_RETAILER_RE.test(url) };
+}
+
+/** @deprecated Use looksLikeAnyProductUrl. Kept for compatibility with existing tests. */
+export function looksLikeRetailerUrl(text: string): { ok: true; url: string } | { ok: false } {
+  const r = looksLikeAnyProductUrl(text);
+  if (!r.ok) return { ok: false };
+  if (!r.knownRetailer) return { ok: false };
+  return { ok: true, url: r.url };
 }
 
 export function inferHostAI(text: string): "chatgpt" | "claude" | "gemini" | "rufus" | "unknown" {

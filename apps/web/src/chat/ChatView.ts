@@ -8,7 +8,7 @@ import { botBubble, typingBubble, userBubble } from "./bubbleRenderer.js";
 import { mountComposer, type ComposerHandles } from "./composer.js";
 import { ConversationStore } from "./ConversationStore.js";
 import { mountRotatingStatus, type RotatingStatusHandle } from "./rotatingStatus.js";
-import { inferHostAI, looksLikeAIRecommendation, looksLikeRetailerUrl, shouldTriggerAudit } from "./stages.js";
+import { inferHostAI, looksLikeAIRecommendation, looksLikeAnyProductUrl, shouldTriggerAudit } from "./stages.js";
 
 const API_BASE = import.meta.env.VITE_LENS_API_URL ?? "https://lens-api.webmarinelli.workers.dev";
 
@@ -72,6 +72,29 @@ export function mountChatView(opts: ChatViewOptions): void {
   }
   composer.focus();
 
+  // Oracle phase-2 workflow coverage — photo upload path. The composer's
+  // 📎 button fires this with a data-URL. We strip the prefix, route to
+  // /audit kind="photo" (Opus 4.7 3.75MP vision), and render a preview
+  // bubble so the user sees what they uploaded.
+  composer.onImageSubmit(async (dataUrl, mime, filename) => {
+    if (phase === "generating") return;
+    chipsHost.remove();
+    const ack = `Got it, looking at your photo (${filename || "uploaded image"}). Oracle's vision pipeline will parse the product and run the audit.`;
+    // Render a user "bubble" with the preview.
+    const previewBubble = document.createElement("div");
+    previewBubble.className = "lc-user lc-user-image";
+    previewBubble.innerHTML = `<img src="${dataUrl}" alt="Uploaded product photo" style="max-width:240px;max-height:180px;border-radius:6px;display:block;" />`;
+    transcript.append(previewBubble);
+    store.append("user", "[photo uploaded]");
+    const t = store.append("assistant", ack);
+    transcript.append(botBubble(t.text));
+    scrollBottom();
+    // Strip the "data:image/png;base64," prefix so the backend receives
+    // the bare base64 body per AuditInputSchema.kind="photo".
+    const base64 = dataUrl.includes(",") ? dataUrl.slice(dataUrl.indexOf(",") + 1) : dataUrl;
+    await runAudit({ photoBase64: base64, photoMime: mime });
+  });
+
   composer.onSubmit(async (text) => {
     if (phase === "generating") return;
     chipsHost.remove();
@@ -93,14 +116,26 @@ export function mountChatView(opts: ChatViewOptions): void {
       return;
     }
 
-    // D2 — retailer URL short-circuit: if first turn is a pasted URL from a
-    // known retailer, skip the clarifier and call /audit with kind="url" so
-    // the S3-W15 per-host parsers fetch the PDP directly.
+    // Oracle phase-2 workflow coverage — any http(s) URL short-circuit.
+    // Routes to /audit kind="url". Backend runs S3-W15 per-host parsers for
+    // known retailers and falls through to Jina-markdown + Opus structured
+    // extraction for any other site. The client just needs to recognize
+    // "this is a URL paste" and the server degrades gracefully if the page
+    // blocks bots or has no structured data.
     const userOnly = store.all().filter((t) => t.role === "user");
     if (userOnly.length === 1) {
-      const urlMatch = looksLikeRetailerUrl(text);
+      const urlMatch = looksLikeAnyProductUrl(text);
       if (urlMatch.ok) {
-        const ack = "Got it, let me pull the product page and audit it.";
+        const hostLabel = (() => {
+          try {
+            return new URL(urlMatch.url).host.replace(/^www\./, "");
+          } catch {
+            return "the product page";
+          }
+        })();
+        const ack = urlMatch.knownRetailer
+          ? `Got it, pulling the product page from ${hostLabel} and auditing it.`
+          : `Got it, I'll try to parse the product page from ${hostLabel}. If the site blocks scrapers I'll fall back to describing the link and asking a clarifying question.`;
         const t = store.append("assistant", ack);
         transcript.append(botBubble(t.text));
         scrollBottom();
@@ -196,27 +231,37 @@ export function mountChatView(opts: ChatViewOptions): void {
       pasteRaw?: string;
       hostAi?: "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
       urlMode?: string;
+      photoBase64?: string;
+      photoMime?: string;
     } = {},
   ): Promise<void> {
     phase = "generating";
     composer.setDisabled(true);
-    composer.setPlaceholder("Hold on, Lens is searching real products…");
+    composer.setPlaceholder("Hold on, Oracle is consulting every frontier model and real products…");
     rotator = mountRotatingStatus(transcript, undefined, {
       // Judge P1-5: pause announcements while the user focuses the composer.
       pauseWhenFocused: composer.textarea,
     });
     scrollBottom();
 
-    // improve-01: two routes into /audit.
-    //   - Paste route: pasteRaw is the verbatim AI recommendation. Use
-    //     kind="text" with source=hostAi so the backend runs the Job 2
-    //     path (claim-verify against real catalog).
-    //   - Query route: build a folded Q/A prompt from the conversation.
-    //     kind="query". This is the Job 1 flow.
+    // Oracle runs 4 audit kinds depending on input:
+    //   photo  — user-uploaded product photo. Opus 4.7 3.75MP vision parses.
+    //   url    — any http(s) URL. Per-host parsers + Jina/Opus fallback.
+    //   text   — verbatim AI recommendation to audit.
+    //   query  — free-text description, folded from chat history.
     let body: string;
-    if (opts.urlMode) {
-      // D2 — URL short-circuit. Server extractFromUrl + S3-W15 parsers.
-      body = JSON.stringify({ kind: "url", url: opts.urlMode });
+    if (opts.photoBase64) {
+      body = JSON.stringify({
+        kind: "photo",
+        imageBase64: opts.photoBase64,
+        userPrompt: inferInitialUserPrompt(),
+      });
+    } else if (opts.urlMode) {
+      body = JSON.stringify({
+        kind: "url",
+        url: opts.urlMode,
+        userPrompt: inferInitialUserPrompt(),
+      });
     } else if (opts.pasteRaw && opts.pasteRaw.trim().length > 0) {
       body = JSON.stringify({
         kind: "text",
@@ -224,8 +269,6 @@ export function mountChatView(opts: ChatViewOptions): void {
         raw: opts.pasteRaw,
       });
     } else {
-      // Fold the full conversation into a single audit prompt. Rank engine reads
-      // free text and extracts criteria from it.
       const userPrompt = buildAuditPrompt();
       body = JSON.stringify({ kind: "query", userPrompt });
     }
