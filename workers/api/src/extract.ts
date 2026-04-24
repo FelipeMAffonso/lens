@@ -71,7 +71,15 @@ export async function extractIntentAndRecommendation(
             type: "image" as const,
             source: {
               type: "base64" as const,
-              media_type: "image/png" as const,
+              // Judge P0-1 (2026-04-24): drive media_type from the client-
+              // provided imageMime. Claude vision accepts png/jpeg/webp/gif.
+              // Default to jpeg (phone-camera default) when absent so we
+              // don't misparse non-png uploads as png.
+              media_type: (input.imageMime ?? "image/jpeg") as
+                | "image/png"
+                | "image/jpeg"
+                | "image/webp"
+                | "image/gif",
               data: input.imageBase64,
             },
           },
@@ -360,7 +368,18 @@ async function extractFromPhoto(
   const userContent = [
     {
       type: "image" as const,
-      source: { type: "base64" as const, media_type: "image/png" as const, data: input.imageBase64 },
+      source: {
+        type: "base64" as const,
+        // Judge P0-1 (2026-04-24): drive media_type from imageMime (phone
+        // cameras default to jpeg; png is legacy). Claude vision rejects
+        // HEIC so we don't accept it upstream in the composer.
+        media_type: (input.imageMime ?? "image/jpeg") as
+          | "image/png"
+          | "image/jpeg"
+          | "image/webp"
+          | "image/gif",
+        data: input.imageBase64,
+      },
     },
     {
       type: "text" as const,

@@ -28,7 +28,7 @@ export function mountComposer(host: HTMLElement): ComposerHandles {
     <button type="button" class="lc-composer-attach" aria-label="Attach a photo of the product" title="Attach a photo (product shot or screenshot)">
       <span aria-hidden="true">📎</span>
     </button>
-    <input type="file" class="lc-composer-file" accept="image/png,image/jpeg,image/webp,image/heic" capture="environment" hidden aria-hidden="true" />
+    <input type="file" class="lc-composer-file" accept="image/png,image/jpeg,image/webp" capture="environment" hidden aria-hidden="true" />
     <textarea
       class="lc-composer-input"
       rows="1"
@@ -79,8 +79,16 @@ export function mountComposer(host: HTMLElement): ComposerHandles {
       fileInput.value = "";
       return;
     }
-    if (!/^image\//i.test(file.type)) {
-      alert("That file doesn't look like an image. Try a .jpg / .png / .webp of the product.");
+    // Judge P0-1 (2026-04-24): hard-reject anything Claude vision can't
+    // parse. iOS Safari hands us HEIC by default — without this check the
+    // audit silently produces garbage. Tell the user to take a screenshot
+    // or switch camera setting to Most Compatible (JPEG).
+    const ACCEPTED = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+    if (!ACCEPTED.has(file.type)) {
+      alert(
+        `Lens can read JPEG, PNG, WEBP, or GIF but not ${file.type || "that file"}.\n\n` +
+          "If you're on iPhone: Settings → Camera → Formats → Most Compatible (captures JPEG instead of HEIC), or take a screenshot of the photo and upload that.",
+      );
       fileInput.value = "";
       return;
     }

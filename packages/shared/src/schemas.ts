@@ -13,6 +13,9 @@ export const AuditInputSchema = z.discriminatedUnion("kind", [
     kind: z.literal("image"),
     source: HostAISchema,
     imageBase64: z.string().min(1),
+    imageMime: z
+      .enum(["image/png", "image/jpeg", "image/webp", "image/gif"])
+      .optional(),
     userPrompt: z.string().max(10_000).optional(),
   }),
   z.object({
@@ -34,6 +37,9 @@ export const AuditInputSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("photo"),
     imageBase64: z.string().min(1),
+    imageMime: z
+      .enum(["image/png", "image/jpeg", "image/webp", "image/gif"])
+      .optional(),
     userPrompt: z.string().max(10_000).optional(),
     category: z.string().max(200).optional(),
   }),

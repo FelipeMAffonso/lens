@@ -982,19 +982,37 @@ function wireNlAdjustForm(card: HTMLElement, r: AuditResult): void {
     status.textContent = "Lens is parsing your change.";
     status.className = "nl-adjust-status nl-adjust-working";
     try {
-      const res = await fetch(`${API_BASE}/rank/nl-adjust`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          criteria: (currentResult?.intent.criteria ?? r.intent.criteria).map((c) => ({
-            name: c.name,
-            weight: c.weight,
-            direction: c.direction,
-          })),
-          nlChange,
-          category: currentResult?.intent.category ?? r.intent.category,
-        }),
-      });
+      // Judge P1-1: 20s timeout. Opus extended-thinking occasionally blows past
+      // the Worker subrequest ceiling; without AbortSignal the button stays
+      // "…" indefinitely and the user doesn't know to retry.
+      const ctrl = new AbortController();
+      const abortTimer = setTimeout(() => ctrl.abort(), 20_000);
+      let res: Response;
+      try {
+        res = await fetch(`${API_BASE}/rank/nl-adjust`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            criteria: (currentResult?.intent.criteria ?? r.intent.criteria).map((c) => ({
+              name: c.name,
+              weight: c.weight,
+              direction: c.direction,
+            })),
+            nlChange,
+            category: currentResult?.intent.category ?? r.intent.category,
+          }),
+          signal: ctrl.signal,
+        });
+      } catch (err) {
+        clearTimeout(abortTimer);
+        if ((err as Error).name === "AbortError") {
+          status.textContent = "Still thinking longer than 20 seconds. Try again or rephrase.";
+          status.className = "nl-adjust-status nl-adjust-err";
+          return;
+        }
+        throw err;
+      }
+      clearTimeout(abortTimer);
       const body = (await res.json().catch(() => null)) as {
         ok: boolean;
         error?: string;
@@ -1292,14 +1310,16 @@ void loadPackStats();
     // Lazy-import so the legacy bundle stays small when chat is disabled.
     void import("./chat/ChatView.js").then(({ mountChatView }) => {
       const mount = document.getElementById("chat-view");
-      const hero = document.querySelector<HTMLElement>(".hero");
       const pasteBox = document.querySelector<HTMLElement>(".paste-box");
       const modeSwitch = document.querySelector<HTMLElement>(".mode-switch");
       const streamEl = document.getElementById("stream");
       const result = document.getElementById("result");
       if (!mount || !result) return;
       mount.hidden = false;
-      if (hero) hero.style.display = "none";
+      // Judge P0-2 (2026-04-24): keep the hero visible in chat mode so the
+      // landing still answers "what is Lens?" in 3 seconds. Only the
+      // paste-box legacy UI is hidden — the hero narrates, the chat does
+      // the work, and the user sees both at once.
       if (pasteBox) pasteBox.style.display = "none";
       if (modeSwitch) modeSwitch.style.display = "none";
       if (streamEl) streamEl.hidden = true;

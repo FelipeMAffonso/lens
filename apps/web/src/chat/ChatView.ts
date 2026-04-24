@@ -119,8 +119,11 @@ export function mountChatView(opts: ChatViewOptions): void {
     // Jina-markdown + Opus structured extraction for any other site. The
     // client just needs to recognize "this is a URL paste" and the server
     // degrades gracefully if the page blocks bots or has no structured data.
-    const userOnly = store.all().filter((t) => t.role === "user");
-    if (userOnly.length === 1) {
+    //
+    // Judge P1-2 (2026-04-24): drop the first-turn guard. If a user says "I
+    // need a laptop" → clarifier asks about budget → user replies with a
+    // Lenovo URL, that's still a URL paste. Route it.
+    {
       const urlMatch = looksLikeAnyProductUrl(text);
       if (urlMatch.ok) {
         const hostLabel = (() => {
@@ -140,6 +143,7 @@ export function mountChatView(opts: ChatViewOptions): void {
         return;
       }
     }
+    const userOnly = store.all().filter((t) => t.role === "user");
 
     // improve-01 Job 2 short-circuit: if this is the first user turn AND it
     // looks like a pasted AI-generated product recommendation (cited reasons,
@@ -248,9 +252,13 @@ export function mountChatView(opts: ChatViewOptions): void {
     //   query  — free-text description, folded from chat history.
     let body: string;
     if (opts.photoBase64) {
+      // Judge P0-1 (2026-04-24): always send imageMime so the backend
+      // sets the correct Claude vision media_type (default jpeg is the
+      // most common phone-camera default but png/webp happen too).
       body = JSON.stringify({
         kind: "photo",
         imageBase64: opts.photoBase64,
+        imageMime: opts.photoMime ?? "image/jpeg",
         userPrompt: inferInitialUserPrompt(),
       });
     } else if (opts.urlMode) {
@@ -477,6 +485,12 @@ export function mountChatView(opts: ChatViewOptions): void {
       composer.clear();
       composer.focus();
     });
+    // Judge P1-3 (2026-04-24): chipsHost may have been detached from root
+    // earlier (line ~64 on session restore or line ~81 on submit). Re-attach
+    // before appending so the "new audit" chip actually renders.
+    if (!chipsHost.isConnected) {
+      root.append(chipsHost);
+    }
     chipsHost.append(b);
   }
 }
