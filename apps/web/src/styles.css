@@ -351,6 +351,21 @@ textarea { font-family: inherit; resize: vertical; min-height: 80px; font-size: 
 .verdict-text strong { display: block; font-size: 15px; margin-bottom: 2px; color: var(--fg); }
 
 /* Hero pick */
+/* Polish 2026-04-24: brief ~900ms flash on the hero-pick card when NL-adjust
+   re-ranking actually changes the top pick. Draws the eye to the new winner
+   without being disruptive. Uses the pumpkin-accent ring + slight y-shift. */
+@keyframes lc-hero-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(204, 120, 92, 0.0), 0 2px 8px rgba(15, 20, 30, 0.08); transform: translateY(0); }
+  25%  { box-shadow: 0 0 0 6px rgba(204, 120, 92, 0.25), 0 6px 18px rgba(15, 20, 30, 0.14); transform: translateY(-2px); }
+  100% { box-shadow: 0 0 0 0 rgba(204, 120, 92, 0.0), 0 2px 8px rgba(15, 20, 30, 0.08); transform: translateY(0); }
+}
+.card.hero-flash {
+  animation: lc-hero-flash 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card.hero-flash { animation: none; }
+}
+
 .hero-pick { display: grid; gap: 14px; }
 .hero-pick .pick-product { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; color: var(--fg); }
 .hero-pick .pick-product .brand { color: var(--fg-dim); font-weight: 500; }

@@ -1245,16 +1245,31 @@ function reRankFromCriteria(criteria: CriterionShape[]): void {
   }
 
   // Also re-paint the hero pick if it changed.
-  const heroCard = document.querySelector<HTMLElement>(".card .hero-pick");
-  if (heroCard && rescored[0]) {
+  // Polish 2026-04-24: flash the hero card briefly when the top pick actually
+  // changed after a re-rank, so the user sees their NL adjustment affected the
+  // winner (not just the chip grid). If the name is unchanged, skip the flash
+  // — no point drawing attention to a visually-identical repaint.
+  const heroCard = document.querySelector<HTMLElement>(".card .hero-pick")?.closest<HTMLElement>(".card");
+  const heroInner = document.querySelector<HTMLElement>(".card .hero-pick");
+  if (heroInner && rescored[0]) {
     const o = rescored[0];
-    const pickProduct = heroCard.querySelector<HTMLElement>(".pick-product");
-    const pickPrice = heroCard.querySelector<HTMLElement>(".pick-price");
+    const pickProduct = heroInner.querySelector<HTMLElement>(".pick-product");
+    const pickPrice = heroInner.querySelector<HTMLElement>(".pick-price");
+    const prevNameEl = pickProduct?.querySelector<HTMLElement>(".name");
+    const prevName = prevNameEl?.textContent ?? "";
+    const nextName = o.name;
+    const changed = prevName.trim() !== nextName.trim();
     if (pickProduct) {
       pickProduct.innerHTML = `<span class="brand">${esc(o.brand ?? "")}</span> <span class="name">${esc(o.name)}</span>`;
     }
     if (pickPrice) {
       pickPrice.innerHTML = renderPriceLine(o);
+    }
+    if (changed && heroCard) {
+      heroCard.classList.remove("hero-flash");
+      // Force reflow so the animation restarts reliably across back-to-back re-ranks.
+      void heroCard.offsetWidth;
+      heroCard.classList.add("hero-flash");
     }
   }
 }
