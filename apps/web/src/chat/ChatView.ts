@@ -397,6 +397,12 @@ export function mountChatView(opts: ChatViewOptions): void {
       b.textContent = s.label;
       b.setAttribute("title", "Click to run this audit. Shift+click to fill the composer without submitting.");
       b.addEventListener("click", (ev) => {
+        // Judge P2-4 (2026-04-24): if a generation is already in flight,
+        // do not overwrite the textarea or fire a second submit. The send
+        // button is already disabled so the click would no-op, but the
+        // textarea write would leave orphan text visible once the first
+        // audit returns.
+        if (phase === "generating") return;
         composer.textarea.value = s.value;
         composer.textarea.focus();
         if ((ev as MouseEvent).shiftKey) return; // fill-only path
@@ -516,16 +522,16 @@ export function mountChatView(opts: ChatViewOptions): void {
 function diagnoseAuditError(msg: string): string {
   const m = (msg ?? "").toLowerCase();
   if (m.includes("aborted") || m.includes("timeout") || m.includes("abort")) {
-    return "That took longer than 30 seconds to come back. The upstream AI may be slow right now — try again in a moment, or narrow the query with a budget and one or two firm criteria.";
+    return "That took too long to come back. The upstream AI may be slow right now, so please try again in a moment, or narrow the query with a budget and one or two firm criteria.";
   }
   if (m.includes("stream closed without result")) {
-    return "The audit got cut off before Lens could finalise. This usually means the upstream AI hit a rate limit mid-run. Try again in ~20 seconds.";
+    return "The audit got cut off before Lens could finalize. This usually means the upstream AI hit a rate limit mid-run. Try again in about 20 seconds.";
   }
-  if (/\baudit\/stream 5\d\d/.test(m) || /\baudit\/stream (500|502|503|504)/.test(m)) {
-    return "Lens's backend hit a hiccup on this run (5xx response). Try again in a moment — if it keeps failing, check the Cloudflare Worker logs at lens-api.webmarinelli.workers.dev.";
+  if (/\baudit\/stream 5\d\d/.test(m)) {
+    return "Lens's backend hit a hiccup on this run (5xx response). Try again in a moment. If it keeps failing, take a look at the browser console.";
   }
   if (m.includes("audit/stream 4")) {
-    return "Lens rejected the request (4xx). Double-check the URL or re-type the query — it may have unusual characters.";
+    return "Lens rejected the request (4xx). Double-check the URL or re-type the query, it may have unusual characters.";
   }
   if (m.includes("failed to fetch") || m.includes("networkerror") || m.includes("load failed")) {
     return "I couldn't reach Lens's backend. Check your internet connection and try again.";

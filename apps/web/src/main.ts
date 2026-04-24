@@ -903,7 +903,7 @@ function buildAboutThisPick(o: Candidate): string {
     return `${brand}${name} wins because it leads the field on ${humanizeCriterion(c.criterion)}, the criterion carrying the most weight in your request.`;
   }
   const [c1, c2] = contributors as [typeof contributors[number], typeof contributors[number]];
-  return `${brand}${name} wins because it leads on ${humanizeCriterion(c1.criterion)} and holds its own on ${humanizeCriterion(c2.criterion)} — the two criteria that carried the most weight in your request.`;
+  return `${brand}${name} wins because it leads on ${humanizeCriterion(c1.criterion)} and holds its own on ${humanizeCriterion(c2.criterion)}, the two criteria that carried the most weight in your request.`;
 }
 
 function heroPickCard(r: AuditResult): HTMLElement {
@@ -983,7 +983,11 @@ function criteriaCard(r: AuditResult): HTMLElement {
   wireNlAdjustForm(card, r);
   // Polish 2026-04-24: preset chips feed the NL-adjust form + auto-submit.
   // Teaches discoverability ("oh, these are the things I can change") AND
-  // gives one-click re-rank for the demo recorder — no typing needed.
+  // gives one-click re-rank for the demo recorder, no typing needed.
+  // Judge P2-3 (2026-04-24): guard against clicks while a prior re-rank is
+  // still in flight. Without the guard, the preset would overwrite the
+  // input value and then be wiped when the first re-rank's finally-block
+  // clears the input, silently dropping the user's second intent.
   card.querySelectorAll<HTMLButtonElement>(".nl-adjust-preset").forEach((btn) => {
     btn.addEventListener("click", () => {
       const preset = btn.dataset["preset"];
@@ -991,6 +995,7 @@ function criteriaCard(r: AuditResult): HTMLElement {
       const input = card.querySelector<HTMLInputElement>("#nl-adjust-input");
       const submit = card.querySelector<HTMLButtonElement>(".nl-adjust-btn");
       if (!input || !submit) return;
+      if (submit.disabled) return; // prior NL-adjust in flight; ignore click
       input.value = preset;
       submit.click();
     });
