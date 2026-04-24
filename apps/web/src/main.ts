@@ -885,6 +885,27 @@ function relativePriceFreshness(iso?: string): string {
   return `observed over a year ago, likely stale`;
 }
 
+// Polish 2026-04-24: one-sentence plain-English summary of why the top pick
+// won, computed deterministically from the utility breakdown. Shows the top
+// 2 contributing criteria. Zero extra Opus calls, zero extra latency.
+function buildAboutThisPick(o: Candidate): string {
+  const contributors = (o.utilityBreakdown ?? [])
+    .filter((b) => (b.contribution ?? 0) > 0)
+    .sort((a, b) => (b.contribution ?? 0) - (a.contribution ?? 0))
+    .slice(0, 2);
+  const brand = o.brand?.trim() ? `${o.brand} ` : "";
+  const name = (o.name ?? "").replace(/^\(.*\)$/, "").trim() || "this pick";
+  if (contributors.length === 0) {
+    return `${brand}${name} was the best-fit product Lens found for your stated criteria.`;
+  }
+  if (contributors.length === 1) {
+    const c = contributors[0]!;
+    return `${brand}${name} wins because it leads the field on ${humanizeCriterion(c.criterion)}, the criterion carrying the most weight in your request.`;
+  }
+  const [c1, c2] = contributors as [typeof contributors[number], typeof contributors[number]];
+  return `${brand}${name} wins because it leads on ${humanizeCriterion(c1.criterion)} and holds its own on ${humanizeCriterion(c2.criterion)} — the two criteria that carried the most weight in your request.`;
+}
+
 function heroPickCard(r: AuditResult): HTMLElement {
   const o = r.specOptimal;
   const card = document.createElement("section");
@@ -895,6 +916,7 @@ function heroPickCard(r: AuditResult): HTMLElement {
   const urlLink = o.url
     ? `<a href="${esc(o.url)}" target="_blank" rel="noopener noreferrer" aria-label="View ${esc(o.name)} at retailer (opens in new tab)" style="color:var(--hl-hi);text-decoration:underline;font-size:13px;">View at retailer <span aria-hidden="true">↗</span></a>`
     : `<span class="muted" style="font-size:13px;">No retailer URL available</span>`;
+  const aboutSentence = buildAboutThisPick(o);
   card.innerHTML = `
     <div class="card-header"><h2>Lens's top pick</h2></div>
     <div class="hero-pick">
@@ -902,6 +924,7 @@ function heroPickCard(r: AuditResult): HTMLElement {
         <div class="pick-product"><span class="brand">${esc(o.brand ?? "")}</span> <span class="name">${esc(o.name)}</span></div>
         <div class="pick-price">${renderPriceLine(o)}</div>
         <div style="margin-top:6px;">${urlLink}</div>
+        <p class="pick-about" style="margin-top:14px;padding:10px 12px;background:var(--accent-subtle);border-left:3px solid var(--accent);border-radius:var(--radius);font-size:13.5px;line-height:1.55;color:var(--fg-dim);">${esc(aboutSentence)}</p>
       </div>
     </div>
     <details open>
@@ -1264,6 +1287,12 @@ function reRankFromCriteria(criteria: CriterionShape[]): void {
     }
     if (pickPrice) {
       pickPrice.innerHTML = renderPriceLine(o);
+    }
+    // Also refresh the "About this pick" plain-English summary so it matches
+    // the new top pick's winning criteria after an NL-adjust re-rank.
+    const pickAbout = heroInner.querySelector<HTMLElement>(".pick-about");
+    if (pickAbout) {
+      pickAbout.textContent = buildAboutThisPick(o);
     }
     if (changed && heroCard) {
       heroCard.classList.remove("hero-flash");
