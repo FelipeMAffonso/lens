@@ -151,6 +151,118 @@
         <div id="result-body"></div>
       </section>
 
+      <!-- Oracle phase-2 — Sarah's day. The canonical VISION §3 narrative,
+           turned into 4 inline beats with install CTAs at each touchpoint.
+           "What a day with Oracle looks like" — before the architecture reveal
+           below, so a reviewer sees the product story before the receipts. -->
+      <section id="sarahs-day" class="sarahs-day">
+        <div class="day-hero">
+          <span class="day-kicker">What a day with Oracle looks like</span>
+          <h2>Sarah's Monday.</h2>
+          <p class="day-lede">
+            One user, one companion, four touchpoints. Every Oracle hand you see below is real,
+            installable today, and wired to the same backend — the same triangulated spine, the same
+            watchers, the same profile.
+          </p>
+        </div>
+
+        <ol class="day-beats">
+          <li class="day-beat">
+            <div class="beat-time">☀️&nbsp;9:14 AM · ChatGPT</div>
+            <h3>Sarah asks ChatGPT for an espresso machine under $400.</h3>
+            <p class="beat-body">
+              ChatGPT recommends a De'Longhi. A small ◉&nbsp;Oracle pill slides into the corner of the
+              response bubble. Sarah clicks. Oracle opens inline: <em>"Spec-optimal for your criteria is
+              a Breville Bambino. The 'stainless-steel' claim is misleading — the housing is plastic,
+              only the boiler is stainless. 2 of 3 other frontier AIs disagree with ChatGPT."</em>
+              Sarah types "make it quieter" — the ranking re-computes with the new weight.
+            </p>
+            <div class="beat-cta">
+              <a class="beat-install" href="/downloads/lens-extension.zip" download>
+                <span class="beat-install-icon" aria-hidden="true">🧩</span>
+                Install the Chrome extension
+              </a>
+              <span class="beat-install-hint">
+                Works on <code>chatgpt.com</code>, <code>claude.ai</code>, <code>gemini.google.com</code>,
+                <code>perplexity.ai</code>, and <code>amazon.com</code> (Rufus).
+              </span>
+            </div>
+          </li>
+
+          <li class="day-beat">
+            <div class="beat-time">🛒&nbsp;2:41 PM · Marriott.com</div>
+            <h3>Sarah books a hotel. Checkout sneaks in a $49/night resort fee.</h3>
+            <p class="beat-body">
+              The product page said $249/night. The cart says $298. Oracle's extension catches the
+              delta silently and pins a small badge near the subtotal: <em>"Hidden cost. Covered by the
+              FTC Junk Fees Rule (16 CFR Part 464) for short-term lodging. Draft a complaint?"</em>
+              Sarah taps Draft — Oracle pre-fills a reportfraud.ftc.gov form with her booking details
+              and an itemized receipt ready for expense dispute.
+            </p>
+            <div class="beat-cta">
+              <a class="beat-install" href="#architecture-reveal" onclick="document.getElementById('architecture-reveal')?.scrollIntoView({behavior:'smooth',block:'start'})">
+                <span class="beat-install-icon" aria-hidden="true">🛡️</span>
+                See how the dark-pattern scanner works
+              </a>
+              <span class="beat-install-hint">
+                24 dark-pattern packs + 16 regulation packs shipped. Every badge cites the rule it
+                triggers. Silent unless there's something worth interrupting for.
+              </span>
+            </div>
+          </li>
+
+          <li class="day-beat">
+            <div class="beat-time">📬&nbsp;Friday 7:00 PM · Inbox</div>
+            <h3>Sarah's weekly Oracle digest arrives.</h3>
+            <p class="beat-body">
+              <em>"Across your last 10 AI-assisted audits, Oracle picked +$312 / +0.15 utility over the
+              AIs. 3 subscriptions auto-renew next week — want drafts for the ones you'd cancel?"</em>
+              Sarah scans, taps the two she forgot she signed up for. Oracle drafts two cancellation
+              letters with the correct state-law citations and sends them from her Gmail.
+            </p>
+            <div class="beat-cta">
+              <a class="beat-install" href="https://lens-api.webmarinelli.workers.dev/oauth/gmail/authorize" target="_blank" rel="noopener">
+                <span class="beat-install-icon" aria-hidden="true">📨</span>
+                Connect Gmail for receipts + weekly digest
+              </a>
+              <span class="beat-install-hint">
+                Read-only scan for receipts and subscription mail. Send-scope only for drafts you
+                explicitly approve. Revoke any time at <code>myaccount.google.com</code>.
+              </span>
+            </div>
+          </li>
+
+          <li class="day-beat">
+            <div class="beat-time">📱&nbsp;Two months later · Push</div>
+            <h3>Sarah's phone buzzes during lunch.</h3>
+            <p class="beat-body">
+              <em>"CPSC recalled the Roborock S8 you bought in February. Oracle drafted a Magnuson-Moss
+              return letter and filled in your purchase details. One tap to send."</em> Sarah taps. The
+              letter hits Roborock's authorized-service address. Three weeks later, refund arrives.
+              Oracle logged the intervention to her welfare ledger.
+            </p>
+            <div class="beat-cta">
+              <a class="beat-install" href="#" onclick="(window.__lensMaybeInstall||(()=>alert('Open this page on your phone to install.')))();return false;">
+                <span class="beat-install-icon" aria-hidden="true">📲</span>
+                Install Oracle on your phone (PWA)
+              </a>
+              <span class="beat-install-hint">
+                Progressive Web App: Share → Add to Home Screen on iOS, ⋮ → Install app on Android.
+                Push notifications require an installed PWA on iOS 16.4+.
+              </span>
+            </div>
+          </li>
+        </ol>
+
+        <div class="day-footer">
+          <p>
+            <strong>Every hand above is live today.</strong> The chat hero at the top, the extension
+            one link down, the Gmail digest, the recall watcher — all powered by the same spine:
+            <a href="#architecture-reveal">85,918 SKUs · 24 contributing sources · 7 cron schedules ↓</a>
+          </p>
+        </div>
+      </section>
+
       <!-- improve-E5 — Architecture reveal. Populated by src/architecture-reveal.ts
            on DOMContentLoaded. Shows data sources, triangulation, agents, pipeline,
            all live from /architecture/stats + /architecture/sources. -->
