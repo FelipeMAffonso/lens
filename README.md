@@ -3,54 +3,73 @@
 [![CI](https://github.com/FelipeMAffonso/lens/actions/workflows/ci.yml/badge.svg)](https://github.com/FelipeMAffonso/lens/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Lens is the consumer's independent agent across every point of every purchase.** It turns what you care about into a transparent ranking of real products, verifies every claim the platforms make, catches recommendation bias from AI shopping assistants, flags dark patterns at checkout, analyzes review authenticity, tracks welfare-delta across your history, and does all of this with no commission, no ad revenue, no partner relationships, and no catalog ownership that would compromise the answer.
+**Lens is your AI shopping companion — one agent that works for you, before, during, and after every purchase.** Tell Lens what you want, paste what another AI told you, drop any product URL, or attach a photo. Lens runs a 5-stage pipeline — extract, search (real catalog + live web), verify, rank with transparent `U = Σ wᵢ · sᵢ` math, cross-check against GPT-4o / Gemini / Llama via a Claude Managed Agent — and returns one answer. Retune in plain language: "make it quieter", "budget tight at $300". No sliders.
 
-Built with Claude Opus 4.7 for the *Built with Opus 4.7: a Claude Code Hackathon* (Apr 21-26, 2026). Track: **Build From What You Know**. Grounded in the *Nature*-submitted paper on AI shopping recommendation bias (Affonso et al., 2026 — 18 models, 382,000 trials).
+Built with Claude Opus 4.7 for the *Built with Opus 4.7: a Claude Code Hackathon* (Apr 21-26, 2026). Track: **Build From What You Know / Build A Tool That Should Exist**. Grounded in the *Nature*-submitted paper on AI shopping recommendation bias (Affonso et al., 2026 — 18 models, 382,000 trials).
 
-Eleven consumer welfare workflows ship in this week's demo. Forty-one more live on the roadmap. See [`docs/CONSUMER_WORKFLOWS.md`](docs/CONSUMER_WORKFLOWS.md) for the full customer-journey surface and [`docs/VISION.md`](docs/VISION.md) for the product thesis.
+## Four surfaces, one backend
 
-## What's new in v2 (2026-04-22) — the data backbone
+| Surface | Where | Purpose |
+|---|---|---|
+| **Web chat** (primary) | [lens-b1h.pages.dev](https://lens-b1h.pages.dev) | Chat home with 📎 photo + any-URL + description. Streaming audit narration via SSE. Plain-language re-rank. |
+| **Chrome extension** | [/downloads/lens-extension.zip](https://lens-b1h.pages.dev/downloads/lens-extension.zip) | Silent dark-pattern / hidden-fee / fake-sale / counterfeit / fake-review badges on retailer checkouts. Inline pill on chat.openai.com / claude.ai / gemini.google.com / perplexity.ai / amazon.com. |
+| **Mobile PWA** | Same URL → Share → Add to Home Screen | Share-target, camera input, push notifications (iOS 16.4+ after install). |
+| **MCP server** | `workers/mcp/` | 13 tools: `lens.audit`, `lens.sku_search`, `lens.sku_get`, `lens.dark_pattern_scan`, `lens.regulation_lookup`, `lens.resolve_url`, `lens.trigger_ingest`, `lens.intervention_draft`, `lens.architecture_stats`, `lens.pack_list`, `lens.pack_get`, `lens.spec_optimal`, `lens.architecture_sources`. |
 
-Every fact Lens shows is now **triangulated from ≥ 2 independent public sources**.
+## Your Shelf — the after-you-buy surface
 
-- **16 live ingester pipelines** pulling from FCC Equipment Authorization, EPA Energy Star, EPA fueleconomy.gov, CPSC / NHTSA / FDA recall databases, USDA Branded Foods, OpenFoodFacts, OpenBeautyFacts, Wikidata SPARQL, Federal Register, FTC enforcement actions, Have I Been Pwned, Keepa (price history), Reddit community signals, retailer sitemap.xml files (BestBuy / Walmart / Target / Costco / HomeDepot / Amazon), and 30 manufacturer sitemaps (Apple / Sony / Samsung / LG / Breville / Dyson / De'Longhi / Bose / etc.).
-- **14 D1 tables + FTS5 fuzzy search** (`migrations/0010_ground_truth.sql`): `sku_catalog`, `sku_source_link`, `triangulated_price`, `price_history`, `discrepancy_log`, `recall`, `firmware_advisory`, `regulation_event`, `brand_index`, `category_taxonomy`, `data_source`, `ingestion_run`, `recall_affects_sku`, `sku_spec`. Target: **millions of SKUs** with continuous refresh.
-- **Hourly triangulation engine** (`workers/api/src/triangulate/price.ts`): weighted median + p25/p75 across every active source; any two sources differing > 15% → `discrepancy_log` row.
-- **Fast query layer**:
-  - `GET /sku/search?q=&category=&brand=&limit=&includeSources=1` — FTS5 fuzzy over catalog, p99 < 50ms.
-  - `GET /sku/:id` — full product detail with sources + recall history.
-  - `GET /compare?skus=a,b,c` — side-by-side 2-6 SKU comparison with shared-spec matrix, triangulated price, sources, recalls, price history.
-  - `GET /architecture/stats` — live counts for the landing page.
-  - `GET /architecture/sources` — per-pipeline status + last run time.
-- **Audit pipeline now catalog-first**: `search.ts` queries `sku_catalog` FTS5 BEFORE falling through to the slow live web_search. Audits of indexed categories drop from 20s+ to < 8s.
-- **Landing page as architecture reveal** (`/`): 8 bands including live stat cards, data-spine source grid (green dot per healthy ingester), triangulation example, 5-stage pipeline, 8-agent scaffolding, 7 cron schedules, and trust posture. Self-updates every 60s.
+[lens-b1h.pages.dev/shelf](https://lens-b1h.pages.dev/shelf) shows what Lens is watching for every purchase: CPSC / NHTSA / FDA recall feeds, 8-retailer price-match-window table, firmware CVE scans (CISA KEV + NVD), subscription auto-renewal calendars, warranty expiry. Interventions pre-drafted — Magnuson-Moss letters, CFPB complaints, FTC junk-fee reports, state-by-state subscription-cancellation templates. See it LIVE with the canonical Sarah scenario.
 
-See [`IMPROVEMENT_PLAN_V2.md`](IMPROVEMENT_PLAN_V2.md) for the full 4-day sprint plan, [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) for the ingester registry, and [`docs/PERSONAS.md`](docs/PERSONAS.md) for the named-person rubric answer (Sarah, Miguel, Dev, Priya).
+## Data backbone (live as of 2026-04-24)
+
+Every fact Lens shows is **triangulated from ≥ 2 independent public sources**.
+
+- **52 data pipelines configured, 24 contributing rows today, 29 healthy** — government (CPSC, NHTSA, FDA recalls + 510(k) + FAERS, FCC Equipment Authorization, EPA Energy Star + fueleconomy, USDA Branded Foods, Federal Register, FTC enforcement, CFPB complaints, BLS CPI, CISA KEV), open data (Wikidata SPARQL 106 classes, UNSPSC, OpenFoodFacts, OpenBeautyFacts, OpenLibrary, MusicBrainz, GS1 origin, NVD CVE, HIBP, Google Product Taxonomy), retail sitemap crawlers (Amazon, BestBuy, Walmart, Target, HomeDepot, Costco), manufacturer sitemaps (~30 brands), deal RSS (Slickdeals, DealNews, Bensbargains, GottaDeal, MyBargainBuddy), third-party enrichment (upcitemdb cross-retailer, iFixit repairability), paid-tier scaffolding (Keepa, SerpApi, Apify, Priceapi, Brightdata, Reddit).
+- **Live counts:** 85,918 indexed SKUs · 5,326 categories · 9,518 recalls · 18,806 regulations · 8,862 brands · 120 packs.
+- **28 D1 migrations** (`workers/api/migrations/`): `sku_catalog`, `sku_source_link`, `sku_spec`, `triangulated_price`, `price_history`, `discrepancy_log`, `recalls`, `firmware_advisories`, `regulation_events`, `brand_index`, `category_taxonomy`, `data_source`, `ingestion_run`, `triggers`, `gmail_tokens`, `household_members`, `gift_requests`, `gift_responses`, `subscriptions`, `performance_ratings`, …
+- **FTS5 fuzzy search** over the catalog — p99 < 50 ms; `/sku/search?q=…&category=…&brand=…`.
+- **Hourly triangulation engine** (`workers/api/src/triangulate/price.ts` + `specs.ts`): weighted median + p25/p75 + n_sources; any two sources differing > 15 % → `discrepancy_log` row surfaced on the audit card.
+- **Audit pipeline catalog-first**: `search.ts` queries the indexed spine BEFORE falling through to live web_search. Audits of indexed categories drop from 20 s+ to < 8 s.
+- **Landing page as architecture reveal** — see [/architecture.html](https://lens-b1h.pages.dev/architecture.html): 11 bands, every number live from `/architecture/stats`, source grid with green/amber/red dots.
+
+See [`IMPROVEMENT_PLAN_V2.md`](IMPROVEMENT_PLAN_V2.md) for the sprint log, [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) for the ingester registry, [`VISION_COMPLETE.md`](VISION_COMPLETE.md) for the canonical vision, [`AMBIENT_MODEL.md`](AMBIENT_MODEL.md) for the two-stage passive model.
 
 ## Why this exists
 
-A peer-reviewed study of 18 frontier models across 382,000 shopping trials (Affonso et al., submitted to Nature, 2026) found AI shopping assistants recommend a non-optimal product 21% of the time and confabulate the reasons in 86% of cases. Lens is the welfare fix: a tool that audits any AI shopping answer in under 20 seconds with live product data.
+A peer-reviewed study of 18 frontier models across 382,000 shopping trials (Affonso et al., submitted to *Nature*, 2026) found AI shopping assistants recommend a non-optimal product 21 % of the time and confabulate the reasons in 86 % of cases. Lens is the welfare fix.
 
-## Two jobs, one tool
+## The 5-stage audit pipeline
 
-**Job 1 — "I want to buy X" (primary mode).** User types a shopping query. Lens derives weighted criteria from a **Knowledge Pack for that category** (52 packs live), searches real products, and ranks transparently with user-adjustable sliders. End-to-end in ~6 seconds. No AI assistant in the loop.
+1. **Extract** — Opus 4.7 adaptive thinking parses the user's stated criteria into a weighted utility function with per-criterion confidence. Handles text / URL / photo / AI-paste inputs uniformly.
+2. **Search** — `catalogSearch()` hits the indexed spine first (85 918 SKUs); live `web_search_20260209` fallback for unindexed categories. Per-host parsers (Amazon / BestBuy / Walmart / Target / HomeDepot / Shopify) + universal JSON-LD / OpenGraph / microdata extractors + Jina-markdown + Opus structured JSON extraction for hard retailer pages.
+3. **Verify** — 1 M context loads every candidate spec sheet alongside every AI claim in one window. Knowledge packs inject confabulation patterns. Verdicts carry pack-evidence references.
+4. **Rank** — deterministic `U = Σ wᵢ · sᵢ`. Transparent. Every contribution inspectable. Retune in plain language via `POST /rank/nl-adjust` — Opus parses "make it quieter" into per-criterion weight deltas, renormalises sum = 1, re-ranks client-side.
+5. **Cross-check** — parallel fan-out to GPT-4o / Gemini / Llama via a Claude Managed Agent Worker. Agreement / disagreement rendered inline.
 
-**Job 2 — "Audit this AI answer" (killer demo).** User pastes a ChatGPT / Claude / Gemini / Rufus recommendation. Lens does Job 1 *plus* extracts the AI's cited claims, verifies each against a catalog, flags confabulations using category-specific pattern packs, and runs the same question through other frontier models. End-to-end in ~18 seconds.
+## 120 Knowledge Packs (`packs/`)
 
-## Architecture at a glance
+- **59 category packs** — espresso machines, laptops, headphones, office chairs, running shoes, microwaves, robot vacuums, smartphones, TVs, cameras, monitors, printers, routers, tablets, mattresses, backpacks, luggage, kitchenware, coffee makers, …
+- **24 dark-pattern packs** — complete Brignull canonical set + 2024 FTC Fake Reviews Rule extensions: hidden-costs, preselection, bait-and-switch, confirmshaming, drip pricing, fake-urgency, forced continuity, disguised ads, hard-to-cancel, basket sneaking, …
+- **16 regulation packs** — FTC Junk Fees Rule (16 CFR Part 464), California SB-313, New York §527-a (auto-renewal), FTC 16 CFR Part 255 (affiliate disclosure), Illinois ACRA, Vermont §2454a, CCPA, EU DSA, Magnuson-Moss Warranty Act, …
+- **14 fee packs** — resort fees, destination fees, booking fees, convenience fees, service charges, handling fees, restocking fees, early-termination fees, …
+- **8 intervention packs** — file FTC complaint, draft return letter, draft warranty claim, draft price-match claim, draft cancellation letter, draft FCC complaint, draft state-AG complaint, Magnuson-Moss letter.
 
-- **52 Knowledge Packs** across 5 types (`packs/`): 20 categories, 16 dark patterns (complete Brignull canonical set), 8 regulations (FTC, state, EU), 5 fee taxonomies, 3 interventions. Each pack is versioned, cryptographically attributable to its evidence sources, and retires cleanly when the underlying regulation/pattern changes. See `docs/KNOWLEDGE_ARCHITECTURE.md`.
-- **Four pipeline stages**, all on a Cloudflare Worker calling Claude Opus 4.7:
-  1. **Extract** — two-pass: first pass detects category, looks up the Category Pack, second pass re-runs with the pack's criteria template injected so the output aligns to pack semantics.
-  2. **Search** — live web search via Opus 4.7's `web_search_20260209` tool; fixture-mode fallback for latency-sensitive demo.
-  3. **Verify** — 1M context loads every candidate spec sheet alongside every claim. Category-specific confabulation patterns from the pack are injected into the system prompt. Verdicts carry pack evidence references (E1, E3…).
-  4. **Rank** — deterministic `U = Σ wᵢ · sᵢ`, fully inspectable. Web UI exposes live sliders.
-  5. **Cross-check** — parallel fan-out to GPT-4o + Gemini + Llama via `crossModel.ts` (Day 3: migrating to Claude Managed Agent for the $5k special prize).
-- **Four pack-maintenance agent loops** keep packs current (`scripts/`, `docs/PACK_AGENTS.md`):
-  1. **Validator** — LLM-as-judge checks every evidence entry against its cited source.
-  2. **Enricher** — per-pack Opus agent uses `web_search` (4 queries) to propose additions.
-  3. **Regulation watcher** — weekly check of every regulation's in-force status.
-  4. **Product-page scraper** (roadmap) — samples live retailer pages for new patterns.
+## 9 workflow specs + 7 cron schedules
+
+- `audit` (the 5-stage pipeline DAG)
+- `ingest.dispatch` (every 15 min — rotate through 52 configured data sources)
+- `triangulate.price` + `triangulate.specs` (hourly :41 — median + p25/p75 + discrepancy log)
+- `recall.watch` (daily 07:09 — CPSC/NHTSA/FDA ∩ user purchases)
+- `price.poll` (every 2 h — price-drop refund window detection)
+- `subs.renewal-watch` (daily 10:23 — 7-day pre-charge alerts)
+- `firmware.watch` (weekly Mon 07:31 — CVE ∩ connected-device purchases)
+- `ticker.aggregate` + `digest.send` (hourly :41 — k ≥ 5 anonymised aggregates + weekly email)
+- `pack.maintenance` (weekly Mon 06:13 — validator + enricher + reg-watcher)
+- `gmail.poll` (every 2 h — receipt ingestion via OAuth)
+
+## No affiliate links. Ever.
+
+Every retailer URL Lens returns is scrubbed of `ref=`, `tag=`, `utm_*`, `awc=`, and every other monetized-redirect parameter. Enforced in code at the search boundary. A commit introducing affiliate tagging is a project-violation commit and must be reverted (see [`VISION_COMPLETE.md`](VISION_COMPLETE.md) §13 #8).
 
 ## Live endpoints
 
