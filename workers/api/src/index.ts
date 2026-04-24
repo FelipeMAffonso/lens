@@ -95,6 +95,7 @@ import { handleChatClarify } from "./chat/clarify.js";
 import { handleChatFollowup } from "./chat/followup.js";
 import { handleRepairabilityLookup } from "./repairability/handler.js";
 import { handleLockinCompute } from "./lockin/handler.js";
+import { handleRankAdjust } from "./rank-adjust/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -847,6 +848,13 @@ app.post("/accessories/discover", (c) => handleAccessoryDiscover(c as never));
 // S1-W8 — Layer-2 adaptive preference clarification. Public (no auth).
 app.post("/clarify", (c) => handleClarify(c as never));
 app.post("/clarify/apply", (c) => handleClarifyApply(c as never));
+
+// Oracle phase-1 NL preference adjustment — replaces the sliders. User types
+// "make it quieter" / "budget is tight at $300" / "care more about durability".
+// Opus parses to per-criterion weight deltas; server renormalizes sum=1 and
+// returns updated criteria. The rank.ts deterministic math then re-runs
+// client-side against the updated intent. Public (no auth).
+app.post("/rank/nl-adjust", (c) => handleRankAdjust(c as never));
 
 // CJ-W53 — Study-3 style conversational elicitor. Public (no auth).
 // /chat/clarify returns the next bot turn (a Q or READY); /chat/followup

@@ -381,6 +381,103 @@ textarea { font-family: inherit; resize: vertical; min-height: 80px; font-size: 
 }
 .tri-chip-single .tri-chip-dot { color: var(--fg-muted); }
 
+/* Oracle phase-1 commit 3: NL preference adjustment card. Replaces the
+   slider-driven criteria editor with a chip grid + single NL input. */
+.criteria-card { }
+.nl-adjust {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 10px;
+}
+.nl-adjust input[type="text"] {
+  flex: 1;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.nl-adjust input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.nl-adjust-btn {
+  padding: 11px 18px;
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  transition: background 0.15s, transform 0.05s;
+}
+.nl-adjust-btn:hover:not(:disabled) { background: var(--accent-hi); }
+.nl-adjust-btn:active:not(:disabled) { transform: translateY(1px); }
+.nl-adjust-btn:disabled { opacity: 0.6; cursor: progress; }
+.nl-adjust-status {
+  min-height: 18px;
+  font-size: 13px;
+  color: var(--fg-muted);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+.nl-adjust-ok { color: var(--good); }
+.nl-adjust-err { color: var(--error); }
+.nl-adjust-working { color: var(--fg-dim); font-style: italic; }
+
+.criteria-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+.criterion-chip {
+  padding: 10px 12px 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.criterion-chip-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.criterion-chip-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
+.criterion-chip-priority {
+  font-size: 11px;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.criterion-chip-bar {
+  height: 4px;
+  background: var(--surface-hi);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.criterion-chip-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .match-bar { display: flex; align-items: center; gap: 10px; }
 .match-bar-fill { flex: 1; height: 8px; background: var(--surface-hi); border-radius: var(--radius-pill); overflow: hidden; }
 .match-bar-fill > div { height: 100%; background: var(--accent); transition: width 0.4s ease; }

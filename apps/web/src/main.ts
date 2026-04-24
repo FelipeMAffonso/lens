@@ -913,36 +913,135 @@ function heroPickCard(r: AuditResult): HTMLElement {
 
 function criteriaCard(r: AuditResult): HTMLElement {
   const card = document.createElement("section");
-  card.className = "card";
+  card.className = "card criteria-card";
   card.innerHTML = `
     <div class="card-header">
       <div>
         <h2>Your criteria</h2>
-        <p class="card-subtitle">Tell Oracle in plain language what to change ("make it quieter", "budget is tight at $300"). Ranking below re-computes.</p>
+        <p class="card-subtitle">Oracle built these from what you told it. To change them, just say what matters more (or less) in plain language.</p>
       </div>
     </div>
-    <div class="criteria-detail" id="sliders-wrap"></div>
+    <form class="nl-adjust" id="nl-adjust-form" autocomplete="off">
+      <input
+        type="text"
+        id="nl-adjust-input"
+        placeholder='Say what to change — e.g. "make it quieter", "budget is tight at $300", "care more about durability"'
+        aria-label="Change your criteria in plain language"
+      />
+      <button type="submit" class="nl-adjust-btn">Re-rank</button>
+    </form>
+    <div class="nl-adjust-status" id="nl-adjust-status" role="status" aria-live="polite"></div>
+    <div class="criteria-chips" id="criteria-chips"></div>
   `;
-  const wrap = card.querySelector<HTMLElement>("#sliders-wrap")!;
-  for (const c of r.intent.criteria) {
-    const pct = Math.round(c.weight * 100);
-    const row = document.createElement("div");
-    row.className = "criterion-row";
-    row.innerHTML = `
-      <div class="label"><strong>${esc(humanizeCriterion(c.name))}</strong></div>
-      <input type="range" min="0" max="100" value="${pct}" data-criterion="${esc(c.name)}" />
-      <div class="value" data-criterion-val="${esc(c.name)}" style="text-align:right;color:var(--fg-dim);font-family:inherit;font-size:12px;min-width:120px;">${priorityLabel(c.weight)}</div>
-    `;
-    wrap.append(row);
-  }
-  wrap.querySelectorAll<HTMLInputElement>("input[type='range']").forEach((input) => {
-    input.addEventListener("input", () => {
-      const v = Number(input.value) / 100;
-      wrap.querySelector<HTMLSpanElement>(`[data-criterion-val="${input.dataset.criterion}"]`)!.textContent = priorityLabel(v);
-      reRank();
-    });
-  });
+  renderCriteriaChips(card.querySelector<HTMLElement>("#criteria-chips")!, r.intent.criteria);
+  wireNlAdjustForm(card, r);
   return card;
+}
+
+interface CriterionShape {
+  name: string;
+  weight: number;
+  direction?: "higher_is_better" | "lower_is_better" | "target" | "binary";
+}
+
+function renderCriteriaChips(host: HTMLElement, criteria: CriterionShape[]): void {
+  host.innerHTML = "";
+  const sorted = [...criteria].sort((a, b) => b.weight - a.weight);
+  for (const c of sorted) {
+    const pct = Math.max(0, Math.min(100, Math.round(c.weight * 100)));
+    const chip = document.createElement("div");
+    chip.className = "criterion-chip";
+    chip.innerHTML = `
+      <div class="criterion-chip-head">
+        <span class="criterion-chip-name">${esc(humanizeCriterion(c.name))}</span>
+        <span class="criterion-chip-priority">${priorityLabel(c.weight)}</span>
+      </div>
+      <div class="criterion-chip-bar" aria-hidden="true">
+        <span style="width:${pct}%"></span>
+      </div>
+    `;
+    chip.setAttribute("role", "group");
+    chip.setAttribute("aria-label", `${humanizeCriterion(c.name)}: ${priorityLabel(c.weight)} (weight ${pct}%)`);
+    host.append(chip);
+  }
+}
+
+function wireNlAdjustForm(card: HTMLElement, r: AuditResult): void {
+  const form = card.querySelector<HTMLFormElement>("#nl-adjust-form")!;
+  const input = card.querySelector<HTMLInputElement>("#nl-adjust-input")!;
+  const btn = card.querySelector<HTMLButtonElement>(".nl-adjust-btn")!;
+  const status = card.querySelector<HTMLElement>("#nl-adjust-status")!;
+  const chipsHost = card.querySelector<HTMLElement>("#criteria-chips")!;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const nlChange = input.value.trim();
+    if (!nlChange) return;
+    btn.disabled = true;
+    const originalBtn = btn.textContent;
+    btn.textContent = "…";
+    status.textContent = "Oracle is parsing your change.";
+    status.className = "nl-adjust-status nl-adjust-working";
+    try {
+      const res = await fetch(`${API_BASE}/rank/nl-adjust`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          criteria: (currentResult?.intent.criteria ?? r.intent.criteria).map((c) => ({
+            name: c.name,
+            weight: c.weight,
+            direction: c.direction,
+          })),
+          nlChange,
+          category: currentResult?.intent.category ?? r.intent.category,
+        }),
+      });
+      const body = (await res.json().catch(() => null)) as {
+        ok: boolean;
+        error?: string;
+        message?: string;
+        summary?: string | null;
+        criteria?: CriterionShape[];
+        changed?: Array<{ name: string; before: number; after: number }>;
+      } | null;
+      if (!res.ok || !body || !body.ok) {
+        const msg = body?.message ?? "I couldn't parse that. Try something like 'care more about battery life' or 'budget is tight at $300'.";
+        status.textContent = msg;
+        status.className = "nl-adjust-status nl-adjust-err";
+        return;
+      }
+      if (body.criteria && currentResult) {
+        // Mutate currentResult.intent.criteria so subsequent NL changes stack.
+        currentResult.intent.criteria = body.criteria.map((c) => ({
+          name: c.name,
+          weight: c.weight,
+          direction: c.direction ?? "higher_is_better",
+        })) as typeof currentResult.intent.criteria;
+        renderCriteriaChips(chipsHost, currentResult.intent.criteria);
+        reRankFromCriteria(currentResult.intent.criteria);
+      }
+      const summary = body.summary ?? "Re-ranked with your updated preferences.";
+      const changed = body.changed ?? [];
+      const changeNote = changed.length > 0
+        ? ` Changed: ${changed
+            .slice(0, 3)
+            .map(
+              (c) =>
+                `${humanizeCriterion(c.name)} ${c.before < c.after ? "↑" : "↓"} ${Math.round(c.before * 100)}→${Math.round(c.after * 100)}%`,
+            )
+            .join(", ")}${changed.length > 3 ? `, +${changed.length - 3} more` : ""}.`
+        : "";
+      status.textContent = summary + changeNote;
+      status.className = "nl-adjust-status nl-adjust-ok";
+      input.value = "";
+    } catch (err) {
+      status.textContent = `Something went wrong. ${(err as Error).message.slice(0, 120)}`;
+      status.className = "nl-adjust-status nl-adjust-err";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalBtn ?? "Re-rank";
+      input.focus();
+    }
+  });
 }
 
 function claimsCard(r: AuditResult): HTMLElement {
@@ -1079,23 +1178,18 @@ function elapsedFooter(r: AuditResult): HTMLElement {
   return el;
 }
 
-function reRank(): void {
+// Oracle phase-1 commit 3: re-rank client-side from a criteria array (replaces
+// the old slider-driven reRank). Input is the (already-normalized sum=1)
+// criteria returned from /rank/nl-adjust. Rescoring is deterministic — same
+// rank.ts math as the server, using the per-candidate normalized scores that
+// the server already computed in utilityBreakdown.
+function reRankFromCriteria(criteria: CriterionShape[]): void {
   if (!currentResult) return;
-  const sliders = Array.from(document.querySelectorAll<HTMLInputElement>(".criterion-row input[type='range']"));
-  const raw: Record<string, number> = {};
-  let sum = 0;
-  for (const s of sliders) {
-    const v = Number(s.value);
-    raw[s.dataset.criterion!] = v;
-    sum += v;
-  }
-  const normalized: Record<string, number> = {};
-  for (const [k, v] of Object.entries(raw)) normalized[k] = sum > 0 ? v / sum : 0;
-
+  const weightByName = new Map(criteria.map((c) => [c.name, c.weight]));
   const rescored = currentResult.candidates.map((cand) => {
     let u = 0;
     const breakdown = cand.utilityBreakdown.map((b) => {
-      const w = normalized[b.criterion] ?? 0;
+      const w = weightByName.get(b.criterion) ?? 0;
       const contribution = w * b.score;
       u += contribution;
       return { ...b, weight: w, contribution };
@@ -1104,10 +1198,31 @@ function reRank(): void {
   });
   rescored.sort((a, b) => b.utilityScore - a.utilityScore);
 
-  const list = document.getElementById("ranked-list")!;
-  list.innerHTML = "";
-  for (let i = 0; i < Math.min(rescored.length, 10); i++) {
-    list.append(rankRow(rescored[i]!, i, rescored[0]?.utilityScore ?? 1));
+  currentResult.candidates = rescored;
+  if (rescored[0]) {
+    currentResult.specOptimal = rescored[0];
+  }
+
+  const list = document.getElementById("ranked-list");
+  if (list) {
+    list.innerHTML = "";
+    for (let i = 0; i < Math.min(rescored.length, 10); i++) {
+      list.append(rankRow(rescored[i]!, i, rescored[0]?.utilityScore ?? 1));
+    }
+  }
+
+  // Also re-paint the hero pick if it changed.
+  const heroCard = document.querySelector<HTMLElement>(".card .hero-pick");
+  if (heroCard && rescored[0]) {
+    const o = rescored[0];
+    const pickProduct = heroCard.querySelector<HTMLElement>(".pick-product");
+    const pickPrice = heroCard.querySelector<HTMLElement>(".pick-price");
+    if (pickProduct) {
+      pickProduct.innerHTML = `<span class="brand">${esc(o.brand ?? "")}</span> <span class="name">${esc(o.name)}</span>`;
+    }
+    if (pickPrice) {
+      pickPrice.innerHTML = renderPriceLine(o);
+    }
   }
 }
 
