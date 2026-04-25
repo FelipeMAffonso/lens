@@ -51,6 +51,40 @@ describe("derivePreferenceIntent", () => {
     expect(out.preferenceModel?.privacy.consentRequiredFor).toContain("Plaid transaction monitoring");
   });
 
+  // Regression: ultrareview bug_010 #3 — recall_history / allergen_risk / input_latency
+  // are CATEGORY_PRIORS lower_is_better criteria. If Opus extracts one without a
+  // direction field, normalizeDirection used to default to higher_is_better,
+  // inverting safety-critical signals (e.g., baby products would score higher
+  // with MORE recalls).
+  it("forces lower_is_better direction for recall_history when caller omits direction", () => {
+    const out = derivePreferenceIntent({
+      category: "baby car seat",
+      criteria: [
+        // No direction provided — would have silently defaulted higher_is_better.
+        { name: "recall_history", weight: 1, confidence: 0.7 } as never,
+      ],
+      rawCriteriaText: "low-recall infant car seat",
+    });
+    const recall = out.criteria.find((c) => c.name === "recall_history");
+    expect(recall?.direction).toBe("lower_is_better");
+  });
+
+  it("forces lower_is_better direction for allergen_risk and input_latency when omitted", () => {
+    const a = derivePreferenceIntent({
+      category: "skincare",
+      criteria: [{ name: "allergen_risk", weight: 1, confidence: 0.7 } as never],
+      rawCriteriaText: "low allergen sunscreen",
+    });
+    expect(a.criteria.find((c) => c.name === "allergen_risk")?.direction).toBe("lower_is_better");
+
+    const l = derivePreferenceIntent({
+      category: "monitor display",
+      criteria: [{ name: "input_latency", weight: 1, confidence: 0.7 } as never],
+      rawCriteriaText: "low latency monitor",
+    });
+    expect(l.criteria.find((c) => c.name === "input_latency")?.direction).toBe("lower_is_better");
+  });
+
   it("covers everyday safety-critical and household categories with explicit priors", () => {
     const cases = [
       ["baby car seat", ["safety", "recall_history", "fit_compatibility"]],

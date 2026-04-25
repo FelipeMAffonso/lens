@@ -422,7 +422,18 @@ function canonicalCriterionName(name: string): string {
 
 function normalizeDirection(name: string, direction: CriterionDirection | undefined): CriterionDirection {
   const n = canonicalCriterionName(name);
-  if (PRICE_ALIASES.has(n) || n.endsWith("_cost") || n === "noise" || n === "cancellation_friction") {
+  if (
+    PRICE_ALIASES.has(n) ||
+    n.endsWith("_cost") ||
+    n === "noise" ||
+    n === "cancellation_friction" ||
+    // CATEGORY_PRIORS defines these as lower_is_better; without these branches a
+    // criterion missing the direction field would silently invert (e.g., baby
+    // products would score higher with MORE recalls).
+    n === "recall_history" ||
+    n === "allergen_risk" ||
+    n === "input_latency"
+  ) {
     return "lower_is_better";
   }
   return direction ?? "higher_is_better";

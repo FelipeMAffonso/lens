@@ -495,7 +495,10 @@ async function fetchJina(url: string, reason?: string): Promise<ProbeFetchResult
 function inferPageType(url: URL, text: string): PageType {
   const joined = `${url.pathname} ${url.search} ${text.slice(0, 2000)}`.toLowerCase();
   if (/\b(checkout|payment|confirm|reservation|booking\/confirm|cart)\b/.test(joined)) {
-    return joined.includes("cart") ? "cart" : "checkout";
+    // Prioritize the more specific signal: checkout/payment/confirm beats incidental
+    // mentions of "cart" (which appear on virtually every checkout page as "your cart",
+    // "view cart", etc.). Only fall back to "cart" when no checkout signal is present.
+    return /\b(checkout|payment|confirm|reservation|booking\/confirm)\b/.test(joined) ? "checkout" : "cart";
   }
   if (/\b(hotel|room|stay|nightly|resort|booking)\b/.test(joined)) return "marketplace";
   if (/\b(review|ratings?)\b/.test(joined)) return "review";
@@ -720,12 +723,20 @@ function isPublicHttpUrl(raw: string): boolean {
     host.endsWith(".localhost") ||
     host.endsWith(".local") ||
     host === "0.0.0.0" ||
-    host === "::1" ||
+    // The WHATWG URL parser wraps IPv6 hostnames in brackets, so the loopback check
+    // must match the bracketed form. The bare "::1" check never matched.
+    host === "[::1]" ||
     /^127\./.test(host) ||
     /^10\./.test(host) ||
     /^192\.168\./.test(host) ||
     /^169\.254\./.test(host) ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(host)
+    /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
+    // IPv4-mapped IPv6 (e.g. [::ffff:127.0.0.1] canonicalized to [::ffff:7f00:1]).
+    /^\[::ffff:/i.test(host) ||
+    // IPv6 Unique Local Addresses (fc00::/7) — fc00:: through fdff::.
+    /^\[f[cd]/i.test(host) ||
+    // IPv6 link-local (fe80::/10) — fe80:: through febf::.
+    /^\[fe[89ab]/i.test(host)
   ) {
     return false;
   }

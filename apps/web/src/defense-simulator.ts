@@ -462,7 +462,9 @@ function pause(ms: number): Promise<void> {
 function inferLivePageType(url: URL, text: string): LivePageType {
   const joined = `${url.pathname} ${url.search} ${text.slice(0, 2000)}`.toLowerCase();
   if (/\b(checkout|payment|confirm|reservation|booking\/confirm|cart)\b/.test(joined)) {
-    return joined.includes("cart") ? "cart" : "checkout";
+    // Mirror probe.ts: prioritize checkout/payment/confirm over incidental "cart"
+    // mentions (every checkout page contains "your cart").
+    return /\b(checkout|payment|confirm|reservation|booking\/confirm)\b/.test(joined) ? "checkout" : "cart";
   }
   if (/\b(hotel|room|stay|nightly|resort|booking)\b/.test(joined)) return "marketplace";
   if (/\b(review|ratings?)\b/.test(joined)) return "review";
@@ -493,12 +495,16 @@ function isPublicHttpUrl(raw: string): boolean {
     host.endsWith(".localhost") ||
     host.endsWith(".local") ||
     host === "0.0.0.0" ||
-    host === "::1" ||
+    // WHATWG URL parser wraps IPv6 hostnames in brackets.
+    host === "[::1]" ||
     /^127\./.test(host) ||
     /^10\./.test(host) ||
     /^192\.168\./.test(host) ||
     /^169\.254\./.test(host) ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(host)
+    /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
+    /^\[::ffff:/i.test(host) ||
+    /^\[f[cd]/i.test(host) ||
+    /^\[fe[89ab]/i.test(host)
   );
 }
 

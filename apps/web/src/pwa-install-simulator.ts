@@ -30,7 +30,13 @@ export function mountPwaInstallSimulator(options: PwaInstallDemoOptions = {}): v
   document.querySelectorAll<HTMLAnchorElement>("[data-run-pwa-demo]").forEach((link) => {
     if (link.dataset["pwaWired"] === "1") return;
     link.dataset["pwaWired"] = "1";
-    link.addEventListener("click", () => {
+    link.addEventListener("click", (event) => {
+      // Mirror the defense-simulator pattern: stop the anchor's default hash jump,
+      // do a smooth scroll, and replace (not push) the history entry so Back doesn't
+      // break.
+      event.preventDefault();
+      root.scrollIntoView({ behavior: "smooth", block: "start" });
+      history.replaceState(null, "", "#pwa-install-simulator");
       window.setTimeout(() => void runPwaInstallDemo(root, options), 150);
     });
   });

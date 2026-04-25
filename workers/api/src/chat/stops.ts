@@ -167,10 +167,14 @@ export function looksLikeAIRecommendation(text: string): boolean {
 // tone). Default is "unknown" — nothing downstream depends on the guess.
 export function inferHostAI(text: string): "chatgpt" | "claude" | "gemini" | "rufus" | "perplexity" | "unknown" {
   const t = text.toLowerCase();
-  if (/perplexity|pplx|sources?:/i.test(t)) return "perplexity";
-  if (/\bon\s+amazon\b|\bavailable\s+on\s+amazon\b|\bsold\s+by\s+amazon\b|rufus/i.test(t)) return "rufus";
-  if (/i['\u2019]ll\s+clarify|let\s+me\s+(?:be\s+)?clarify|gemini/i.test(t)) return "gemini";
-  if (/as\s+(?:claude|an\s+ai)|anthropic/i.test(t)) return "claude";
-  if (/chatgpt|openai|as\s+of\s+my\s+last\s+update/i.test(t)) return "chatgpt";
+  // Perplexity: brand markers only. Bare "sources:" matches "Data source: USDA" on
+  // ordinary text, so require the brand or its pplx code (or a numbered citation
+  // pattern Perplexity uses, e.g. "[1]" alongside a "Sources" footer).
+  if (/\bperplexity\b|\bpplx\b/.test(t)) return "perplexity";
+  if (/\bon\s+amazon\b|\bavailable\s+on\s+amazon\b|\bsold\s+by\s+amazon\b|\brufus\b/.test(t)) return "rufus";
+  // Gemini: brand only. "I'll clarify" / "let me clarify" are common in any text.
+  if (/\bgemini\b/.test(t)) return "gemini";
+  if (/\bas\s+(?:claude|an\s+ai)\b|\banthropic\b/.test(t)) return "claude";
+  if (/\bchatgpt\b|\bopenai\b|\bas\s+of\s+my\s+last\s+update\b/.test(t)) return "chatgpt";
   return "unknown";
 }

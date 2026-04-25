@@ -190,4 +190,37 @@ describe("passive scan URL probe", () => {
     expect(res.status).toBe(400);
     expect(await res.json()).toMatchObject({ error: "journey_url_not_allowed" });
   });
+
+  // Regression: ultrareview bug_008 — IPv6 SSRF guard bypass.
+  it.each([
+    "http://[::1]/internal",
+    "http://[::ffff:127.0.0.1]/admin",
+    "http://[::ffff:7f00:1]/admin",
+    "http://[fc00::1]/internal",
+    "http://[fd12:3456:789a::1]/internal",
+    "http://[fe80::1]/link-local",
+  ])("rejects IPv6 private/loopback host %s", async (url) => {
+    const res = await app().request(
+      "/passive-scan/probe",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url }),
+      },
+      {},
+    );
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: "url_not_allowed" });
+  });
+
+  // Regression: ultrareview bug_019 — checkout pages contain "your cart" / "view cart"
+  // in their visible text, which used to flip pageType to "cart".
+  it("classifies checkout-path URLs containing the word 'cart' in body text as checkout", () => {
+    const out = analyzeDarkPatternPage("https://shop.example/checkout/payment", {
+      text: "Review your cart and confirm payment. Items in cart: 3. Subtotal $129. Destination amenity fee $9.",
+      fetchedVia: "provided-text",
+      bytes: 100,
+    });
+    expect(out.pageType).toBe("checkout");
+  });
 });

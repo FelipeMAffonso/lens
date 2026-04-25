@@ -492,7 +492,7 @@ function criteriaFromPrompt(prompt: string): UrlCriterion[] {
   add("durability", "higher_is_better", [/\b(durable|sturdy|build|metal|steel|rugged|long[-\s]?lasting)\b/]);
   add("repairability", "higher_is_better", [/\b(repair|ifixit|parts|replaceable)\b/]);
   add("comfort", "higher_is_better", [/\b(comfort|ergonomic|all[-\s]?day)\b/]);
-  add("privacy", "higher_is_better", [/\b(privacy|data|tracking|account required|app required)\b/]);
+  add("privacy", "higher_is_better", [/\b(privacy|tracking|account required|app required|data\s+(?:collection|sharing|privacy|protection|broker|brokers)|share\s+(?:my\s+)?data|sell\s+(?:my\s+)?data|personal\s+(?:data|information))\b/]);
   add("energy_efficiency", "higher_is_better", [/\b(energy|efficient|power draw|electricity)\b/]);
   add("warranty", "higher_is_better", [/\b(warranty|return window|support)\b/]);
   add("review_quality", "higher_is_better", [/\b(review|rating|reliable|fake)\b/]);
@@ -558,7 +558,10 @@ function parseBudget(prompt: string): UserIntent["budget"] | undefined {
   if (!prompt.trim()) return undefined;
   const patterns = [
     /\b(?:under|below|less than|up to|max(?:imum)?|budget(?: is)?|no more than)\s*\$?\s*([\d,]+(?:\.\d{1,2})?)/i,
-    /\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:or less|max|budget|cap)?/i,
+    // The qualifier was previously optional, which made any dollar amount in the
+    // prompt look like a budget cap (e.g. "I want the $500 MacBook" set max=500).
+    // Require an explicit budget-intent qualifier.
+    /\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:or\s+less|max|budget|cap)\b/i,
   ];
   for (const re of patterns) {
     const m = prompt.match(re);
