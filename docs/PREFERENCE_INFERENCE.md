@@ -76,15 +76,17 @@ LLMs are known to under-report their own uncertainty, which is the central failu
 
 3. **Every utility breakdown is visible.** If the user sees that rank-1 beats rank-2 by 0.03 utility where a single weight moved 0.1 could flip the order, the UI says so explicitly. A tight margin on low-confidence weights is flagged, not hidden.
 
-## What ships in the hackathon demo
+## What ships now
 
-The hackathon MVP implements Layers 1, 2, and 3. Layers 4 and 5 are documented here as roadmap because they require longitudinal data that a one-week demo cannot produce honestly.
+The current implementation no longer treats preference inference as a loose prompt artifact. `workers/api/src/preferences/inference.ts` wraps every extracted intent in `layered-utility-v1` before ranking. The audit result now carries the utility-model audit trail through the shared schema, and the web UI renders it in the criteria card.
 
-- Layer 1 (goal-based parsing) is already live in the deployed Worker. `workers/api/src/extract.ts` implements this.
-- Layer 2 (adaptive clarification) ships by Day 3 as a new `/clarify` endpoint and a UI flow that appears when `extract` returns confidence below threshold.
-- Layer 3 (explicit editing) ships with the web UI on Day 4 — the sliders already in the DEMO_SPEC are the direct editing surface.
-- Layer 4 (Bayesian revealed-preference updating) is roadmap v0.3 — it needs enough audit history per user for the hierarchical prior to be meaningful.
-- Layer 5 (cross-category transfer) is roadmap v0.4 — it needs multiple category profiles per user to have signal.
+- Layer 1 (goal-based parsing) runs in `workers/api/src/extract.ts`, then `derivePreferenceIntent()` canonicalizes, normalizes, and explains the criteria.
+- Layer 2 (adaptive clarification) is still handled by the `/clarify` flow when low-confidence preferences need an explicit trade-off question.
+- Layer 3 (explicit editing) is the plain-language re-rank UI plus saved local preference profiles; every criterion can carry source, confidence, and rationale metadata.
+- Layer 4 (revealed-preference updating) has a first deterministic implementation in `workers/api/src/performance/handler.ts`: post-purchase satisfaction can adjust the user's category weights, and the code supports both legacy object-shaped rows and current array-shaped criteria rows.
+- Layer 5 (cross-category transfer) is represented today as category-level priors and user-controlled profile layers; true hierarchical cross-category learning remains a roadmap item until enough longitudinal, consented user data exists to estimate it honestly.
+
+The important product rule is live in code: Lens derives and exposes a utility function before recommendation, and any sensitive behavioral source (Gmail, Plaid, receipts, purchase history, push watchers) stays opt-in and revocable.
 
 ## Why this pipeline wins versus competitors
 

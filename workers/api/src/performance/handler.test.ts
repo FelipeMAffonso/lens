@@ -88,7 +88,7 @@ async function seedPurchase(
 async function seedPreference(
   db: ReturnType<typeof d1>,
   category: string,
-  weights: Record<string, number>,
+  weights: unknown,
   userId = "u1",
 ): Promise<void> {
   await db
@@ -280,6 +280,42 @@ describe("POST /purchase/:id/performance", () => {
     expect(pref).not.toBeNull();
     const weights = JSON.parse(pref!.criteria_json) as Record<string, number>;
     expect(weights["build_quality"]).toBeGreaterThan(0.25);
+  });
+
+  it("updates current array-shaped criteria rows instead of treating them as empty", async () => {
+    const db = d1();
+    await seedPurchase(db);
+    await seedPreference(db, "espresso-machines", [
+      { name: "pressure", weight: 0.30, direction: "higher_is_better", confidence: 0.8 },
+      { name: "build_quality", weight: 0.25, direction: "higher_is_better", confidence: 0.8 },
+      { name: "price", weight: 0.40, direction: "lower_is_better", confidence: 0.9 },
+      { name: "warranty", weight: 0.05, direction: "higher_is_better", confidence: 0.6 },
+    ]);
+    const r = await buildApp().request(
+      "/purchase/p-1/performance",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-test-user": "u1" },
+        body: JSON.stringify({
+          overallRating: 5,
+          wouldBuyAgain: true,
+          criterionFeedback: [{ criterion: "build_quality", signal: "more-important" }],
+        }),
+      },
+      { LENS_D1: db },
+    );
+    const body = (await r.json()) as { preferenceUpdate: { applied: boolean } };
+    expect(body.preferenceUpdate.applied).toBe(true);
+
+    const pref = await db
+      .prepare(`SELECT criteria_json FROM preferences WHERE user_id = ? AND category = ?`)
+      .bind("u1", "espresso-machines")
+      .first<{ criteria_json: string }>();
+    const criteria = JSON.parse(pref!.criteria_json) as Array<{ name: string; weight: number; direction: string }>;
+    const build = criteria.find((c) => c.name === "build_quality");
+    expect(Array.isArray(criteria)).toBe(true);
+    expect(build?.weight).toBeGreaterThan(0.25);
+    expect(build?.direction).toBe("higher_is_better");
   });
 
   it("returns applied=false with a clear reason when no preference row exists", async () => {

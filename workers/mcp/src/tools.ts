@@ -27,7 +27,7 @@ export const TOOLS: McpToolDef[] = [
         },
         source: {
           type: "string",
-          enum: ["chatgpt", "claude", "gemini", "rufus", "unknown"],
+          enum: ["chatgpt", "claude", "gemini", "perplexity", "rufus", "unknown"],
           description: "Which AI assistant produced the answer being audited (for 'text' / 'image' kinds).",
         },
         raw: { type: "string", description: "The AI's full response text (for 'text' kind)." },
@@ -188,7 +188,7 @@ export const TOOLS: McpToolDef[] = [
   {
     name: "lens.trigger_ingest",
     description:
-      "Manually kick off an ingester for one Lens data source (e.g. 'cisa-kev', 'fda-510k', 'ftc-enforcement'). Unauthenticated but rate-limited. Each ingester is idempotent (INSERT OR IGNORE everywhere). Returns rowsUpserted + errors + duration. Useful for demos and for filling a specific gap on demand.",
+      "Manually kick off an ingester for one Lens data source (e.g. 'cisa-kev', 'fda-510k', 'ftc-enforcement'). Requires the MCP worker to be configured with LENS_ADMIN_KEY. Each ingester is idempotent (INSERT OR IGNORE everywhere). Returns rowsUpserted + errors + duration. Useful for demos and for filling a specific gap on demand.",
     inputSchema: {
       type: "object",
       properties: {

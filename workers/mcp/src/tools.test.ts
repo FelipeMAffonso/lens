@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { TOOLS } from "./tools.js";
 
 describe("tool registry", () => {
-  it("ships 7 lens.* tools", () => {
-    expect(TOOLS).toHaveLength(7);
+  it("ships the complete lens.* tool surface", () => {
+    expect(TOOLS).toHaveLength(13);
     const names = new Set(TOOLS.map((t) => t.name));
     expect(names).toEqual(
       new Set([
@@ -13,6 +13,12 @@ describe("tool registry", () => {
         "lens.regulation_lookup",
         "lens.pack_get",
         "lens.pack_list",
+        "lens.sku_search",
+        "lens.sku_get",
+        "lens.architecture_stats",
+        "lens.architecture_sources",
+        "lens.resolve_url",
+        "lens.trigger_ingest",
         "lens.intervention_draft",
       ]),
     );

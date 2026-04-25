@@ -40,6 +40,27 @@ interface SourceRow {
   docs_url: string | null;
 }
 
+interface RecentRunRow {
+  id?: string | number | null;
+  started_at?: string | null;
+  finished_at?: string | null;
+  status?: string | null;
+  rows_seen?: number | null;
+  rows_upserted?: number | null;
+  rows_skipped?: number | null;
+  error_count?: number | null;
+  duration_ms?: number | null;
+}
+
+interface SourceDetailBody {
+  source?: SourceRow | null;
+  recent_runs?: RecentRunRow[];
+  status?: string;
+  message?: string;
+  error?: string;
+  id?: string;
+}
+
 function fmtNumber(n: number | null | undefined): string {
   if (n == null) return "—";
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -70,7 +91,7 @@ function paintStats(stats: StatsRow): void {
   }
 }
 
-function paintSources(sources: SourceRow[]): void {
+export function paintSources(sources: SourceRow[]): void {
   const host = document.getElementById("sources-grid");
   if (!host) return;
   if (sources.length === 0) {
@@ -110,20 +131,29 @@ function paintSources(sources: SourceRow[]): void {
       <footer>
         <span class="last-run">${lastRun}${rowsLabel}</span>
         <span class="source-actions">
-          <button class="trigger-btn" data-source-id="${escapeHtml(s.id)}" title="Run this ingester now">trigger ▸</button>
+          <button class="trigger-btn source-inspect-btn" data-source-id="${escapeHtml(s.id)}" title="Inspect live source status">inspect live</button>
           ${s.docs_url ? `<a href="${escapeHtml(s.docs_url)}" target="_blank">docs ↗</a>` : ""}
         </span>
       </footer>
     `;
     host.append(tile);
   }
-  wireTriggerButtons();
+  wireSourceInspectButtons();
 }
 
-function wireTriggerButtons(): void {
+async function refreshArchitectureReveal(): Promise<void> {
+  const [statsRes, sourcesRes] = await Promise.allSettled([
+    fetch(`${API_BASE}/architecture/stats`).then((r) => r.json() as Promise<StatsRow>),
+    fetch(`${API_BASE}/architecture/sources`).then((r) => r.json() as Promise<{ sources?: SourceRow[] }>),
+  ]);
+  if (statsRes.status === "fulfilled") paintStats(statsRes.value);
+  if (sourcesRes.status === "fulfilled") paintSources(sourcesRes.value.sources ?? []);
+}
+
+function wireSourceInspectButtons(): void {
   const host = document.getElementById("sources-grid");
   if (!host) return;
-  host.querySelectorAll<HTMLButtonElement>("button.trigger-btn").forEach((btn) => {
+  host.querySelectorAll<HTMLButtonElement>("button.source-inspect-btn").forEach((btn) => {
     if (btn.dataset["wired"] === "1") return;
     btn.dataset["wired"] = "1";
     btn.addEventListener("click", async () => {
@@ -131,32 +161,116 @@ function wireTriggerButtons(): void {
       if (!id) return;
       const original = btn.textContent ?? "";
       btn.disabled = true;
-      btn.textContent = "running…";
+      btn.textContent = "checking...";
       try {
-        const res = await fetch(`${API_BASE}/architecture/trigger/${encodeURIComponent(id)}`, {
-          method: "POST",
+        const res = await fetch(`${API_BASE}/architecture/sources/${encodeURIComponent(id)}`, {
           credentials: "omit",
         });
-        const body = (await res.json()) as {
-          status?: string;
-          report?: { rowsUpserted?: number; errors?: string[] };
-          durationMs?: number;
-        };
-        const rows = body.report?.rowsUpserted ?? 0;
-        const errs = body.report?.errors?.length ?? 0;
-        btn.textContent = `${body.status ?? "done"} · ${rows} rows${errs ? ` · ${errs} errs` : ""}`;
-        // Refresh source grid after a short delay so new state reflects.
-        setTimeout(() => refresh(), 1500);
+        const body = (await res.json()) as SourceDetailBody;
+        paintSourceInspector(res.ok ? body : { ...body, error: body.error ?? `HTTP ${res.status}`, id });
+        btn.textContent = "inspected";
       } catch (err) {
-        btn.textContent = `error: ${(err as Error).message.slice(0, 40)}`;
+        paintSourceInspector({ id, error: (err as Error).message.slice(0, 120) });
+        btn.textContent = "error";
       } finally {
         setTimeout(() => {
           btn.disabled = false;
           btn.textContent = original;
-        }, 5000);
+        }, 2500);
       }
     });
   });
+}
+
+export function paintSourceInspector(body: SourceDetailBody): void {
+  const panel = ensureSourceInspector();
+  if (!panel) return;
+  panel.hidden = false;
+  const source = body.source;
+  if (!source) {
+    panel.innerHTML = `
+      <div class="source-inspector-head">
+        <span class="platform-eyebrow">Live source probe</span>
+        <strong>${escapeHtml(body.id ?? "data source")}</strong>
+      </div>
+      <p class="source-inspector-message">
+        ${escapeHtml(body.error ?? body.message ?? body.status ?? "Source detail is bootstrapping.")}
+      </p>
+      <code class="source-inspector-endpoint">GET /architecture/sources/${escapeHtml(body.id ?? ":id")}</code>
+    `;
+    panel.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  const runs = body.recent_runs ?? [];
+  const rows = [
+    sourceMetric("Cadence", humanCadence(source.cadence_minutes)),
+    sourceMetric("Rows in spine", fmtNumber(source.rows_total)),
+    sourceMetric("Last run", source.last_run_at ? relativeTime(source.last_run_at) : "not yet run"),
+    sourceMetric("Last success", source.last_success_at ? relativeTime(source.last_success_at) : "not yet"),
+  ].join("");
+  panel.innerHTML = `
+    <div class="source-inspector-head">
+      <div>
+        <span class="platform-eyebrow">Live source probe</span>
+        <h4>${escapeHtml(source.name)}</h4>
+      </div>
+      <span class="source-inspector-status ${escapeHtml(statusDot(source).cls)}">${escapeHtml(source.status)}</span>
+    </div>
+    <p class="source-inspector-message">${escapeHtml(source.description ?? "No description published for this source yet.")}</p>
+    <div class="source-inspector-metrics">${rows}</div>
+    <div class="source-inspector-wire">
+      <code>GET /architecture/sources/${escapeHtml(source.id)}</code>
+      ${source.base_url ? `<a href="${escapeHtml(source.base_url)}" target="_blank" rel="noopener">source</a>` : ""}
+      ${source.docs_url ? `<a href="${escapeHtml(source.docs_url)}" target="_blank" rel="noopener">docs</a>` : ""}
+    </div>
+    ${source.last_error ? `<p class="source-inspector-error">Last error: ${escapeHtml(source.last_error)}</p>` : ""}
+    <div class="source-runs">
+      <strong>Recent ingester runs</strong>
+      ${renderRecentRuns(runs)}
+    </div>
+  `;
+  panel.scrollIntoView?.({ behavior: "smooth", block: "center" });
+}
+
+function ensureSourceInspector(): HTMLElement | null {
+  let panel = document.getElementById("source-inspector");
+  if (panel) return panel;
+  const grid = document.getElementById("sources-grid");
+  if (!grid?.parentElement) return null;
+  panel = document.createElement("div");
+  panel.id = "source-inspector";
+  panel.className = "source-inspector";
+  panel.hidden = true;
+  grid.parentElement.insertBefore(panel, grid);
+  return panel;
+}
+
+function sourceMetric(label: string, value: string): string {
+  return `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+}
+
+function renderRecentRuns(runs: RecentRunRow[]): string {
+  if (runs.length === 0) {
+    return `<p class="source-inspector-message">No run rows yet. The next cron will create one after this source becomes due.</p>`;
+  }
+  return `
+    <div class="source-run-list">
+      ${runs
+        .slice(0, 5)
+        .map((run) => {
+          const when = run.started_at ? relativeTime(run.started_at) : "unknown";
+          const rows = run.rows_upserted ?? run.rows_seen ?? 0;
+          const errors = run.error_count ?? 0;
+          return `<div class="source-run">
+            <span>${escapeHtml(when)}</span>
+            <strong>${escapeHtml(run.status ?? "unknown")}</strong>
+            <code>${fmtNumber(rows)} rows${errors ? ` / ${fmtNumber(errors)} errors` : ""}</code>
+          </div>`;
+        })
+        .join("")}
+    </div>
+  `;
 }
 
 function statusDot(s: SourceRow): { cls: string; title: string } {

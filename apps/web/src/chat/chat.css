@@ -2,23 +2,27 @@
    Consumes existing --accent, --fg, --bg, --border tokens when available. */
 
 :root {
-  --lc-accent: #DA7756;
-  --lc-bot-bg: #f4f6f8;
+  --lc-accent: #CC785C;
+  --lc-bot-bg: #f5f8f6;
   --lc-bot-fg: #1a1a1a;
-  --lc-user-bg: #DA7756;
+  --lc-user-bg: #123954;
   --lc-user-fg: #ffffff;
-  --lc-rotator-bg: #fafbfc;
-  --lc-rotator-fg: #4a5260;
-  --lc-radius: 16px;
+  --lc-rotator-bg: #f6fbf8;
+  --lc-rotator-fg: #234438;
+  --lc-radius: 14px;
   --lc-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .lc-root {
   display: flex;
   flex-direction: column;
-  max-width: 680px;
-  margin: 24px auto;
-  padding: 0 16px;
+  max-width: 820px;
+  margin: 24px 0 40px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid rgba(18, 57, 84, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 12px 34px rgba(18, 57, 84, 0.10);
   font: 14px/1.55 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: #1a1a1a;
 }
@@ -27,8 +31,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 16px 0 12px;
-  min-height: 280px;
+  padding: 4px 0 12px;
+  min-height: 170px;
 }
 
 .lc-bubble {
@@ -45,7 +49,7 @@
   justify-content: flex-start;
 }
 .lc-bubble-body {
-  padding: 10px 14px;
+  padding: 11px 14px;
   border-radius: var(--lc-radius);
   font-size: 14px;
   line-height: 1.55;
@@ -60,6 +64,7 @@
 .lc-bubble-bot .lc-bubble-body {
   background: var(--lc-bot-bg);
   color: var(--lc-bot-fg);
+  border: 1px solid rgba(47, 111, 89, 0.12);
   border-bottom-left-radius: 4px;
 }
 .lc-bubble strong { font-weight: 700; }
@@ -96,13 +101,15 @@
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  padding: 12px 0 24px;
-  border-top: 1px solid rgba(15,20,30,0.06);
+  padding: 12px 0 0;
+  border-top: 1px solid rgba(18,57,84,0.08);
 }
 .lc-composer-input {
   flex: 1 1 auto;
+  min-width: 0;
   min-height: 44px;
   resize: none;
+  overflow-y: hidden;
   padding: 12px 14px;
   border: 1px solid rgba(15,20,30,0.14);
   border-radius: 12px;
@@ -120,7 +127,7 @@
   border: 0;
   padding: 0 18px;
   min-height: 44px;
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--lc-accent);
   color: #fff;
   font: 600 14px/1 inherit;
@@ -212,7 +219,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 0 0 12px;
+  padding: 2px 0 12px;
 }
 .lc-chip {
   font: 500 12px/1.2 inherit;
@@ -243,10 +250,12 @@
 }
 
 @media (max-width: 480px) {
-  .lc-root { margin: 12px auto; padding: 0 10px; }
-  .lc-transcript { min-height: 200px; }
+  .lc-root { margin: 14px 0 32px; padding: 12px; border-radius: 10px; }
+  .lc-transcript { min-height: 150px; }
   .lc-bubble { max-width: 94%; }
   .lc-composer-input { min-height: 40px; padding: 10px 12px; }
+  .lc-composer-send { padding: 0 12px; min-width: 58px; }
+  .lc-composer-attach { width: 38px; min-height: 40px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -260,4 +269,55 @@
   .lc-composer-input { transition: none; }
   .lc-composer-send { transition: none; }
   .lc-chip { transition: none; }
+}
+
+/* 2026-04-25 visual pass: align the first usable surface with the landing
+   page reference system: white, thin slate borders, coral as the action cue. */
+:root {
+  --lc-accent: #da7756;
+  --lc-bot-bg: #f8fafc;
+  --lc-bot-fg: #020617;
+  --lc-user-bg: #020617;
+  --lc-user-fg: #ffffff;
+  --lc-rotator-bg: #fff7f3;
+  --lc-rotator-fg: #7c3f2d;
+  --lc-radius: 12px;
+}
+
+.lc-root {
+  max-width: 860px;
+  margin: 24px auto 40px;
+  border-color: #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 0 rgba(2, 6, 23, 0.03), 0 22px 60px -34px rgba(2, 6, 23, 0.26);
+}
+
+.lc-transcript {
+  min-height: 128px;
+}
+
+.lc-bubble-body {
+  border-radius: 12px;
+}
+
+.lc-bubble-bot .lc-bubble-body {
+  border-color: #e2e8f0;
+}
+
+.lc-composer {
+  border-top-color: #e2e8f0;
+}
+
+.lc-composer-input,
+.lc-composer-attach {
+  border-color: #e2e8f0;
+  border-radius: 10px;
+}
+
+.lc-composer-send {
+  border-radius: 10px;
+}
+
+.lc-chip {
+  border-color: #e2e8f0;
 }

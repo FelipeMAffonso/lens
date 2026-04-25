@@ -4,6 +4,9 @@ import { opusExtendedThinking } from "./anthropic.js";
 import { findCategoryPack } from "./packs/registry.js";
 import { categoryCriteriaPrompt } from "./packs/prompter.js";
 import { scrubTrackingParams } from "./url-scrub.js";
+import { parseJinaMarkdown, parseRetailerUrl, type PageExtract } from "./sku/resolve-url.js";
+import type { ProductParse } from "./parsers/types.js";
+import { derivePreferenceIntent, type PreferenceInferenceOptions } from "./preferences/inference.js";
 
 const SYSTEM_PROMPT = `You audit AI shopping recommendations. Decompose the pasted assistant answer into two JSON objects.
 
@@ -161,7 +164,13 @@ export async function extractIntentAndRecommendation(
     ...(ar.citedUrls && ar.citedUrls.length > 0 ? { citedUrls: ar.citedUrls } : {}),
   };
 
-  return { intent, aiRecommendation };
+  return {
+    intent: derivePreferenceIntent(intent, {
+      prompt: input.userPrompt ?? intent.rawCriteriaText,
+      mode: input.kind,
+    }),
+    aiRecommendation,
+  };
 }
 
 function stripFences(s: string): string {
@@ -191,35 +200,42 @@ async function extractFromUrl(
   input: Extract<AuditInput, { kind: "url" }>,
   env: Env,
 ): Promise<{ intent: UserIntent; aiRecommendation: AIRecommendation }> {
+  const retailer = parseRetailerUrl(input.url);
+  const preferJina =
+    retailer.retailer !== undefined &&
+    ["amazon", "walmart", "target", "bestbuy"].includes(retailer.retailer);
+
   // B3: browser-like headers so Amazon/Best Buy/etc don't serve a captcha.
   let rawHtml = "";
   let fetchStatus: number | "error" = "error";
-  try {
-    const res = await fetch(input.url, {
-      redirect: "follow",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-        "Accept":
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Cache-Control": "no-cache",
-        "Pragma": "no-cache",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Upgrade-Insecure-Requests": "1",
-      },
-    });
-    fetchStatus = res.status;
-    if (res.ok) {
-      rawHtml = (await res.text()).slice(0, 400_000);
-    } else {
-      console.warn("[extract:url] fetch non-OK: status=%d", res.status);
+  if (!preferJina) {
+    try {
+      const res = await fetch(input.url, {
+        redirect: "follow",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+          "Accept":
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
+          "Sec-Fetch-Dest": "document",
+          "Sec-Fetch-Mode": "navigate",
+          "Sec-Fetch-Site": "none",
+          "Sec-Fetch-User": "?1",
+          "Upgrade-Insecure-Requests": "1",
+        },
+      });
+      fetchStatus = res.status;
+      if (res.ok) {
+        rawHtml = (await res.text()).slice(0, 400_000);
+      } else {
+        console.warn("[extract:url] fetch non-OK: status=%d", res.status);
+      }
+    } catch (e) {
+      console.error("[extract:url] fetch failed:", (e as Error).message);
     }
-  } catch (e) {
-    console.error("[extract:url] fetch failed:", (e as Error).message);
   }
   console.log("[extract:url] fetch_status=%s html_bytes=%d", fetchStatus, rawHtml.length);
 
@@ -236,6 +252,19 @@ async function extractFromUrl(
       structured.sources?.name ?? "?",
     );
     return buildFromStructured(structured, input);
+  }
+
+  const jinaStructured = await fetchStructuredViaJina(input.url).catch((err) => {
+    console.warn("[extract:url] jina fallback failed:", (err as Error).message);
+    return null;
+  });
+  if (jinaStructured?.name) {
+    console.log(
+      "[extract:url] jina parse OK name=%s price=%s",
+      jinaStructured.name,
+      jinaStructured.price,
+    );
+    return buildFromStructured(jinaStructured, input);
   }
 
   // Fallback: strip HTML → text, hand to Opus to interpret (previous behavior).
@@ -258,7 +287,7 @@ async function extractFromUrl(
   const userContent = [
     {
       type: "text" as const,
-      text: `URL: ${input.url}\n\n${input.userPrompt ? `USER CRITERIA: ${input.userPrompt}\n\n` : ""}${input.category ? `CATEGORY HINT: ${input.category}\n\n` : ""}${hint}PAGE CONTENT (truncated):\n${fetched || "(fetch returned empty; extract product from the URL itself if possible)"}`,
+      text: `URL: ${input.url}\n\n${input.userPrompt ? `USER CRITERIA: ${input.userPrompt}\n\n` : ""}${input.category ? `CATEGORY HINT: ${input.category}\n\n` : ""}${hint}PAGE CONTENT (truncated):\n${fetched || "(fetch returned empty and reader fallback found no product data; extract only identifiers visible in the URL and say when data is insufficient)"}`,
     },
   ];
 
@@ -268,7 +297,74 @@ async function extractFromUrl(
     maxOutputTokens: 6000,
     effort: "high",
   });
-  return parseExtractJson(text, input.userPrompt);
+  return parseExtractJson(text, input.userPrompt, "url");
+}
+
+async function fetchStructuredViaJina(url: string): Promise<ProductParse | null> {
+  const readerUrl = "https://r.jina.ai/" + url;
+  const res = await fetch(readerUrl, {
+    headers: {
+      "User-Agent": "LensBot/1.0 (+https://lens-b1h.pages.dev)",
+      Accept: "text/markdown, text/plain, */*",
+    },
+  });
+  if (!res.ok) throw new Error(`jina-http-${res.status}`);
+  const md = await res.text();
+  if (!md.trim()) throw new Error("jina-empty");
+  const page = parseJinaMarkdown(md);
+  return pageExtractToProductParse(page, url);
+}
+
+function pageExtractToProductParse(page: PageExtract, url: string): ProductParse | null {
+  const title = cleanupProductTitle(page.title);
+  if (!title && page.priceCents == null) return null;
+  const features = [
+    ...(page.bullets ?? []),
+    ...(page.availability ? [`Availability: ${page.availability}`] : []),
+    ...(page.warranty ? [`Warranty: ${page.warranty}`] : []),
+    ...(page.countryOfOrigin ? [`Country of origin: ${page.countryOfOrigin}`] : []),
+    ...(page.model ? [`Model: ${page.model}`] : []),
+    ...Object.entries(page.specs ?? {}).map(([k, v]) => `${k}: ${v}`),
+  ].slice(0, 16);
+  const host = safeHost(url);
+  const parse: ProductParse = {
+    ...(title ? { name: title } : {}),
+    ...(page.brand ? { brand: page.brand } : {}),
+    ...(page.priceCents != null ? { price: Math.round(page.priceCents) / 100 } : {}),
+    currency: page.currency ?? "USD",
+    ...(page.imageUrl ? { images: [page.imageUrl] } : {}),
+    ...(features.length > 0 ? { features } : {}),
+    ...(page.rating != null ? { rating: page.rating } : {}),
+    ...(page.reviewCount != null ? { ratingCount: page.reviewCount } : {}),
+    ...(page.model ? { mpn: page.model } : {}),
+    ...(host ? { host } : {}),
+    url,
+    sources: {
+      ...(title ? { name: "heuristic" as const } : {}),
+      ...(page.brand ? { brand: "heuristic" as const } : {}),
+      ...(page.priceCents != null ? { price: "heuristic" as const } : {}),
+      ...(features.length > 0 ? { features: "heuristic" as const } : {}),
+    },
+  };
+  return parse;
+}
+
+function cleanupProductTitle(title: string | undefined): string | undefined {
+  if (!title) return undefined;
+  const cleaned = title
+    .replace(/^Title:\s*/i, "")
+    .replace(/\s*[\|-]\s*(Amazon\.com|Walmart\.com|Target|Best Buy|Costco|Newegg).*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned.length > 0 ? cleaned.slice(0, 240) : undefined;
+}
+
+function safeHost(url: string): string | undefined {
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -279,14 +375,7 @@ function buildFromStructured(
   structured: import("./parsers/types.js").ProductParse,
   input: Extract<AuditInput, { kind: "url" }>,
 ): { intent: UserIntent; aiRecommendation: AIRecommendation } {
-  const intent: UserIntent = {
-    category: input.category ?? inferCategoryFromName(structured.name ?? "") ?? "product",
-    criteria: [
-      { name: "price", weight: 0.4, direction: "lower_is_better" },
-      { name: "overall_quality", weight: 0.6, direction: "higher_is_better" },
-    ],
-    rawCriteriaText: input.userPrompt ?? "",
-  };
+  const intent = deriveUrlIntent(structured, input);
   const claims: AIRecommendation["claims"] = [];
   if (structured.features && structured.features.length > 0) {
     // B3: break each feature bullet into a proper attribute/statedValue pair.
@@ -319,7 +408,8 @@ function buildFromStructured(
   // Scrub the user-pasted URL before carrying it forward — the user may have
   // pasted an affiliate-tagged URL (Amazon with ?tag=, Google AI Mode link, etc)
   // and Lens's non-negotiable (VISION_COMPLETE §13 #8) is no affiliate links ever.
-  const cleanedUrl = scrubTrackingParams(input.url) ?? undefined;
+  const parsedUrl = parseRetailerUrl(input.url);
+  const cleanedUrl = scrubTrackingParams(parsedUrl.urlClean) ?? undefined;
   const aiRecommendation: AIRecommendation = {
     host: "unknown",
     pickedProduct: {
@@ -335,19 +425,169 @@ function buildFromStructured(
       `Structured extraction from ${structured.host ?? "page"} (source=${structured.sources?.name ?? "unknown"}).`,
     ...(cleanedUrl ? { sourceUrl: cleanedUrl } : {}),
   };
-  return { intent, aiRecommendation };
+  return {
+    intent: derivePreferenceIntent(intent, {
+      prompt: input.userPrompt ?? intent.rawCriteriaText,
+      mode: "url",
+    }),
+    aiRecommendation,
+  };
+}
+
+function deriveUrlIntent(
+  structured: import("./parsers/types.js").ProductParse,
+  input: Extract<AuditInput, { kind: "url" }>,
+): UserIntent {
+  const category = input.category ?? inferCategoryFromName(structured.name ?? "") ?? "product";
+  const promptCriteria = criteriaFromPrompt(input.userPrompt ?? "");
+  const criteria =
+    promptCriteria.length > 0
+      ? promptCriteria
+      : defaultCriteriaForCategory(category, structured);
+  const total = criteria.reduce((sum, c) => sum + c.weight, 0) || 1;
+  const budget = parseBudget(input.userPrompt ?? "");
+  return {
+    category,
+    criteria: criteria.map((c) => ({ ...c, weight: c.weight / total })),
+    rawCriteriaText: input.userPrompt ?? "",
+    ...(budget ? { budget } : {}),
+  };
+}
+
+type UrlCriterion = UserIntent["criteria"][number];
+
+function criteriaFromPrompt(prompt: string): UrlCriterion[] {
+  const text = prompt.toLowerCase();
+  if (!text.trim()) return [];
+  const hits: Array<UrlCriterion & { pos: number; boost: number }> = [];
+  const add = (
+    name: string,
+    direction: UrlCriterion["direction"],
+    patterns: RegExp[],
+  ): void => {
+    const positions = patterns
+      .map((re) => {
+        const m = re.exec(text);
+        return m?.index ?? -1;
+      })
+      .filter((p) => p >= 0);
+    if (positions.length === 0) return;
+    const pos = Math.min(...positions);
+    const window = text.slice(Math.max(0, pos - 35), Math.min(text.length, pos + 60));
+    const boost = /\b(most|must|critical|important|matters?\s+(?:most|more|a lot)|priority|need)\b/.test(window)
+      ? 0.45
+      : /\b(prefer|care|want|looking for)\b/.test(window)
+        ? 0.2
+        : 0;
+    hits.push({ name, direction, weight: 1, pos, boost, confidence: 0.85 });
+  };
+
+  add("price", "lower_is_better", [/\b(price|cheap|affordable|budget|cost|under|below|less than)\b/]);
+  add("charging_performance", "higher_is_better", [/\b(charg(?:e|ing)|fast\s*charg|watt|magsafe|qi2?)\b/]);
+  add("device_compatibility", "higher_is_better", [/\b(compatib|iphone|android|airpods?|apple watch|samsung|pixel|multi[-\s]?device|3[-\s]?in[-\s]?1)\b/]);
+  add("portability", "higher_is_better", [/\b(portable|travel|compact|fold(?:ing|able)?|small|lightweight)\b/]);
+  add("safety", "higher_is_better", [/\b(safe|overheat|heat|certified|ul\b|etl\b|qi2?|foreign object)\b/]);
+  add("battery_life", "higher_is_better", [/\b(battery|runtime|hours|charge lasts?)\b/]);
+  add("noise", "lower_is_better", [/\b(quiet|noise|loud|silent)\b/]);
+  add("durability", "higher_is_better", [/\b(durable|sturdy|build|metal|steel|rugged|long[-\s]?lasting)\b/]);
+  add("repairability", "higher_is_better", [/\b(repair|ifixit|parts|replaceable)\b/]);
+  add("comfort", "higher_is_better", [/\b(comfort|ergonomic|all[-\s]?day)\b/]);
+  add("privacy", "higher_is_better", [/\b(privacy|data|tracking|account required|app required)\b/]);
+  add("energy_efficiency", "higher_is_better", [/\b(energy|efficient|power draw|electricity)\b/]);
+  add("warranty", "higher_is_better", [/\b(warranty|return window|support)\b/]);
+  add("review_quality", "higher_is_better", [/\b(review|rating|reliable|fake)\b/]);
+
+  if (hits.length === 0) return [];
+  hits.sort((a, b) => a.pos - b.pos);
+  return hits.map((h, index) => {
+    const base = Math.max(0.35, 1.25 - index * 0.12) + h.boost;
+    const { pos: _pos, boost: _boost, ...criterion } = h;
+    void _pos; void _boost;
+    return { ...criterion, weight: base };
+  });
+}
+
+function defaultCriteriaForCategory(
+  category: string,
+  structured: import("./parsers/types.js").ProductParse,
+): UrlCriterion[] {
+  const pack = findCategoryPack(category);
+  if (pack?.body.criteria?.length) {
+    return pack.body.criteria.slice(0, 6).map((c, index) => ({
+      name: c.name,
+      direction: c.direction,
+      ...(typeof c.target === "string" || typeof c.target === "number" ? { target: c.target } : {}),
+      weight: index === 0 ? 1.25 : 1,
+      confidence: 0.65,
+    }));
+  }
+
+  const c = category.toLowerCase();
+  const defaults: Array<[RegExp, UrlCriterion[]]> = [
+    [/\b(wireless\s+charg|chargers?|charging station|magsafe|power bank)\b/, [
+      { name: "charging_performance", weight: 1.15, direction: "higher_is_better", confidence: 0.7 },
+      { name: "device_compatibility", weight: 1.1, direction: "higher_is_better", confidence: 0.7 },
+      { name: "safety", weight: 1, direction: "higher_is_better", confidence: 0.65 },
+      { name: "portability", weight: 0.85, direction: "higher_is_better", confidence: 0.6 },
+      { name: "price", weight: 0.8, direction: "lower_is_better", confidence: 0.65 },
+    ]],
+    [/\b(phone|smartphone)\b/, [
+      { name: "camera_quality", weight: 1.1, direction: "higher_is_better", confidence: 0.6 },
+      { name: "battery_life", weight: 1.05, direction: "higher_is_better", confidence: 0.65 },
+      { name: "software_support_years", weight: 1, direction: "higher_is_better", confidence: 0.65 },
+      { name: "price", weight: 0.85, direction: "lower_is_better", confidence: 0.65 },
+    ]],
+    [/\b(office chair|chair)\b/, [
+      { name: "ergonomics", weight: 1.2, direction: "higher_is_better", confidence: 0.7 },
+      { name: "adjustability", weight: 1.05, direction: "higher_is_better", confidence: 0.65 },
+      { name: "durability", weight: 0.95, direction: "higher_is_better", confidence: 0.6 },
+      { name: "price", weight: 0.8, direction: "lower_is_better", confidence: 0.65 },
+    ]],
+  ];
+  for (const [re, criteria] of defaults) {
+    if (re.test(c)) return criteria;
+  }
+  const featureCount = structured.features?.length ?? 0;
+  return [
+    { name: "overall_quality", weight: featureCount > 0 ? 1.1 : 1, direction: "higher_is_better", confidence: 0.55 },
+    { name: "price", weight: 0.8, direction: "lower_is_better", confidence: 0.6 },
+  ];
+}
+
+function parseBudget(prompt: string): UserIntent["budget"] | undefined {
+  if (!prompt.trim()) return undefined;
+  const patterns = [
+    /\b(?:under|below|less than|up to|max(?:imum)?|budget(?: is)?|no more than)\s*\$?\s*([\d,]+(?:\.\d{1,2})?)/i,
+    /\$\s*([\d,]+(?:\.\d{1,2})?)\s*(?:or less|max|budget|cap)?/i,
+  ];
+  for (const re of patterns) {
+    const m = prompt.match(re);
+    if (!m?.[1]) continue;
+    const n = Number(m[1].replace(/,/g, ""));
+    if (Number.isFinite(n) && n > 0) return { max: n, currency: "USD" };
+  }
+  return undefined;
 }
 
 function inferCategoryFromName(name: string): string | undefined {
   const n = name.toLowerCase();
   const hits: Array<[RegExp, string]> = [
     [/\bespresso\b|\bbarista\b/, "espresso machines"],
+    [/\b(wireless\s+charg|charging station|magsafe|qi2?|power bank|phone charger|3[-\s]?in[-\s]?1 charger)\b/, "wireless chargers"],
     [/\blaptop\b|\bmacbook\b|\bthinkpad\b|\bnotebook\b/, "laptops"],
+    [/\biphone\b|\bgalaxy\b|\bpixel\b|\bsmartphone\b|\bcell phone\b/, "smartphones"],
     [/\bheadphone\b|\bearbuds?\b|\bin-?ears?\b/, "headphones"],
     [/\btv\b|\bsmart television\b|\boled\b|\bqled\b/, "televisions"],
     [/\bvacuum\b|\broborock\b|\bdyson\b/, "vacuums"],
     [/\bblender\b|\bvitamix\b|\bninja\b/, "blenders"],
     [/\bcamera\b|\bdslr\b|\bmirrorless\b/, "cameras"],
+    [/\boffice chair\b|\bergonomic chair\b/, "office chairs"],
+    [/\bmattress\b|\bbed-in-a-box\b/, "mattresses"],
+    [/\bcarry[-\s]?on\b|\bluggage\b|\bsuitcase\b/, "carry-on luggage"],
+    [/\belectric toothbrush\b|\btoothbrush\b/, "electric toothbrushes"],
+    [/\bair purifier\b|\bhepa\b/, "air purifiers"],
+    [/\bmonitor\b|\bdisplay\b/, "monitors"],
+    [/\bmechanical keyboard\b|\bkeyboard\b/, "mechanical keyboards"],
   ];
   for (const [re, slug] of hits) if (re.test(n)) return slug;
   return undefined;
@@ -393,12 +633,13 @@ async function extractFromPhoto(
     maxOutputTokens: 4000,
     effort: "high",
   });
-  return parseExtractJson(text, input.userPrompt);
+  return parseExtractJson(text, input.userPrompt, "photo");
 }
 
 function parseExtractJson(
   text: string,
   userPromptFallback?: string,
+  mode: PreferenceInferenceOptions["mode"] = "api",
 ): { intent: UserIntent; aiRecommendation: AIRecommendation } {
   const json = stripFences(text);
   let parsed: { intent?: Partial<UserIntent>; aiRecommendation?: Partial<AIRecommendation> };
@@ -482,7 +723,13 @@ function parseExtractJson(
     claims: Array.isArray(ar.claims) ? ar.claims : [],
     reasoningTrace: ar.reasoningTrace ?? "",
   };
-  return { intent, aiRecommendation };
+  return {
+    intent: derivePreferenceIntent(intent, {
+      prompt: userPromptFallback ?? intent.rawCriteriaText,
+      mode,
+    }),
+    aiRecommendation,
+  };
 }
 
 /**
@@ -559,5 +806,11 @@ async function extractQueryOnly(
     claims: [],
     reasoningTrace: "",
   };
-  return { intent, aiRecommendation };
+  return {
+    intent: derivePreferenceIntent(intent, {
+      prompt: input.userPrompt,
+      mode: "query",
+    }),
+    aiRecommendation,
+  };
 }

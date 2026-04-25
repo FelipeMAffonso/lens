@@ -281,14 +281,13 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
           warnings.push({
             stage: "search",
             message:
-              "Live web search returned no products and no pack SKU match for this category. Try a more specific category term (e.g. 'robot vacuum' instead of 'cleaning device'), or your Opus API key may be rate-limited.",
+              "Lens could not find defensible product candidates for this request. Try a more specific category term or paste a cleaner product URL.",
           });
         }
         if (crossModel.length === 0) {
           warnings.push({
             stage: "crossModel",
-            message:
-              "No cross-model picks. Provider keys may be missing or rate-limited. Check OPENAI_API_KEY / GOOGLE_API_KEY / OPENROUTER_API_KEY.",
+            message: "Cross-assistant comparison was skipped for this run.",
           });
         }
         // Judge P2 #9: detect the default-criterion fallback.
@@ -340,18 +339,7 @@ const spec: WorkflowSpec<AuditInput, AuditResult> = {
           intent: extract.intent,
           aiRecommendation: scrubbedAiRec,
           candidates: ranked,
-          specOptimal:
-            ranked[0] ??
-            ({
-              name: "(no candidates available)",
-              brand: "",
-              price: null,
-              currency: "USD",
-              specs: {},
-              attributeScores: {},
-              utilityScore: 0,
-              utilityBreakdown: [],
-            } as unknown as AuditResult["specOptimal"]),
+          specOptimal: ranked[0] ?? null,
           aiPickCandidate,
           claims,
           crossModel,

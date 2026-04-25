@@ -86,8 +86,8 @@ export function scrubTrackingParams(rawUrl: string | null | undefined): string |
  * Scrub a Candidate's url + thumbnailUrl. Mutates the returned copy only;
  * passes through untouched for other fields.
  */
-export function scrubCandidateUrls<T extends { url?: string; thumbnailUrl?: string }>(c: T): T {
-  const out = { ...c };
+export function scrubCandidateUrls<T extends object>(c: T): T {
+  const out = { ...c } as T & { url?: string | undefined; thumbnailUrl?: string | undefined };
   if (out.url !== undefined) {
     const cleaned = scrubTrackingParams(out.url);
     if (cleaned) out.url = cleaned;
@@ -98,5 +98,5 @@ export function scrubCandidateUrls<T extends { url?: string; thumbnailUrl?: stri
     if (cleaned) out.thumbnailUrl = cleaned;
     else delete out.thumbnailUrl;
   }
-  return out;
+  return out as T;
 }

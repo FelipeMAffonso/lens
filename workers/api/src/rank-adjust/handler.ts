@@ -98,20 +98,23 @@ export function parseOpusJson(text: string): OpusOut | null {
             (n): n is NewCriterionOut =>
               !!n && typeof n.name === "string" && typeof n.weight === "number",
           )
-          .map((n) => ({
-            name: n.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_"),
-            weight: Math.max(0.03, Math.min(0.3, n.weight)),
-            direction:
+          .map((n): NewCriterionOut => {
+            const direction: NewCriterionOut["direction"] =
               n.direction === "lower_is_better" ||
               n.direction === "target" ||
               n.direction === "binary"
                 ? n.direction
-                : "higher_is_better",
-            reason: typeof n.reason === "string" ? n.reason.slice(0, 140) : "",
-          }))
+                : "higher_is_better";
+            return {
+              name: n.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+              weight: Math.max(0.03, Math.min(0.3, n.weight)),
+              direction,
+              reason: typeof n.reason === "string" ? n.reason.slice(0, 140) : "",
+            };
+          })
       : [];
     const summary = typeof raw.summary === "string" ? raw.summary.slice(0, 280) : undefined;
-    return { adjustments, newCriteria, summary };
+    return { adjustments, newCriteria, ...(summary !== undefined ? { summary } : {}) };
   } catch {
     return null;
   }

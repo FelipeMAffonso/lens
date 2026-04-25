@@ -6,6 +6,8 @@
 
 **Rule:** never mark ✅ unless tests pass AND the acceptance criteria in the block file are met AND a commit exists referencing the block ID.
 
+**Compaction rule:** after resume/compaction/deep-work interruption, execute `COMPACTION_PROTOCOL.md` before using this checklist. This checklist is state, not evidence; re-open the actual code and tests before editing.
+
 ---
 
 ## Part A — Foundation

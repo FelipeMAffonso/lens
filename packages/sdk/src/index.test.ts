@@ -104,6 +104,23 @@ describe("LensClient", () => {
     expect(calls[0]!.url).toContain("skus=a%2Cb%2Cc");
   });
 
+  it("architectureJourney() reads the customer journey map endpoint", async () => {
+    const { fetcher, calls } = stubFetch({
+      body: {
+        version: "customer-journey-map-v1",
+        generatedAt: "2026-04-25T00:00:00.000Z",
+        readiness: { live: 5, partial: 2, planned: 0, total: 7, score: 0.857 },
+        guarantees: [],
+        privacyControls: [],
+        stages: [],
+      },
+    });
+    const client = new LensClient({ fetch: fetcher });
+    const map = await client.architectureJourney();
+    expect(calls[0]!.url).toContain("/architecture/journey");
+    expect(map.version).toBe("customer-journey-map-v1");
+  });
+
   it("namespaces triggers.* to the correct endpoints", async () => {
     const { fetcher, calls } = stubFetch({ body: {} });
     const client = new LensClient({ fetch: fetcher });

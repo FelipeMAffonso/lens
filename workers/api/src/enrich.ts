@@ -53,11 +53,11 @@ export async function runEnrichments(
   const host = extractHost(topUrl);
   // URL-mode: if we have no candidates but do have a picked product (from the
   // pasted URL), use that as the top product for price/breach checks.
-  const topProduct: { name?: string; price?: number | null } =
+  const topProduct: { name?: string | undefined; price?: number | null | undefined } =
     aiPickCandidate ?? candidates[0] ?? (rec.pickedProduct ? {
       name: rec.pickedProduct.name,
       price: rec.pickedProduct.price ?? null,
-    } : null) ?? { name: undefined, price: null };
+    } : null) ?? { price: null };
 
   const tasks = {
     scam: (async () => {
@@ -87,7 +87,7 @@ export async function runEnrichments(
         if (!breaches || breaches.length === 0) {
           return { status: "ok" as const, score: 0, band: "none" as const, domain: host, reason: "no known breaches for this domain" };
         }
-        const agg = aggregateBreaches({ domain: host, breaches });
+        const agg = aggregateBreaches({ breaches });
         const score = computeScore(breaches);
         const band = bandFor(score);
         void agg;

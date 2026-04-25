@@ -39,8 +39,9 @@ const VERDICT_UI: Record<Verdict, { color: string; bg: string; border: string; i
 
 export function isCartOrCheckout(url: URL = new URL(window.location.href)): boolean {
   const p = url.pathname.toLowerCase();
+  const hasCartToken = /(?:^|[-/])cart(?:$|[-/.])/.test(p);
   return (
-    p.includes("/cart") ||
+    hasCartToken ||
     p.includes("/checkout") ||
     p.includes("/basket") ||
     p.includes("/booking/confirm") ||

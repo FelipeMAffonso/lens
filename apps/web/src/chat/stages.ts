@@ -124,8 +124,9 @@ export function looksLikeRetailerUrl(text: string): { ok: true; url: string } | 
   return { ok: true, url: r.url };
 }
 
-export function inferHostAI(text: string): "chatgpt" | "claude" | "gemini" | "rufus" | "unknown" {
+export function inferHostAI(text: string): "chatgpt" | "claude" | "gemini" | "rufus" | "perplexity" | "unknown" {
   const t = text.toLowerCase();
+  if (/perplexity|pplx|sources?:/i.test(t)) return "perplexity";
   if (/\bon\s+amazon\b|\bavailable\s+on\s+amazon\b|\bsold\s+by\s+amazon\b|rufus/i.test(t)) return "rufus";
   if (/i['\u2019]ll\s+clarify|let\s+me\s+(?:be\s+)?clarify|gemini/i.test(t)) return "gemini";
   if (/as\s+(?:claude|an\s+ai)|anthropic/i.test(t)) return "claude";

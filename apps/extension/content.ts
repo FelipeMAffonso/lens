@@ -17,7 +17,7 @@ import { bootReviewScan } from "./content/retail/review-scan-badge.js";
 import { bootCounterfeit } from "./content/retail/counterfeit-badge.js";
 import "./content/visual-audit.js"; // improve-V-VISUAL — "Lens this page" pill
 
-type HostAI = "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
+type HostAI = "chatgpt" | "claude" | "gemini" | "rufus" | "perplexity" | "unknown";
 
 function detectHostLegacy(): HostAI {
   const h = location.hostname;

@@ -10,7 +10,11 @@ Submission deadline: **2026-04-26 8PM EDT** (~49 hours from this handoff).
 
 **Lens is your AI shopping companion.** One agent that works for you, before / during / after every purchase. You tell Lens what you need, paste what another AI told you, drop any product URL, or attach a photo. Lens consults every frontier model + every retailer + every public dataset and gives you the one answer that actually fits. No sliders (plain-language re-rank). No affiliate links. Ever. Open source MIT.
 
-Source-of-truth docs, in the order a fresh session should read them: `LOOP_DISCIPLINE.md` → `VISION_COMPLETE.md` → `IMPROVEMENT_PLAN_V2.md` → `CHECKLIST.md` → this file.
+Source-of-truth docs, in the order a fresh session should read them: `COMPACTION_PROTOCOL.md` -> `LOOP_DISCIPLINE.md` -> `VISION_COMPLETE.md` -> `docs/VISION.md` -> `docs/PREFERENCE_INFERENCE.md` -> `docs/TOUCHPOINT_PLAN.md` -> `IMPROVEMENT_PLAN.md` -> `IMPROVEMENT_PLAN_V2.md` -> `GAP_ANALYSIS.md` -> `AMBIENT_MODEL.md` -> `CHECKLIST.md` -> this file.
+
+Compaction rule: after a compressed/resumed context, do not rely on this handoff alone. Run the repo inventory in `COMPACTION_PROTOCOL.md`, re-open the implementation files/tests for the touched surfaces, then continue from the newest user instruction.
+
+Current user mandate to preserve after compaction: Lens is not a narrow hackathon paste-box. Treat it as the public-release, paper-grade consumer-welfare defense layer across the whole customer journey: derive an editable utility function before recommendations; infer preferences from stated intent, adaptive clarification, explicit edits, category priors, saved profiles, revealed choices, purchase history, and cross-category meta-preferences with uncertainty visible; make the browser extension first-class for dark patterns, hidden fees, review manipulation, counterfeit/grey-market risk, surveillance-pricing clues, and checkout traps; support price comparison, push notifications, purchase/receipt/recall/subscription monitoring, Amazon/Best Buy/Walmart/Target/Costco/Home Depot/Temu-style comparison, optional Plaid-style financial signals, and full privacy/encryption/user-control transparency from the first screen.
 
 ---
 

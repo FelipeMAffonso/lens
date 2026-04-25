@@ -41,7 +41,7 @@ export type ChatClarifyResponse =
   | {
       kind: "audit-now";
       reason: "ai-recommendation-paste";
-      hostAi: "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
+      hostAi: "chatgpt" | "claude" | "gemini" | "rufus" | "perplexity" | "unknown";
       raw: string;
     }
   | { kind: "error"; message: string };

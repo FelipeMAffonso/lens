@@ -16,9 +16,11 @@ LENS_SEARCH_MODE = "real"
 LENS_DISABLE_CROSS_MODEL = "0"
 MAGIC_LINK_BASE_URL = "https://lens-b1h.pages.dev"
 RESEND_FROM_EMAIL = "Lens <no-reply@lens.example>"
+LENS_ALLOWED_ORIGINS = "https://lens-b1h.pages.dev"
 
 # Secrets set via: wrangler secret put <NAME>
 # Required for F1 auth: JWT_SECRET.
+# Required for admin-only ingest triggers: LENS_ADMIN_KEY.
 # Optional: RESEND_API_KEY (falls back to console log), GMAIL_OAUTH_CLIENT_ID/SECRET (F12).
 
 [observability]

@@ -2,6 +2,22 @@
 
 **This file is the first thing every loop turn reads. If you are here, you are about to execute one block. Read all of this before touching any code, every single turn, no exceptions.**
 
+## Compaction / Resume Hard Rule
+
+After any context compaction, interruption, handoff, or user request for deep work, read and execute `COMPACTION_PROTOCOL.md` before making substantive claims or edits. The compressed chat summary is not ground truth. The repo is ground truth.
+
+Minimum requirement before work resumes:
+
+1. Run `git status --short`.
+2. Re-inventory the actual repo tree.
+3. Re-read the source-of-truth docs listed in `COMPACTION_PROTOCOL.md`.
+4. Re-open the implementation files and tests for every surface being touched.
+5. Continue from the newest user instruction, with the repo as evidence.
+
+If memory says a feature is done but the code/tests/docs do not prove it, treat it as unproven.
+
+Compaction must also preserve the current user mandate: Lens is the ultimate consumer-welfare defense layer, not a narrow hackathon paste tool. Work must keep pushing every journey surface: preference inference before recommendation, extension-based dark-pattern blocking, price comparison, purchase/receipt/recall/subscription monitoring, push notifications, marketplace/counterfeit comparison, optional Plaid-style financial context, and privacy/encryption/user-control transparency from the first screen.
+
 ## The problem this file solves
 
 Earlier runs drifted. Claude woke up, glanced at `CHECKLIST.md`, grabbed the first ⬜, produced a shallow version that looked plausible, marked it ✅, moved on. Result: a paste-box website labeled as "the consumer's independent agent across every point of every purchase." The demo didn't match the vision, and the code was ~5% of the winner-level depth.
@@ -11,6 +27,8 @@ Earlier runs drifted. Claude woke up, glanced at `CHECKLIST.md`, grabbed the fir
 ## Mandatory reads per turn (in this exact order)
 
 On every single loop turn, before you consider what to execute:
+
+0. **`COMPACTION_PROTOCOL.md`** - on resumed, compacted, interrupted, handoff, or deep-work turns, execute this first. This is the repo-not-memory guardrail.
 
 1. **`GAP_ANALYSIS.md`** — read end-to-end. This is WHY the block matters. If you can't articulate the specific gap the block closes, stop and re-read.
 2. **`BLOCKS/F0-WINNER-CALIBRATION.md`** — read end-to-end. This is the QUALITY BAR. CrossBeam 82K LOC, Elisa 17.7K LOC + 1500 tests, PostVisit 349 commits in 7 days. If your block isn't pushing toward that scale, it's drift.
@@ -85,6 +103,7 @@ Agent({
 ### Context
 - After 50+ turns in a single session, the conversation gets compressed. Trust `GAP_ANALYSIS.md`, `BLOCK_PLAN.md`, `CHECKLIST.md`, and `BLOCKS/*.md` as ground truth. These files are the externalized memory.
 - When the compressed session summary says something different from those files, the files win.
+- After compaction, do not continue from memory. Execute `COMPACTION_PROTOCOL.md`: inventory the repo, re-read the source-of-truth docs, open the actual implementation files/tests, then resume.
 
 ### Anti-pattern list (things that are drift, not progress)
 

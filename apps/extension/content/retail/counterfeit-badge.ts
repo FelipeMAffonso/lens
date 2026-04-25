@@ -104,6 +104,10 @@ function parseIntSafe(s: string | null | undefined): number | undefined {
   return Number.isFinite(n) && n >= 0 ? n : undefined;
 }
 
+function visibleText(el: HTMLElement | null | undefined): string {
+  return ((el?.innerText && el.innerText.trim()) || el?.textContent || "").trim();
+}
+
 export function scrapeListing(
   marketplace: Marketplace,
   doc: Document = document,
@@ -123,11 +127,11 @@ export function scrapeListing(
         doc.querySelector<HTMLElement>('[data-testid="ux-seller-section__item--feedback-count"]') ??
         doc.querySelector<HTMLElement>(".x-sellercard-atf__info__about-seller .ux-seller-section__item--feedback-count");
       const out: ListingSnapshot = { host, marketplace };
-      const title = (titleEl?.innerText ?? titleEl?.textContent ?? "").trim();
+      const title = visibleText(titleEl);
       if (title) out.productName = title;
-      const price = parsePriceString(priceEl?.innerText ?? priceEl?.textContent);
+      const price = parsePriceString(visibleText(priceEl));
       if (price !== undefined) out.price = price;
-      const feedback = parseIntSafe(feedbackEl?.innerText ?? feedbackEl?.textContent);
+      const feedback = parseIntSafe(visibleText(feedbackEl));
       if (feedback !== undefined) out.feedbackCount = feedback;
       return out;
     }
@@ -141,13 +145,13 @@ export function scrapeListing(
         doc.querySelector<HTMLElement>(".ceb-atf-seller-rating-count");
       const sinceEl = doc.querySelector<HTMLElement>("#from");
       const out: ListingSnapshot = { host, marketplace };
-      const title = (titleEl?.innerText ?? titleEl?.textContent ?? "").trim();
+      const title = visibleText(titleEl);
       if (title) out.productName = title;
-      const price = parsePriceString(priceEl?.innerText ?? priceEl?.textContent);
+      const price = parsePriceString(visibleText(priceEl));
       if (price !== undefined) out.price = price;
-      const feedback = parseIntSafe(feedbackEl?.innerText ?? feedbackEl?.textContent);
+      const feedback = parseIntSafe(visibleText(feedbackEl));
       if (feedback !== undefined) out.feedbackCount = feedback;
-      const since = sinceEl?.innerText ?? sinceEl?.textContent;
+      const since = visibleText(sinceEl);
       if (since) {
         const age = parseSinceToDays(since);
         if (age !== undefined) out.sellerAgeDays = age;
@@ -158,7 +162,12 @@ export function scrapeListing(
       // we don't feed product stars as seller bimodality.
       const isSellerStorefront = location.pathname.includes("/sp") ||
         location.pathname.includes("/seller/");
-      const rows = isSellerStorefront
+      const scopedRows = doc.querySelectorAll<HTMLElement>(
+        "#feedback-summary-table .a-histogram-row, #seller-feedback-summary .a-histogram-row, [data-lens-seller-feedback] .a-histogram-row",
+      );
+      const rows = scopedRows.length > 0
+        ? scopedRows
+        : isSellerStorefront
         ? doc.querySelectorAll<HTMLElement>(".a-histogram-row")
         : ([] as unknown as NodeListOf<HTMLElement>);
       const histo: { star1: number; star2: number; star3: number; star4: number; star5: number } = {
@@ -172,7 +181,7 @@ export function scrapeListing(
       for (const row of Array.from(rows)) {
         const rating = row.getAttribute("data-rating");
         const countEl = row.querySelector<HTMLElement>(".a-text-right");
-        const count = parseIntSafe(countEl?.innerText ?? countEl?.textContent);
+        const count = parseIntSafe(visibleText(countEl));
         if (rating && count !== undefined && count >= 0) {
           const key = `star${rating}` as keyof typeof histo;
           if (key in histo) {
@@ -191,7 +200,7 @@ export function scrapeListing(
         main.querySelector<HTMLElement>('h1[role="heading"]') ??
         main.querySelector<HTMLElement>("h1");
       const out: ListingSnapshot = { host, marketplace };
-      const title = (titleEl?.innerText ?? titleEl?.textContent ?? "").trim();
+      const title = visibleText(titleEl);
       if (title) out.productName = title;
       // Judge P0-4: do NOT regex over the whole 2000-char main blob — it
       // will catch "$5 shipping" in a description before the listing price.
@@ -201,9 +210,11 @@ export function scrapeListing(
       const candidates = [
         ...Array.from(main.querySelectorAll<HTMLElement>('span[dir="auto"]')),
         ...Array.from(main.querySelectorAll<HTMLElement>("span")),
+        ...Array.from(main.querySelectorAll<HTMLElement>('div[dir="auto"]')),
+        ...Array.from(main.querySelectorAll<HTMLElement>("div")),
       ];
       for (const el of candidates) {
-        const t = (el.innerText ?? el.textContent ?? "").trim();
+        const t = visibleText(el);
         if (/^\$[\d,]+(?:\.\d+)?$/.test(t)) {
           const p = parsePriceString(t);
           if (p !== undefined) {
@@ -219,11 +230,11 @@ export function scrapeListing(
       const priceEl = doc.querySelector<HTMLElement>('[data-automation-id="product-price"]');
       const feedbackEl = doc.querySelector<HTMLElement>('[data-automation-id="rating-count"]');
       const out: ListingSnapshot = { host, marketplace };
-      const title = (titleEl?.innerText ?? titleEl?.textContent ?? "").trim();
+      const title = visibleText(titleEl);
       if (title) out.productName = title;
-      const price = parsePriceString(priceEl?.innerText ?? priceEl?.textContent);
+      const price = parsePriceString(visibleText(priceEl));
       if (price !== undefined) out.price = price;
-      const feedback = parseIntSafe(feedbackEl?.innerText ?? feedbackEl?.textContent);
+      const feedback = parseIntSafe(visibleText(feedbackEl));
       if (feedback !== undefined) out.feedbackCount = feedback;
       // Judge P0-5: surface sellerId from URL so the backend's seller-age
       // lookup can resolve it. (Backend degrades gracefully if absent but
@@ -241,11 +252,11 @@ export function scrapeListing(
       const priceEl = doc.querySelector<HTMLElement>('[data-testid="ItemDetailsPrice"]');
       const feedbackEl = doc.querySelector<HTMLElement>('[data-testid="ItemDetailsSellerRatings"]');
       const out: ListingSnapshot = { host, marketplace };
-      const title = (titleEl?.innerText ?? titleEl?.textContent ?? "").trim();
+      const title = visibleText(titleEl);
       if (title) out.productName = title;
-      const price = parsePriceString(priceEl?.innerText ?? priceEl?.textContent);
+      const price = parsePriceString(visibleText(priceEl));
       if (price !== undefined) out.price = price;
-      const feedback = parseIntSafe(feedbackEl?.innerText ?? feedbackEl?.textContent);
+      const feedback = parseIntSafe(visibleText(feedbackEl));
       if (feedback !== undefined) out.feedbackCount = feedback;
       return out;
     }
@@ -306,10 +317,13 @@ export function priceAnchor(marketplace: Marketplace, doc: Document = document):
       if (!main) return null;
       // Judge P3-12: prefer an actual price-shaped element near the title.
       // Falls back to the h1 if no currency-shaped span is found.
-      const spans = Array.from(main.querySelectorAll<HTMLElement>("span"));
-      for (const s of spans) {
-        const t = (s.innerText ?? s.textContent ?? "").trim();
-        if (/^\$[\d,]+(?:\.\d+)?$/.test(t)) return s;
+      const candidates = [
+        ...Array.from(main.querySelectorAll<HTMLElement>("span")),
+        ...Array.from(main.querySelectorAll<HTMLElement>("div")),
+      ];
+      for (const el of candidates) {
+        const t = visibleText(el);
+        if (/^\$[\d,]+(?:\.\d+)?$/.test(t)) return el;
       }
       return (
         main.querySelector<HTMLElement>('h1[role="heading"]') ??

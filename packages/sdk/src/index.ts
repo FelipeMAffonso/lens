@@ -23,7 +23,7 @@ const DEFAULT_BASE = "https://lens-api.webmarinelli.workers.dev";
 
 export interface AuditInput {
   kind: "text" | "query" | "url" | "image" | "photo";
-  source?: "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
+  source?: "chatgpt" | "claude" | "gemini" | "rufus" | "perplexity" | "unknown";
   raw?: string;
   userPrompt?: string;
   url?: string;
@@ -50,6 +50,30 @@ export interface ArchitectureStats {
   last_successful_run?: string;
   packs?: Record<string, number>;
   computed_at?: string;
+}
+
+export interface CustomerJourneyMap {
+  version: "customer-journey-map-v1";
+  generatedAt: string;
+  readiness: { live: number; partial: number; planned: number; total: number; score: number };
+  guarantees: string[];
+  privacyControls: string[];
+  stages: Array<{
+    id: string;
+    label: string;
+    status: "live" | "partial" | "planned";
+    promise: string;
+    surfaces: string[];
+    endpoints: string[];
+    workflows: string[];
+    dataSources: string[];
+    implementedSignals: string[];
+    edgeCasesCovered: string[];
+    failureRecovery: string[];
+    consentTier: string;
+    userControls: string[];
+    nextHardening: string[];
+  }>;
 }
 
 export class LensError extends Error {
@@ -110,6 +134,11 @@ export class LensClient {
   /** GET /architecture/sources — full source registry. */
   architectureSources(): Promise<{ sources: Array<Record<string, unknown>>; computed_at: string }> {
     return this.send("/architecture/sources");
+  }
+
+  /** GET /architecture/journey - full consumer journey defense map. */
+  architectureJourney(): Promise<CustomerJourneyMap> {
+    return this.send("/architecture/journey");
   }
 
   /** POST /audit — run a welfare audit on text / url / query / image. */

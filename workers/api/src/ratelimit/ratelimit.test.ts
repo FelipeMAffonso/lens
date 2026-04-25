@@ -54,8 +54,22 @@ describe("findPolicy", () => {
   it("returns undefined for unknown routes", () => {
     expect(findPolicy("nonsense")).toBeUndefined();
   });
-  it("has 5 policies shipping", () => {
-    expect(POLICIES.length).toBe(5);
+  it("ships policies for every protected route", () => {
+    expect(POLICIES.map((p) => p.route).sort()).toEqual([
+      "audit",
+      "chat-clarify",
+      "chat-followup",
+      "checkout-summary",
+      "clarify",
+      "counterfeit-check",
+      "lockin",
+      "passive-scan",
+      "price-history",
+      "repairability",
+      "review-scan",
+      "score",
+      "voice",
+    ]);
   });
   it("every policy has positive limits + window", () => {
     for (const p of POLICIES) {

@@ -11,13 +11,6 @@ export interface PipelineOptions {
   onEvent?: (event: string, data: unknown) => void;
 }
 
-function createEmptyOptimal(_intent: { category: string }): {
-  name: string; brand: string; price: number | null; currency: string; specs: Record<string, never>;
-  attributeScores: Record<string, never>; utilityScore: number; utilityBreakdown: never[];
-} {
-  return { name: "(no candidates available)", brand: "", price: null, currency: "USD", specs: {}, attributeScores: {}, utilityScore: 0, utilityBreakdown: [] };
-}
-
 class StageError extends Error {
   constructor(public stage: string, message: string, public cause?: unknown) {
     super(`[${stage}] ${message}`);
@@ -127,11 +120,11 @@ export async function runAuditPipeline(
     warnings.push({
       stage: "search",
       message:
-        "Live web search returned no products and no pack SKU match for this category. Try a more specific category term (e.g. 'robot vacuum' instead of 'cleaning device'), or your Opus API key may be rate-limited.",
+        "Lens could not find defensible product candidates for this request. Try a more specific category term or paste a cleaner product URL.",
     });
   }
   if (crossModel.length === 0) {
-    warnings.push({ stage: "crossModel", message: "No cross-model picks. Provider keys may be missing or rate-limited. Check Worker secrets." });
+    warnings.push({ stage: "crossModel", message: "Cross-assistant comparison was skipped for this run." });
   }
   if (!ranked[0]) {
     warnings.push({ stage: "rank", message: "Ranking produced no top pick — verify candidates have parseable spec values." });
@@ -163,7 +156,7 @@ export async function runAuditPipeline(
     intent: extract.intent,
     aiRecommendation: extract.aiRecommendation,
     candidates: ranked,
-    specOptimal: ranked[0] ?? createEmptyOptimal(extract.intent),
+    specOptimal: ranked[0] ?? null,
     warnings,
     aiPickCandidate,
     claims,

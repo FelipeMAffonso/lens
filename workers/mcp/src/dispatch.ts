@@ -3,6 +3,7 @@
 
 export interface DispatchEnv {
   LENS_API_URL: string;
+  LENS_ADMIN_KEY?: string;
 }
 
 export interface ToolResult {
@@ -71,7 +72,10 @@ export async function callTool(
       case "lens.trigger_ingest": {
         const id = String(args["id"] ?? "");
         if (!id) return errorResult("missing required parameter: id");
-        return await proxyPost(env, `/architecture/trigger/${encodeURIComponent(id)}`, {});
+        if (!env.LENS_ADMIN_KEY) return errorResult("LENS_ADMIN_KEY is not configured for ingest triggers");
+        return await proxyPost(env, `/architecture/trigger/${encodeURIComponent(id)}`, {}, {
+          "x-lens-admin-key": env.LENS_ADMIN_KEY,
+        });
       }
       case "lens.intervention_draft": {
         const packSlug = String(args["packSlug"] ?? "");
@@ -104,10 +108,11 @@ async function proxyPost(
   env: DispatchEnv,
   path: string,
   body: unknown,
+  headers: Record<string, string> = {},
 ): Promise<ToolResult> {
   const res = await fetch(`${env.LENS_API_URL}${path}`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...headers },
     body: JSON.stringify(body),
   });
   const text = await res.text();

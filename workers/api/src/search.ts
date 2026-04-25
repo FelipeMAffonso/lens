@@ -148,7 +148,7 @@ No prose. No markdown fences. Do NOT fabricate spec values you are unsure of.`;
     const parsed = JSON.parse(json) as { candidates?: Array<Record<string, unknown>> };
     if (!parsed.candidates || !Array.isArray(parsed.candidates)) return [];
     return parsed.candidates
-      .map((c) => {
+      .map((c): Candidate | null => {
         const name = typeof c.name === "string" ? c.name.trim() : "";
         if (!name) return null;
         const specs = (c.specs && typeof c.specs === "object"
@@ -164,7 +164,7 @@ No prose. No markdown fences. Do NOT fabricate spec values you are unsure of.`;
           attributeScores: {},
           utilityScore: 0,
           utilityBreakdown: [],
-        } satisfies Candidate;
+        };
       })
       .filter((c): c is Candidate => c !== null);
   } finally {
@@ -322,7 +322,7 @@ No prose outside the JSON. No markdown fences.`;
   // handing to downstream stages.
   const dropped: number[] = [];
   const out = parsed.candidates
-    .map((c, i) => {
+    .map((c, i): Candidate | null => {
       if (!c || typeof c !== "object") { dropped.push(i); return null; }
       const name = typeof c.name === "string" ? c.name.trim() : "";
       if (name.length === 0) { dropped.push(i); return null; }
@@ -338,7 +338,7 @@ No prose outside the JSON. No markdown fences.`;
         attributeScores: {},
         utilityScore: 0,
         utilityBreakdown: [],
-      } satisfies Candidate;
+      };
     })
     .filter((c): c is Candidate => c !== null);
   if (dropped.length > 0) {
@@ -408,7 +408,7 @@ async function catalogSearch(intent: UserIntent, env: Env): Promise<Candidate[]>
     "category-classify:",
   ];
   if (!isMediaIntent) {
-    excludedPrefixes.push("ol:", "mb:", "openlibrary:", "musicbrainz:");
+    excludedPrefixes.push("ol:", "mb:", "openlibrary:", "musicbrainz:", "wd:", "wikidata:");
   }
   // Build SQL "AND NOT LIKE 'x%'" clauses
   const excludes = excludedPrefixes.map(() => "AND sc.id NOT LIKE ?").join("\n          ");
@@ -449,18 +449,21 @@ async function catalogSearch(intent: UserIntent, env: Env): Promise<Candidate[]>
       specs.__source = "catalog";
       const c: Candidate = {
         name: r.canonical_name,
-        brand: r.brand_slug ?? undefined,
-        model: r.model_code ?? undefined,
-        price: r.median_cents != null ? Math.round(r.median_cents / 100) : undefined,
-        url: r.asin ? `https://www.amazon.com/dp/${r.asin}` : (r.preferred_url ?? undefined),
-        imageUrl: r.image_url ?? undefined,
-        specs,
-        // Price-story transparency (surface the consensus math to the UI)
-        priceSources: r.n_sources ?? undefined,
-        priceMin: r.p25_cents != null ? Math.round(r.p25_cents / 100) : undefined,
-        priceMax: r.p75_cents != null ? Math.round(r.p75_cents / 100) : undefined,
+        brand: r.brand_slug ?? "",
+        price: r.median_cents != null ? Math.round(r.median_cents / 100) : null,
+        currency: "USD",
+        specs: specs as Record<string, string | number | boolean>,
+        attributeScores: {},
+        utilityScore: 0,
+        utilityBreakdown: [],
+        ...(r.model_code ? { model: r.model_code } : {}),
+        ...(r.asin ? { url: `https://www.amazon.com/dp/${r.asin}` } : r.preferred_url ? { url: r.preferred_url } : {}),
+        ...(r.image_url ? { imageUrl: r.image_url, thumbnailUrl: r.image_url } : {}),
+        ...(r.n_sources != null ? { priceSources: r.n_sources } : {}),
+        ...(r.p25_cents != null ? { priceMin: Math.round(r.p25_cents / 100) } : {}),
+        ...(r.p75_cents != null ? { priceMax: Math.round(r.p75_cents / 100) } : {}),
         skuId: r.id,
-      } as Candidate;
+      };
       return c;
     });
   } catch (err) {

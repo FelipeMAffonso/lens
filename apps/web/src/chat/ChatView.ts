@@ -139,7 +139,7 @@ export function mountChatView(opts: ChatViewOptions): void {
         const t = store.append("assistant", ack);
         transcript.append(botBubble(t.text));
         scrollBottom();
-        await runAudit({ pasteRaw: undefined, urlMode: urlMatch.url });
+        await runAudit({ urlMode: urlMatch.url });
         return;
       }
     }
@@ -191,7 +191,7 @@ export function mountChatView(opts: ChatViewOptions): void {
         question?: string;
         message?: string;
         raw?: string;
-        hostAi?: "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
+        hostAi?: "chatgpt" | "claude" | "gemini" | "rufus" | "perplexity" | "unknown";
       };
       if (body.kind === "ready") {
         await runAudit();
@@ -230,7 +230,7 @@ export function mountChatView(opts: ChatViewOptions): void {
   async function runAudit(
     opts: {
       pasteRaw?: string;
-      hostAi?: "chatgpt" | "claude" | "gemini" | "rufus" | "unknown";
+      hostAi?: "chatgpt" | "claude" | "gemini" | "rufus" | "perplexity" | "unknown";
       urlMode?: string;
       photoBase64?: string;
       photoMime?: string;
@@ -630,10 +630,8 @@ function buildRecap(audit: AuditResult, topCriterion?: string): string {
   const pick = audit.specOptimal;
   // improve-D3: if search came back empty, render a real empty state, not an
   // optimistic template with a placeholder name. D17 voice alignment.
-  const isEmpty =
-    !pick || !pick.name || pick.name.startsWith("(no candidates") || pick.name.startsWith("(none");
-  if (isEmpty) {
-    return "Search came back empty this run. The category may be unindexed in the live catalog, or the live search timed out. You can narrow the query (add a budget or a specific feature) or paste a retailer URL and I'll parse the product page directly.";
+  if (!pick) {
+    return "I could not produce a defensible top pick from this run. I can still show what failed and why below; try a more specific query, add a budget, or paste a clean retailer URL so I can parse the product page directly.";
   }
   const brand = pick.brand ? `${pick.brand} ` : "";
   const price = pick.price != null ? ` ($${pick.price})` : "";

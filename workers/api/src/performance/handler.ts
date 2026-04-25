@@ -5,6 +5,7 @@
 
 import type { Context } from "hono";
 import { findPreference, upsertPreference } from "../db/repos/preferences.js";
+import { applyWeightMapToCriteriaJson, criteriaJsonToWeightMap } from "../preferences/inference.js";
 import { getByPurchase, listByUser, upsertRating } from "./repo.js";
 import { PerformanceRequestSchema, type PerformanceResponse, type PreferenceUpdate } from "./types.js";
 import { applyPerformanceUpdate } from "./updater.js";
@@ -56,17 +57,7 @@ export async function handleRecord(
   if (purchase.category) {
     const pref = await findPreference(d1 as never, { userId, category: purchase.category });
     if (pref) {
-      let weights: Record<string, number> = {};
-      try {
-        const parsed = JSON.parse(pref.criteria_json) as unknown;
-        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-          for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
-            if (typeof v === "number" && Number.isFinite(v)) weights[k] = v;
-          }
-        }
-      } catch {
-        weights = {};
-      }
+      const weights = criteriaJsonToWeightMap(pref.criteria_json);
       if (Object.keys(weights).length > 0) {
         preferenceUpdate = applyPerformanceUpdate({
           weights,
@@ -76,11 +67,12 @@ export async function handleRecord(
           category: purchase.category,
         });
         if (preferenceUpdate.applied && preferenceUpdate.after) {
+          const nextCriteria = applyWeightMapToCriteriaJson(pref.criteria_json, preferenceUpdate.after);
           await upsertPreference(d1 as never, {
             userId,
             anonUserId: null,
             category: purchase.category,
-            criteria: preferenceUpdate.after,
+            criteria: nextCriteria,
           });
         }
       } else {

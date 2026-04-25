@@ -166,7 +166,11 @@ export function parseTitle(title: string): { product: string; priceCents?: numbe
   // Strip trailing dangling hyphens / dots left by cuts above.
   product = product.replace(/[\s\-.,]+$/, "");
 
-  return { product, priceCents, retailer };
+  return {
+    product,
+    ...(priceCents !== undefined ? { priceCents } : {}),
+    ...(retailer !== undefined ? { retailer } : {}),
+  };
 }
 
 function slugify(s: string): string {

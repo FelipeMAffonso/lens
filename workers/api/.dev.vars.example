@@ -36,6 +36,14 @@ MAGIC_LINK_BASE_URL=https://lens-b1h.pages.dev
 # span (e.g. .webmarinelli.workers.dev). Leave empty in local dev.
 LENS_COOKIE_DOMAIN=
 
+# Security / admin. LENS_ALLOWED_ORIGINS is a comma-separated allowlist for
+# browser callers. LENS_ADMIN_KEY protects manual ingest triggers.
+LENS_ALLOWED_ORIGINS=https://lens-b1h.pages.dev
+LENS_ADMIN_KEY=
+
+# Optional bearer token for inbound receipt/email ingestion.
+LENS_RECEIPT_TOKEN=
+
 # ─── F11 — voice input ──────────────────────────────────────────────────────
 # Deepgram Nova-3 streaming transcription. Unset falls back to a stub
 # transcript so the UI flow still works in demos without a key.

@@ -78,7 +78,7 @@ export async function handleVisualAudit(c: Context<{ Bindings: Env }>): Promise<
   const { url, screenshotBase64, userQuery, pageTitle } = parsed.data;
 
   if (!c.env.ANTHROPIC_API_KEY) {
-    return c.json({ error: "ANTHROPIC_API_KEY not set" }, 503);
+    return c.json({ error: "vision_unavailable" }, 503);
   }
 
   const anthropic = client(c.env);

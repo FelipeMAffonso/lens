@@ -71,6 +71,15 @@ export function buildOpenAPISpec(baseUrl: string): OpenAPIDoc {
           responses: { "200": JSON_OK, "404": { description: "Source not registered" } },
         },
       },
+      "/architecture/journey": {
+        get: {
+          tags: ["core"],
+          summary: "Customer-journey defense map",
+          description:
+            "Returns every consumer journey stage Lens currently defends, including public endpoints, product surfaces, consent tiers, edge cases covered, and recovery states.",
+          responses: { "200": JSON_OK },
+        },
+      },
       "/architecture/schema": {
         get: {
           tags: ["core"],

@@ -97,11 +97,13 @@ describe("scrapeListing (unit — seeded DOM)", () => {
 
   it("amazon-3p: builds feedbackDistribution histogram from data-rating rows", () => {
     document.body.innerHTML = `
-      <div class="a-histogram-row" data-rating="5"><span class="a-text-right">6000</span></div>
-      <div class="a-histogram-row" data-rating="4"><span class="a-text-right">150</span></div>
-      <div class="a-histogram-row" data-rating="3"><span class="a-text-right">80</span></div>
-      <div class="a-histogram-row" data-rating="2"><span class="a-text-right">50</span></div>
-      <div class="a-histogram-row" data-rating="1"><span class="a-text-right">2500</span></div>
+      <div id="feedback-summary-table">
+        <div class="a-histogram-row" data-rating="5"><span class="a-text-right">6000</span></div>
+        <div class="a-histogram-row" data-rating="4"><span class="a-text-right">150</span></div>
+        <div class="a-histogram-row" data-rating="3"><span class="a-text-right">80</span></div>
+        <div class="a-histogram-row" data-rating="2"><span class="a-text-right">50</span></div>
+        <div class="a-histogram-row" data-rating="1"><span class="a-text-right">2500</span></div>
+      </div>
     `;
     const snap = scrapeListing("amazon-3p");
     expect(snap?.feedbackDistribution?.star5).toBe(6000);

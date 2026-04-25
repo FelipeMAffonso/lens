@@ -25,7 +25,7 @@ export const keepaIngester: DatasetIngester = {
     const counters: IngestionReport = { rowsSeen: 0, rowsUpserted: 0, rowsSkipped: 0, errors: [], log: "" };
     const logLines: string[] = [];
 
-    const apiKey = (ctx.env as Record<string, string | undefined>).KEEPA_API_KEY;
+    const apiKey = (ctx.env as unknown as Record<string, string | undefined>).KEEPA_API_KEY;
     if (!apiKey) {
       counters.log = "KEEPA_API_KEY not set — keepa ingester skipping this run.";
       return counters;

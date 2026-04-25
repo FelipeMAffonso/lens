@@ -35,7 +35,7 @@ export interface ScoreResult {
 export async function computeScore(
   query: ScoreQuery,
   audit: (input: { kind: "query"; userPrompt: string; category?: string }) => Promise<{
-    specOptimal: { name: string; brand?: string; price?: number | null; utilityScore: number; utilityBreakdown: Array<{ criterion: string; weight: number; score: number; contribution: number }> };
+    specOptimal: { name: string; brand?: string; price?: number | null; utilityScore: number; utilityBreakdown: Array<{ criterion: string; weight: number; score: number; contribution: number }> } | null;
     intent: { category: string };
   }>,
 ): Promise<ScoreResult> {
@@ -47,6 +47,15 @@ export async function computeScore(
   };
   if (query.category) input.category = query.category;
   const result = await audit(input);
+  if (!result.specOptimal) {
+    return {
+      score: 0,
+      breakdown: [],
+      packVersion: "1.0.0",
+      category: result.intent.category,
+      generatedAt: new Date().toISOString(),
+    };
+  }
   return {
     score: Number((result.specOptimal.utilityScore ?? 0).toFixed(3)),
     breakdown: result.specOptimal.utilityBreakdown,

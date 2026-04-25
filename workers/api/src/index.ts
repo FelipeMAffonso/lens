@@ -31,6 +31,7 @@ import {
 import { authMiddleware, type AuthVars } from "./auth/middleware.js";
 import { rateLimitMiddleware } from "./ratelimit/middleware.js";
 import { handlePassiveScan } from "./passive-scan/handler.js";
+import { handlePassiveScanProbe } from "./passive-scan/probe.js";
 import { handlePriceHistory } from "./price-history/handler.js";
 import { handleTotalCost } from "./total-cost/handler.js";
 import {
@@ -96,6 +97,7 @@ import { handleChatFollowup } from "./chat/followup.js";
 import { handleRepairabilityLookup } from "./repairability/handler.js";
 import { handleLockinCompute } from "./lockin/handler.js";
 import { handleRankAdjust } from "./rank-adjust/handler.js";
+import { handleCustomerJourneyMap } from "./journey/handler.js";
 import { registry as packRegistry } from "./packs/registry.js";
 import { createAudit, listAudits } from "./db/repos/audits.js";
 import { deletePreference, findPreference, listPreferencesByUser, upsertPreference } from "./db/repos/preferences.js";
@@ -128,6 +130,7 @@ export interface Env {
   LENS_DISABLE_CROSS_MODEL?: string;
   // F1 auth
   LENS_D1?: D1Database;
+  LENS_KV?: KVNamespace;
   JWT_SECRET?: string;
   RESEND_API_KEY?: string;
   RESEND_FROM_EMAIL?: string;
@@ -138,16 +141,51 @@ export interface Env {
   GMAIL_OAUTH_REDIRECT_URI?: string;
   // improve-A2 — admin key for manual ingester trigger (POST /admin/ingest/:id)
   LENS_ADMIN_KEY?: string;
+  LENS_ALLOWED_ORIGINS?: string;
 }
 
 const app = new Hono<{ Bindings: Env; Variables: AuthVars }>();
 
+function allowedCorsOrigin(origin: string, env: Env): string | undefined {
+  if (!origin) return undefined;
+  try {
+    const u = new URL(origin);
+    if (u.hostname === "localhost" || u.hostname === "127.0.0.1" || u.hostname === "::1") return origin;
+  } catch {
+    return undefined;
+  }
+  const configured = (env.LENS_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const defaults = ["https://lens-b1h.pages.dev", "https://lens-api.webmarinelli.workers.dev"];
+  return [...defaults, ...configured].includes(origin) ? origin : undefined;
+}
+
+function hasAdminAccess(c: { req: { header: (name: string) => string | undefined }; env: Env }): boolean {
+  const configured = c.env.LENS_ADMIN_KEY;
+  if (!configured) return false;
+  const auth = c.req.header("authorization") ?? "";
+  const bearer = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
+  const header = c.req.header("x-lens-admin-key") ?? "";
+  return bearer === configured || header === configured;
+}
+
+app.use("*", async (c, next) => {
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("Referrer-Policy", "strict-origin-when-cross-origin");
+  c.header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+  c.header("Cross-Origin-Resource-Policy", "cross-origin");
+  c.header("X-Frame-Options", "DENY");
+  await next();
+});
+
 app.use(
   "*",
   cors({
-    origin: (origin) => origin, // reflect origin (cookies require non-wildcard)
+    origin: (origin, c) => allowedCorsOrigin(origin, c.env),
     allowMethods: ["GET", "POST", "OPTIONS"],
-    allowHeaders: ["content-type", "x-lens-anon-id"],
+    allowHeaders: ["authorization", "content-type", "x-lens-anon-id", "x-lens-admin-key"],
     credentials: true,
     exposeHeaders: ["x-lens-anon-id-new"],
   }),
@@ -195,8 +233,10 @@ app.get("/packs/stats", async (c) => {
 // Reads the `architecture_stats` view (migration 0010) directly. Zero LLM
 // calls. Cached 15s via CF cache-control so landing hydration stays cheap.
 app.get("/architecture/stats", async (c) => {
+  const d1 = c.env.LENS_D1;
   try {
-    const row = await c.env.LENS_D1.prepare("SELECT * FROM architecture_stats").first<
+    if (!d1) throw new Error("d1_unavailable");
+    const row = await d1.prepare("SELECT * FROM architecture_stats").first<
       Record<string, string | number | null>
     >();
     const packs = await import("./packs/registry.js").then((m) => m.packStats());
@@ -228,8 +268,10 @@ app.get("/architecture/stats", async (c) => {
 
 // improve-E2 — /architecture/sources — full source registry with live status.
 app.get("/architecture/sources", async (c) => {
+  const d1 = c.env.LENS_D1;
   try {
-    const { results } = await c.env.LENS_D1.prepare(
+    if (!d1) throw new Error("d1_unavailable");
+    const { results } = await d1.prepare(
       `SELECT id, name, type, base_url, docs_url, cadence_minutes,
               last_run_at, last_success_at, last_error, rows_total, status,
               description
@@ -258,14 +300,16 @@ app.get("/architecture/sources", async (c) => {
 // improve-E3 — /architecture/sources/:id — per-source detail incl. recent runs.
 app.get("/architecture/sources/:id", async (c) => {
   const id = decodeURIComponent(c.req.param("id"));
+  const d1 = c.env.LENS_D1;
   try {
-    const source = await c.env.LENS_D1.prepare(
+    if (!d1) throw new Error("d1_unavailable");
+    const source = await d1.prepare(
       "SELECT * FROM data_source WHERE id = ?",
     )
       .bind(id)
       .first();
     if (!source) return c.json({ error: "not_found", id }, 404);
-    const { results: runs } = await c.env.LENS_D1.prepare(
+    const { results: runs } = await d1.prepare(
       `SELECT id, started_at, finished_at, status, rows_seen, rows_upserted,
               rows_skipped, error_count, duration_ms
          FROM ingestion_run WHERE source_id = ?
@@ -281,6 +325,11 @@ app.get("/architecture/sources/:id", async (c) => {
     );
   }
 });
+
+// Public journey map: the whole consumer-defense surface, with endpoints,
+// consent tiers, edge cases, and recovery states. This is intentionally wired
+// as an API so the homepage, SDK, and docs stay anchored to the actual app.
+app.get("/architecture/journey", (c) => handleCustomerJourneyMap(c as never));
 
 // VISION #17 — Web Push subscribe + VAPID key + unsubscribe.
 app.get("/push/vapid-public-key", async (c) => {
@@ -412,6 +461,8 @@ app.get("/architecture/next-due", async (c) => {
 // burned subrequest budget. Judge-friendly: "click to ingest CISA KEV now".
 app.post("/architecture/trigger/:id", async (c) => {
   const id = decodeURIComponent(c.req.param("id"));
+  if (!c.env.LENS_ADMIN_KEY) return c.json({ error: "admin_not_configured", id }, 503);
+  if (!hasAdminAccess(c)) return c.json({ error: "unauthorized", id }, 401);
   try {
     const { REGISTERED } = await import("./ingest/dispatcher.js");
     const { runIngester } = await import("./ingest/framework.js");
@@ -501,10 +552,8 @@ app.get("/sku/:id", async (c) => {
 // improve-A2 — manual ingester trigger. Requires admin key.
 // Useful for seeding initial data without waiting for the 15-min cron.
 app.post("/admin/ingest/:source_id", async (c) => {
-  const adminKey = c.req.header("x-lens-admin-key");
-  if (!adminKey || adminKey !== c.env.LENS_ADMIN_KEY) {
-    return c.json({ error: "unauthorized" }, 401);
-  }
+  if (!c.env.LENS_ADMIN_KEY) return c.json({ error: "admin_not_configured" }, 503);
+  if (!hasAdminAccess(c)) return c.json({ error: "unauthorized" }, 401);
   const sourceId = c.req.param("source_id");
   const { REGISTERED } = await import("./ingest/dispatcher.js");
   const { runIngester } = await import("./ingest/framework.js");
@@ -602,7 +651,7 @@ app.get("/score", async (c) => {
             score: number;
             contribution: number;
           }>;
-        };
+        } | null;
         intent: { category: string };
       };
       return result;
@@ -769,6 +818,7 @@ app.post("/review-scan", async (c) => {
 // worker runs Opus 4.7 against matched packs and returns per-hit verdicts
 // with regulation citations + intervention suggestions.
 app.post("/passive-scan", (c) => handlePassiveScan(c as never, packRegistry));
+app.post("/passive-scan/probe", (c) => handlePassiveScanProbe(c as never, packRegistry));
 
 // S4-W21 — price-history + fake-sale detection. Returns 90-day series for
 // a retailer URL, computes rolling stats, and emits a sale-legitimacy verdict.

@@ -1,4 +1,5 @@
 import type { AuditResult, HostAI, Candidate, Claim } from "@lens/shared";
+import { preferenceModelPanel, renderCriteriaChips, type CriterionShape } from "./preference-model-ui.js";
 import "./chat/chat.css";
 
 const API_BASE = import.meta.env.VITE_LENS_API_URL ?? "https://lens-api.webmarinelli.workers.dev";
@@ -10,6 +11,7 @@ interface ProfileState {
   savedAt: string;
   criteria: Array<{ name: string; weight: number; direction: string }>;
   category: string;
+  budget?: { min?: number | undefined; max?: number | undefined; currency?: string | undefined };
 }
 const PROFILE_KEY = "lens.profiles.v1";
 
@@ -74,7 +76,9 @@ async function loadPackStats(): Promise<void> {
     const res = await fetch(`${API_BASE}/packs/stats`);
     const data = await res.json();
     const el = $("pack-stats");
-    el.textContent = `${data.totalPacks} knowledge packs · ${data.byType.category} categories · ${data.byType.darkPattern} dark patterns · ${data.byType.regulation} regulations`;
+    const full = `${data.totalPacks} knowledge packs - ${data.byType.category} categories - ${data.byType.darkPattern} dark patterns - ${data.byType.regulation} regulations`;
+    el.setAttribute("title", full);
+    el.textContent = `${data.totalPacks} packs - ${data.byType.category} categories - ${data.byType.darkPattern} dark patterns`;
   } catch {
     $("pack-stats").textContent = "packs api offline";
   }
@@ -168,27 +172,30 @@ async function runAudit(): Promise<void> {
     savedAt: new Date().toISOString(),
     criteria: result.intent.criteria.map((c) => ({ name: c.name, weight: c.weight, direction: c.direction })),
     category: result.intent.category,
+    ...(result.intent.budget ? { budget: result.intent.budget } : {}),
   });
 
   // Track welfare-delta in history (W32)
-  const lensPickPrice = result.specOptimal.price ?? null;
-  const aiPickName = result.aiRecommendation.pickedProduct.name.startsWith("(no AI")
-    ? null
-    : result.aiRecommendation.pickedProduct.name;
-  const aiPickPrice = result.aiPickCandidate?.price ?? null;
-  const priceDelta = lensPickPrice !== null && aiPickPrice !== null ? aiPickPrice - lensPickPrice : null;
-  const aiPickUtility = result.aiPickCandidate?.utilityScore ?? 0;
-  const utilityDelta = (result.specOptimal.utilityScore ?? 0) - aiPickUtility;
-  pushHistory({
-    at: new Date().toISOString(),
-    category: result.intent.category,
-    lensPickName: result.specOptimal.name,
-    lensPickPrice,
-    aiPickName,
-    aiPickPrice,
-    utilityDelta,
-    priceDelta,
-  });
+  if (result.specOptimal) {
+    const lensPickPrice = result.specOptimal.price ?? null;
+    const aiPickName = result.aiRecommendation.pickedProduct.name.startsWith("(no AI")
+      ? null
+      : result.aiRecommendation.pickedProduct.name;
+    const aiPickPrice = result.aiPickCandidate?.price ?? null;
+    const priceDelta = lensPickPrice !== null && aiPickPrice !== null ? aiPickPrice - lensPickPrice : null;
+    const aiPickUtility = result.aiPickCandidate?.utilityScore ?? 0;
+    const utilityDelta = (result.specOptimal.utilityScore ?? 0) - aiPickUtility;
+    pushHistory({
+      at: new Date().toISOString(),
+      category: result.intent.category,
+      lensPickName: result.specOptimal.name,
+      lensPickPrice,
+      aiPickName,
+      aiPickPrice,
+      utilityDelta,
+      priceDelta,
+    });
+  }
 
   renderResult(result);
 }
@@ -317,6 +324,16 @@ export function renderResult(r: AuditResult): void {
   // Fetched async; rendered even when stats are slow so the card never
   // shows a silent "loading" state.
   body.append(provenanceCard(r));
+  if (r.warnings?.length) body.append(warningsCard(r));
+  if (!r.specOptimal) {
+    body.append(emptyResultCard(r));
+    body.append(criteriaCard(r));
+    if (!isJob1 && r.claims.length > 0) body.append(claimsCard(r));
+    body.append(crossModelCard(r));
+    body.append(profileCard());
+    body.append(elapsedFooter(r));
+    return;
+  }
   if (!isJob1) body.append(verdictBanner(r));
   body.append(heroPickCard(r));
   // B5: parallel-enrichment signals + repairability render immediately below
@@ -336,6 +353,43 @@ export function renderResult(r: AuditResult): void {
   body.append(welfareDeltaCard());
   body.append(profileCard());
   body.append(elapsedFooter(r));
+}
+
+function warningsCard(r: AuditResult): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "card";
+  const rows = (r.warnings ?? [])
+    .map((w) => `<li><strong>${esc(w.stage)}</strong>: ${esc(w.message)}</li>`)
+    .join("");
+  card.innerHTML = `
+    <div class="card-header">
+      <h2>Run notes</h2>
+      <p class="card-subtitle">What degraded, skipped, or needs a cleaner input</p>
+    </div>
+    <ul class="warning-list" style="margin:0;padding-left:18px;color:var(--fg-dim);line-height:1.6;">${rows}</ul>
+  `;
+  return card;
+}
+
+function emptyResultCard(r: AuditResult): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "card";
+  const picked = r.aiRecommendation.pickedProduct?.name;
+  const url = r.aiRecommendation.sourceUrl ?? r.aiRecommendation.pickedProduct?.url;
+  card.innerHTML = `
+    <div class="card-header">
+      <h2>No defensible top pick</h2>
+      <p class="card-subtitle">Lens refused to invent a product when the evidence pipeline came back thin.</p>
+    </div>
+    <p class="muted" style="margin:0 0 12px;line-height:1.6;">
+      ${picked && !picked.startsWith("(no AI") ? `I recognized <strong>${esc(picked)}</strong>, but could not gather enough verified candidates to rank it honestly.` : "The audit did not produce enough verified product data to rank anything honestly."}
+    </p>
+    <div style="display:grid;gap:8px;font-size:13px;color:var(--fg-dim);">
+      <div><strong>Try next:</strong> paste a clean retailer URL, add a concrete category, or include a budget and 2-3 must-have features.</div>
+      ${url ? `<div><strong>Source URL:</strong> <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(url)}</a></div>` : ""}
+    </div>
+  `;
+  return card;
 }
 
 // B5 — enrichmentsCard renders all parallel-enrichment signals (B2) as a
@@ -466,6 +520,10 @@ async function hydrateRepairabilityCard(r: AuditResult, slot: HTMLElement): Prom
 function alternativesCard(r: AuditResult): HTMLElement {
   const card = document.createElement("section");
   card.className = "card";
+  if (!r.specOptimal) {
+    card.innerHTML = `<div class="card-header"><h2>Alternatives</h2></div><p class="muted" style="margin:0;">No ranked products yet.</p>`;
+    return card;
+  }
   const topPrice = r.specOptimal.price ?? 0;
   const tiers = [
     { label: "Similar price, different trade-off", max: topPrice * 1.1, min: topPrice * 0.9, excludeTop: true },
@@ -837,10 +895,10 @@ function fitLabel(score: number): string {
 // verify". Price-from-outside-retailer discounts are a *feature*, not a bug.
 function renderPriceLine(c: {
   price: number | null;
-  priceSources?: number;
-  priceMin?: number;
-  priceMax?: number;
-  priceObservedAt?: string;
+  priceSources?: number | undefined;
+  priceMin?: number | undefined;
+  priceMax?: number | undefined;
+  priceObservedAt?: string | undefined;
 }): string {
   if (c.price == null || c.price <= 0) {
     return `<span class="muted">Price not verified yet, check the retailer link below for the current number.</span>`;
@@ -910,6 +968,7 @@ function heroPickCard(r: AuditResult): HTMLElement {
   const o = r.specOptimal;
   const card = document.createElement("section");
   card.className = "card";
+  if (!o) return emptyResultCard(r);
   // B5: surface a clickable retailer link (URL already scrubbed of affiliate
   // params at the search boundary).
   // Judge P1-5: aria-label for the external-link arrow that's otherwise visual-only.
@@ -959,6 +1018,7 @@ function criteriaCard(r: AuditResult): HTMLElement {
         <p class="card-subtitle">Lens built these from what you told it. To change them, just say what matters more (or less) in plain language.</p>
       </div>
     </div>
+    ${preferenceModelPanel(r)}
     <form class="nl-adjust" id="nl-adjust-form" autocomplete="off">
       <input
         type="text"
@@ -1001,34 +1061,6 @@ function criteriaCard(r: AuditResult): HTMLElement {
     });
   });
   return card;
-}
-
-interface CriterionShape {
-  name: string;
-  weight: number;
-  direction?: "higher_is_better" | "lower_is_better" | "target" | "binary";
-}
-
-function renderCriteriaChips(host: HTMLElement, criteria: CriterionShape[]): void {
-  host.innerHTML = "";
-  const sorted = [...criteria].sort((a, b) => b.weight - a.weight);
-  for (const c of sorted) {
-    const pct = Math.max(0, Math.min(100, Math.round(c.weight * 100)));
-    const chip = document.createElement("div");
-    chip.className = "criterion-chip";
-    chip.innerHTML = `
-      <div class="criterion-chip-head">
-        <span class="criterion-chip-name">${esc(humanizeCriterion(c.name))}</span>
-        <span class="criterion-chip-priority">${priorityLabel(c.weight)}</span>
-      </div>
-      <div class="criterion-chip-bar" aria-hidden="true">
-        <span style="width:${pct}%"></span>
-      </div>
-    `;
-    chip.setAttribute("role", "group");
-    chip.setAttribute("aria-label", `${humanizeCriterion(c.name)}: ${priorityLabel(c.weight)} (weight ${pct}%)`);
-    host.append(chip);
-  }
 }
 
 function wireNlAdjustForm(card: HTMLElement, r: AuditResult): void {
@@ -1098,6 +1130,9 @@ function wireNlAdjustForm(card: HTMLElement, r: AuditResult): void {
           name: c.name,
           weight: c.weight,
           direction: c.direction ?? "higher_is_better",
+          ...(c.confidence !== undefined ? { confidence: c.confidence } : {}),
+          ...(c.source !== undefined ? { source: c.source } : {}),
+          ...(c.rationale !== undefined ? { rationale: c.rationale } : {}),
         })) as typeof currentResult.intent.criteria;
         renderCriteriaChips(chipsHost, currentResult.intent.criteria);
         reRankFromCriteria(currentResult.intent.criteria);
@@ -1282,9 +1317,7 @@ function reRankFromCriteria(criteria: CriterionShape[]): void {
   rescored.sort((a, b) => b.utilityScore - a.utilityScore);
 
   currentResult.candidates = rescored;
-  if (rescored[0]) {
-    currentResult.specOptimal = rescored[0];
-  }
+  currentResult.specOptimal = rescored[0] ?? null;
 
   const list = document.getElementById("ranked-list");
   if (list) {
@@ -1474,3 +1507,18 @@ renderAuthControl();
 // improve-E5 — mount the architecture-reveal section. Self-updates every 60s.
 import { mountArchitectureReveal } from "./architecture-reveal.js";
 void mountArchitectureReveal();
+
+// Public customer-journey map. Hydrated from /architecture/journey so the
+// homepage stays coupled to the API surface rather than stale roadmap prose.
+import { mountCustomerJourneyMap } from "./customer-journey-map.js";
+void mountCustomerJourneyMap();
+
+// Live demo bench: CTAs such as "Run the dark-pattern scanner" animate the
+// extension checkout flow and call the real /passive-scan Worker route.
+import { mountDefenseSimulator } from "./defense-simulator.js";
+mountDefenseSimulator();
+
+// Phone install + post-purchase watcher demo. CTAs never fail silently: desktop
+// falls back to explicit install instructions and still shows the recall flow.
+import { mountPwaInstallSimulator } from "./pwa-install-simulator.js";
+mountPwaInstallSimulator();

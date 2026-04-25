@@ -135,8 +135,8 @@ export function applyCritiques(claims: Claim[], critiques: SelfCritique[]): numb
     if (c.verdict !== crit.suggestedVerdict) {
       c.verdict = crit.suggestedVerdict as Claim["verdict"];
       const note = `[self-verification] ${crit.reasoning} (was: ${crit.originalVerdict})`;
-      (c as Record<string, unknown>).evidence = note;
-      (c as Record<string, unknown>).explanation = note;
+      (c as unknown as Record<string, unknown>).evidence = note;
+      (c as unknown as Record<string, unknown>).explanation = note;
       n++;
     }
   }

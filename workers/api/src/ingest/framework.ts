@@ -37,7 +37,7 @@ export interface IngestionReport {
   /** Error message samples (max 10 — we don't want a runaway to fill D1) */
   errors: string[];
   /** Freeform notes, truncated to 16KB before persist. Safe to be chatty. */
-  log?: string;
+  log?: string | undefined;
 }
 
 export interface IngestionContext {
@@ -53,7 +53,7 @@ export interface DatasetIngester {
   /** Matches `data_source.id`. Primary key for the whole source. */
   id: string;
   /** Max wall-clock per run. Default 4 minutes (safely under Cron Trigger 30 min ceiling). */
-  maxDurationMs?: number;
+  maxDurationMs?: number | undefined;
   /** Called exactly once per run. Must be idempotent — reruns must converge. */
   run(ctx: IngestionContext): Promise<IngestionReport>;
 }

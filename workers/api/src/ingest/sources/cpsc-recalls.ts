@@ -208,8 +208,9 @@ function parseUnitCount(s: string | undefined): number | null {
   return match ? Number(match[1]) : null;
 }
 
-function prepareUpsert(env: Env, r: NormalizedRecall): ReturnType<Env["LENS_D1"]["prepare"]> {
-  return env.LENS_D1!.prepare(
+function prepareUpsert(env: Env, r: NormalizedRecall): ReturnType<D1Database["prepare"]> {
+  if (!env.LENS_D1) throw new Error("LENS_D1 binding required");
+  return env.LENS_D1.prepare(
     `INSERT INTO recall (id, source_id, external_id, title, product_match_json, severity, hazard, published_at, url, remedy, affected_units, raw_json)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET
@@ -246,4 +247,3 @@ async function readLastSuccessAt(env: Env): Promise<string | null> {
     .first<{ last_success_at: string | null }>();
   return row?.last_success_at ?? null;
 }
-

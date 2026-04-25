@@ -9,19 +9,30 @@ const STORAGE_KEY = "lens.install.v1";
 
 let deferredPrompt: BeforeInstallPromptEvent | null = null;
 
+export type InstallPromptOutcome =
+  | "native_prompt_unavailable"
+  | "native_prompt_recently_dismissed"
+  | "native_prompt_accepted"
+  | "native_prompt_dismissed";
+
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e as BeforeInstallPromptEvent;
 });
 
-export async function maybeShowInstallPrompt(): Promise<void> {
-  if (!deferredPrompt) return;
+export function hasDeferredInstallPrompt(): boolean {
+  return deferredPrompt !== null;
+}
+
+export async function maybeShowInstallPrompt(): Promise<InstallPromptOutcome> {
+  if (!deferredPrompt) return "native_prompt_unavailable";
   const dismissed = readDismissed();
-  if (dismissed && Date.now() - dismissed < 7 * 24 * 60 * 60 * 1000) return;
+  if (dismissed && Date.now() - dismissed < 7 * 24 * 60 * 60 * 1000) return "native_prompt_recently_dismissed";
   await deferredPrompt.prompt();
   const choice = await deferredPrompt.userChoice;
   if (choice.outcome === "dismissed") markDismissed();
   deferredPrompt = null;
+  return choice.outcome === "accepted" ? "native_prompt_accepted" : "native_prompt_dismissed";
 }
 
 export function renderIOSInstallHintIfNeeded(): void {

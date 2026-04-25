@@ -4,17 +4,30 @@
 
 import type { InitPayload } from "../content/bridge.js";
 import { onContentMessage, postToParent } from "../content/bridge.js";
+import { preferenceModelCard, type SidebarPreferenceModel } from "./preference-model.js";
 
 type AuditResult = {
   id: string;
-  intent: { category: string; criteria: Array<{ name: string; weight: number; direction: string }>; rawCriteriaText: string };
+  intent: {
+    category: string;
+    criteria: Array<{
+      name: string;
+      weight: number;
+      direction: string;
+      confidence?: number;
+      source?: string;
+      rationale?: string;
+    }>;
+    rawCriteriaText: string;
+    preferenceModel?: SidebarPreferenceModel;
+  };
   aiRecommendation: { host: string; pickedProduct: { name: string; brand?: string; price?: number | null; currency?: string }; claims: Array<{ attribute: string; statedValue: string }>; reasoningTrace: string };
   specOptimal: {
     name: string; brand?: string; price?: number | null; currency?: string;
     utilityScore: number;
     utilityBreakdown: Array<{ criterion: string; weight: number; score: number; contribution: number }>;
-  };
-  candidates: Array<AuditResult["specOptimal"]>;
+  } | null;
+  candidates: Array<NonNullable<AuditResult["specOptimal"]>>;
   claims: Array<{ attribute: string; statedValue: string; verdict: "true" | "false" | "misleading" | "unverifiable"; note?: string; evidenceUrl?: string }>;
   crossModel: Array<{ provider: string; model: string; pickedProduct: { name: string }; agreesWithLens: boolean }>;
   warnings?: Array<{ stage: string; message: string }>;
@@ -207,6 +220,16 @@ function verdictBanner(r: AuditResult): string {
 
 function heroPick(r: AuditResult): string {
   const o = r.specOptimal;
+  if (!o) {
+    return `
+      <div class="hero-pick">
+        <div class="pick-product">
+          <span class="name">No defensible top pick</span>
+        </div>
+        <div class="pick-price"><span class="muted">Lens did not have enough verified product data to rank a product honestly.</span></div>
+      </div>
+    `;
+  }
   return `
     <div class="hero-pick">
       <div class="pick-product">
@@ -226,6 +249,7 @@ function criteriaCard(r: AuditResult): string {
           <p class="card-subtitle">Drag to re-weight. Ranking updates live.</p>
         </div>
       </div>
+      ${preferenceModelCard(r.intent.preferenceModel, r.intent.criteria)}
       <div class="sliders" id="sliders-wrap">
         ${r.intent.criteria.map((c) => `
           <div class="slider-row">
@@ -318,7 +342,7 @@ function reRank(r: AuditResult): void {
   const norm: Record<string, number> = {};
   for (const [k, v] of Object.entries(raw)) norm[k] = sum > 0 ? v / sum : 0;
   // Recompute top candidate
-  let topName = r.specOptimal.name;
+  let topName = r.specOptimal?.name ?? "No defensible top pick";
   let topScore = 0;
   for (const cand of r.candidates) {
     let u = 0;

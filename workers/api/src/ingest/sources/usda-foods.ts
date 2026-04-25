@@ -15,7 +15,7 @@ export const usdaFoodsIngester: DatasetIngester = {
     const counters: IngestionReport = { rowsSeen: 0, rowsUpserted: 0, rowsSkipped: 0, errors: [], log: "" };
     const logLines: string[] = [];
     const page = await readPage(ctx);
-    const apiKey = (ctx.env as Record<string, string | undefined>).USDA_FDC_KEY ?? "DEMO_KEY";
+    const apiKey = (ctx.env as unknown as Record<string, string | undefined>).USDA_FDC_KEY ?? "DEMO_KEY";
     const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${apiKey}&dataType=Branded&pageSize=${PAGE_SIZE}&pageNumber=${page}`;
     logLines.push(`page=${page}`);
 

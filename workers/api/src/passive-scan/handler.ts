@@ -8,6 +8,7 @@ import type { Env } from "../index.js";
 import { persistScan } from "./repo.js";
 import {
   PassiveScanRequestSchema,
+  type PassiveScanRequest,
   type PassiveScanResponse,
 } from "./types.js";
 import { verifyHits, type OpusClient } from "./verify.js";
@@ -57,10 +58,23 @@ export async function handlePassiveScan(
     return c.json({ error: "invalid_input", issues: parsed.error.issues }, 400);
   }
 
-  const req = parsed.data;
+  const response = await runPassiveScanRequest(c.env, registry, parsed.data, {
+    userId: c.get("userId") ?? null,
+    anonUserId: c.get("anonUserId") ?? null,
+  });
+
+  return c.json(response);
+}
+
+export async function runPassiveScanRequest(
+  env: Env,
+  registry: PackRegistry,
+  req: PassiveScanRequest,
+  meta: { userId?: string | null; anonUserId?: string | null } = {},
+): Promise<PassiveScanResponse> {
   const start = Date.now();
   const runId = ulid();
-  const opus = opusClient(c.env);
+  const opus = opusClient(env);
 
   const { confirmed, dismissed, ran } = await verifyHits(req, registry, opus);
   const latencyMs = Date.now() - start;
@@ -76,7 +90,7 @@ export async function handlePassiveScan(
   // Persist — fire-and-forget; awaited so errors surface in worker logs but
   // caller still gets the response if persist happens to hang (pushed with
   // waitUntil in a future iteration once the Worker ctx is plumbed through).
-  await persistScan(c.env.LENS_D1 as never, {
+  await persistScan(env.LENS_D1 as never, {
     runId,
     host: req.host,
     pageType: req.pageType,
@@ -85,11 +99,11 @@ export async function handlePassiveScan(
     confirmedCount: confirmed.filter((h) => h.verdict === "confirmed").length,
     latencyMs,
     ran,
-    userId: c.get("userId") ?? null,
-    anonUserId: c.get("anonUserId") ?? null,
+    userId: meta.userId ?? null,
+    anonUserId: meta.anonUserId ?? null,
     confirmed,
     dismissed,
   });
 
-  return c.json(response);
+  return response;
 }

@@ -46,6 +46,81 @@
           AI shopping assistants pick non-optimal products 21% of the time and confabulate reasons 86% of the time.
           Lens is the fix.
         </p>
+        <p class="hero-anchor">
+          Before Lens recommends anything, it derives an editable utility function. No affiliate links,
+          no hidden ranking objective, no Gmail/Plaid/receipt/purchase monitoring without explicit consent,
+          and every preference weight can be inspected, edited, exported, or deleted.
+        </p>
+        <div class="hero-actions" aria-label="Primary actions">
+          <a class="hero-action primary" href="#chat-view">Ask Lens</a>
+          <a class="hero-action secondary" href="#customer-journey-map">See the infrastructure</a>
+        </div>
+        <div class="hero-system-art" aria-hidden="true">
+          <svg viewBox="0 0 880 240" role="img">
+            <defs>
+              <linearGradient id="lens-line" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stop-color="#d67256" stop-opacity="0.35"/>
+                <stop offset="0.5" stop-color="#1d2430" stop-opacity="0.18"/>
+                <stop offset="1" stop-color="#d67256" stop-opacity="0.35"/>
+              </linearGradient>
+            </defs>
+            <path d="M80 126 C185 54, 262 190, 384 118 S596 74, 794 124" fill="none" stroke="url(#lens-line)" stroke-width="2"/>
+            <path d="M80 126 C210 160, 305 74, 440 128 S646 184, 794 124" fill="none" stroke="#d67256" stroke-opacity="0.18" stroke-width="1.5"/>
+            <g fill="#fff" stroke="#d67256" stroke-width="1.5">
+              <circle cx="80" cy="126" r="18"/>
+              <circle cx="244" cy="98" r="18"/>
+              <circle cx="440" cy="128" r="24"/>
+              <circle cx="626" cy="98" r="18"/>
+              <circle cx="794" cy="124" r="18"/>
+            </g>
+            <g fill="#1d2430" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650" text-anchor="middle">
+              <text x="80" y="164">Intent</text>
+              <text x="244" y="70">Retailers</text>
+              <text x="440" y="134">Utility</text>
+              <text x="626" y="70">Evidence</text>
+              <text x="794" y="162">Defense</text>
+            </g>
+            <g fill="#d67256">
+              <circle cx="80" cy="126" r="4"/>
+              <circle cx="244" cy="98" r="4"/>
+              <circle cx="440" cy="128" r="5"/>
+              <circle cx="626" cy="98" r="4"/>
+              <circle cx="794" cy="124" r="4"/>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <section class="platform-strip" aria-label="How Lens works across the customer journey">
+        <div class="platform-strip-head">
+          <span class="platform-eyebrow">Whole journey defense</span>
+          <strong>One utility model, many surfaces, user-controlled data.</strong>
+        </div>
+        <div class="platform-grid">
+          <div class="platform-card">
+            <span>Before buy</span>
+            <strong>Infer preferences</strong>
+            <p>Typed intent, URLs, AI answers, photos, category priors, clarifiers, and explicit edits become transparent utility weights.</p>
+          </div>
+          <div class="platform-card">
+            <span>During checkout</span>
+            <strong>Block extraction</strong>
+            <p>Extension checks dark patterns, hidden fees, price history, review manipulation, counterfeit risk, provenance, and true total cost.</p>
+          </div>
+          <div class="platform-card">
+            <span>After purchase</span>
+            <strong>Monitor welfare</strong>
+            <p>Opt-in receipts, purchases, recalls, price refunds, subscriptions, firmware, warranty, Plaid-style signals, and push alerts.</p>
+          </div>
+        </div>
+        <div class="platform-pipeline" aria-label="Lens pipeline">
+          <span>Opus 4.7 extracts utility</span>
+          <span>retailer and public-data search</span>
+          <span>deterministic ranking</span>
+          <span>claim verification</span>
+          <span>cross-model disagreement</span>
+          <span>inspect, edit, export, delete</span>
+        </div>
       </section>
 
       <section class="mode-switch" role="tablist">
@@ -151,6 +226,21 @@
         <div id="result-body"></div>
       </section>
 
+      <section class="journey-map-section" aria-labelledby="journey-map-title">
+        <div class="journey-map-head">
+          <span class="platform-eyebrow">All customer touchpoints</span>
+          <h2 id="journey-map-title">Defense across the entire buying journey.</h2>
+          <p>
+            The cards below are hydrated from <code>/architecture/journey</code>, not copy sitting apart
+            from the system. Each stage names the product surface, API routes, edge cases, failure
+            recovery, and the data consent tier.
+          </p>
+        </div>
+        <div id="customer-journey-map" class="customer-journey-map">
+          <div class="source-loading">Loading customer journey map...</div>
+        </div>
+      </section>
+
       <!-- Sarah's day — the canonical VISION §3 narrative, turned into 4
            inline beats with install CTAs at each touchpoint. Placed before
            the architecture reveal so a reviewer sees the product story
@@ -200,9 +290,9 @@
               and an itemized receipt ready for expense dispute.
             </p>
             <div class="beat-cta">
-              <a class="beat-install" href="#architecture-reveal" onclick="document.getElementById('architecture-reveal')?.scrollIntoView({behavior:'smooth',block:'start'})">
+              <a class="beat-install" href="#dark-pattern-simulator" data-run-defense-demo="dark-pattern">
                 <span class="beat-install-icon" aria-hidden="true">🛡️</span>
-                See how the dark-pattern scanner works
+                Run the dark-pattern scanner
               </a>
               <span class="beat-install-hint">
                 24 dark-pattern packs + 16 regulation packs shipped. Every badge cites the rule it
@@ -242,7 +332,7 @@
               Lens logged the intervention to her welfare ledger.
             </p>
             <div class="beat-cta">
-              <a class="beat-install" href="#" onclick="(window.__lensMaybeInstall||(()=>alert('Open this page on your phone to install.')))();return false;">
+              <a class="beat-install" href="#pwa-install-simulator" data-run-pwa-demo>
                 <span class="beat-install-icon" aria-hidden="true">📲</span>
                 Install Lens on your phone (PWA)
               </a>
@@ -308,6 +398,163 @@
               <div class="place-icon">🌙</div>
               <h4>After you buy</h4>
               <p><strong>The Lens watchers.</strong> Cloudflare crons cross-match recalls, price drops, subscription renewals, and firmware advisories against your purchases. Draft letters and claims ready when you wake up.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-band defense-simulator" id="dark-pattern-simulator">
+          <div class="sim-head">
+            <div>
+              <span class="arch-kicker">Live product demo</span>
+              <h3 id="scanner-demo-title">A checkout dark-pattern scan, running end to end.</h3>
+              <p class="arch-sub">
+                This is the extension flow as a vivid simulator: a shopper moves from advertised price
+                to checkout, Lens detects the hidden fee locally, then calls the real
+                <code>POST /passive-scan</code> Worker for Stage-2 verification.
+              </p>
+            </div>
+            <button class="sim-run-btn" id="defense-sim-run" type="button" data-defense-demo-run>
+              Run scanner
+            </button>
+          </div>
+          <div class="live-probe" id="live-url-probe">
+            <div>
+              <label for="live-probe-url">Try it on a real public page</label>
+              <p>
+                Paste a Marriott, Booking, hotel, cart, or retailer URL. Lens fetches the visible page text,
+                derives dark-pattern hits from that page, then sends the evidence to the same
+                <code>POST /passive-scan</code> verifier.
+              </p>
+            </div>
+            <div class="live-probe-form">
+              <input
+                id="live-probe-url"
+                type="url"
+                placeholder="https://www.marriott.com/... or https://www.booking.com/..."
+                data-live-probe-url
+              />
+              <button type="button" data-live-probe-run>Scan live URL</button>
+            </div>
+            <textarea
+              id="live-probe-text"
+              rows="3"
+              placeholder="Optional fallback: paste visible checkout text if the site blocks public fetch."
+              data-live-probe-text
+            ></textarea>
+            <div class="live-probe-result" id="live-probe-result" aria-live="polite">
+              <strong>No page scanned yet.</strong>
+              <p>The scripted checkout below is the explainer; this box is the real try-yourself path.</p>
+            </div>
+          </div>
+          <div class="sim-layout" aria-labelledby="scanner-demo-title">
+            <div class="sim-browser" data-sim-browser>
+              <div class="sim-browser-chrome">
+                <span></span><span></span><span></span>
+                <div class="sim-url">marriott.com/booking/checkout</div>
+              </div>
+              <div class="sim-page">
+                <div class="sim-page-top">
+                  <div>
+                    <small>Room offer</small>
+                    <strong>Downtown King Room</strong>
+                  </div>
+                  <span class="sim-price">$249/night</span>
+                </div>
+                <div class="sim-checkout-card">
+                  <div class="sim-line"><span>Room subtotal</span><strong>$249.00</strong></div>
+                  <div class="sim-line sim-fee" data-sim-fee><span>Destination amenity fee</span><strong>$49.00/night</strong></div>
+                  <div class="sim-line"><span>Estimated taxes</span><strong>$34.12</strong></div>
+                  <div class="sim-total"><span>Total now</span><strong>$332.12</strong></div>
+                </div>
+                <div class="sim-overlay" data-sim-overlay>
+                  <div class="sim-pulse"></div>
+                  <div>
+                    <strong>Lens found a hidden-cost pattern</strong>
+                    <span>Advertised $249/night becomes $298 before tax at checkout.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="sim-console">
+              <div class="sim-console-head">
+                <span>Defense trace</span>
+                <code id="defense-sim-status">idle</code>
+              </div>
+              <ol class="sim-steps" id="defense-sim-steps" aria-live="polite">
+                <li data-step="observe"><span></span>Observe product page price</li>
+                <li data-step="compare"><span></span>Compare checkout total</li>
+                <li data-step="detect"><span></span>Detect hidden-cost pack hit</li>
+                <li data-step="worker"><span></span>Call Worker Stage-2 verifier</li>
+                <li data-step="result"><span></span>Render consumer action card</li>
+              </ol>
+              <div class="sim-network" id="defense-sim-network">
+                <code>POST /passive-scan</code>
+                <pre>{
+  "host": "marriott.com",
+  "pageType": "checkout",
+  "hits": ["dark-pattern/hidden-costs"]
+}</pre>
+              </div>
+              <div class="sim-result" id="defense-sim-result">
+                <strong>Ready.</strong>
+                <p>Click Run scanner to watch the extension flow and Worker response.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-band pwa-install-simulator" id="pwa-install-simulator">
+          <div class="pwa-sim-head">
+            <div>
+              <span class="arch-kicker">Live mobile demo</span>
+              <h3 id="pwa-demo-title">Phone install, push alert, and recall defense.</h3>
+              <p class="arch-sub">
+                This runs the real PWA readiness checks on the current page, then animates the after-purchase
+                path: install shell, service worker, recall watcher, notification, and a consumer action draft.
+              </p>
+            </div>
+            <button class="pwa-sim-run" id="pwa-sim-run" type="button" data-pwa-demo-run>
+              Run phone demo
+            </button>
+          </div>
+          <div class="pwa-sim-layout" aria-labelledby="pwa-demo-title">
+            <div class="pwa-phone" data-pwa-phone>
+              <div class="pwa-phone-speaker"></div>
+              <div class="pwa-phone-screen">
+                <div class="pwa-statusbar"><span>12:41</span><span>Lens PWA</span></div>
+                <div class="pwa-home-grid">
+                  <div class="pwa-icon">Lens</div>
+                  <div class="pwa-icon ghost"></div>
+                  <div class="pwa-icon ghost"></div>
+                  <div class="pwa-icon ghost"></div>
+                </div>
+                <div class="pwa-notification" data-pwa-notification>
+                  <strong>CPSC recall matched</strong>
+                  <span>Roborock S8 purchase from February. Refund letter ready.</span>
+                </div>
+                <div class="pwa-letter" data-pwa-letter>
+                  <span>Draft action</span>
+                  <strong>Warranty + recall claim</strong>
+                  <p>Uses purchase date, model, retailer, and rule citation only after the user approves.</p>
+                </div>
+              </div>
+            </div>
+            <div class="pwa-console">
+              <div class="pwa-console-head">
+                <span>Mobile readiness trace</span>
+                <code id="pwa-sim-status">idle</code>
+              </div>
+              <ol class="pwa-steps" id="pwa-sim-steps" aria-live="polite">
+                <li data-pwa-step="manifest"><span></span>Read manifest.webmanifest</li>
+                <li data-pwa-step="service-worker"><span></span>Confirm service-worker support</li>
+                <li data-pwa-step="install"><span></span>Attempt native install prompt or show fallback</li>
+                <li data-pwa-step="watcher"><span></span>Simulate recall watcher match</li>
+                <li data-pwa-step="action"><span></span>Render user-approved action draft</li>
+              </ol>
+              <div class="pwa-result" id="pwa-sim-result">
+                <strong>Ready.</strong>
+                <p>Click Run phone demo to see exactly what happens on desktop and mobile.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -506,6 +753,7 @@
                   <span style="font-family:ui-monospace,SF Mono,Menlo,monospace;color:#4b4a47;">lens-b1h.pages.dev</span>
                 </div>
               </div>
+              <a class="install-cta" href="#pwa-install-simulator" data-run-pwa-demo>Preview install + recall alert -></a>
             </div>
             <div class="install-card">
               <div class="install-icon">💻</div>

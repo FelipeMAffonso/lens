@@ -12,6 +12,7 @@
 
 import type { Context } from "hono";
 import { opusExtendedThinking } from "../anthropic.js";
+import { scrubTrackingParams } from "../url-scrub.js";
 
 interface Env {
   LENS_D1?: D1Database;
@@ -20,10 +21,10 @@ interface Env {
 }
 
 interface ParsedUrl {
-  retailer?: string;
-  id?: string;
-  brand?: string;
-  model?: string;
+  retailer?: string | undefined;
+  id?: string | undefined;
+  brand?: string | undefined;
+  model?: string | undefined;
   urlClean: string;
 }
 
@@ -143,29 +144,29 @@ export async function handleResolveUrl(c: Context<{ Bindings: Env }>): Promise<R
   return c.json({ parsed, candidates, matched: candidates.length > 0, page: stripInternal(page) });
 }
 
-interface PageImage { url: string; alt?: string }
-interface PageExtract {
-  title?: string;
-  priceCents?: number;
-  currency?: string;
-  imageUrl?: string;        // hero / og:image (best-guess primary)
-  images?: PageImage[];     // ALL product-gallery images with alt text
-  rating?: number;
-  reviewCount?: number;
-  bullets?: string[];
-  brand?: string;
-  availability?: string;
-  warranty?: string;
-  countryOfOrigin?: string;
-  model?: string;
-  upc?: string;
-  ean?: string;
-  specs?: Record<string, string>;
-  extractor?: "regex" | "regex+opus";
-  raw: { http: number; bytes: number; contentType?: string };
+export interface PageImage { url: string; alt?: string | undefined }
+export interface PageExtract {
+  title?: string | undefined;
+  priceCents?: number | undefined;
+  currency?: string | undefined;
+  imageUrl?: string | undefined;        // hero / og:image (best-guess primary)
+  images?: PageImage[] | undefined;     // ALL product-gallery images with alt text
+  rating?: number | undefined;
+  reviewCount?: number | undefined;
+  bullets?: string[] | undefined;
+  brand?: string | undefined;
+  availability?: string | undefined;
+  warranty?: string | undefined;
+  countryOfOrigin?: string | undefined;
+  model?: string | undefined;
+  upc?: string | undefined;
+  ean?: string | undefined;
+  specs?: Record<string, string> | undefined;
+  extractor?: "regex" | "regex+opus" | undefined;
+  raw: { http: number; bytes: number; contentType?: string | undefined };
   // Internal: raw Jina markdown kept for Opus enhancement. Stripped before
   // returning to client in handleResolveUrl. Underscore prefix = private.
-  _md?: string;
+  _md?: string | undefined;
 }
 
 // Opus-extracted payload. Union with PageExtract after. All fields optional
@@ -331,27 +332,7 @@ export function parseJinaMarkdown(md: string): PageExtract {
   // "$15 off" from a related-product promo.
   const head = body.slice(0, 8_000);
 
-  // Price: prefer labelled lines, then largest $-amount in head ≥$5
-  let priceCents: number | undefined;
-  const labelled = head.match(/(?:price|sale|deal|now|was|list)[:\s]+\$([0-9]{1,4}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/i);
-  if (labelled) {
-    const n = parseFloat(labelled[1]!.replace(/,/g, ""));
-    if (Number.isFinite(n) && n >= 5) priceCents = Math.round(n * 100);
-  }
-  if (priceCents == null) {
-    const prices: number[] = [];
-    const priceRe = /\$([0-9]{1,4}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/g;
-    let pm: RegExpExecArray | null;
-    while ((pm = priceRe.exec(head)) !== null) {
-      const n = parseFloat(pm[1]!.replace(/,/g, ""));
-      if (Number.isFinite(n) && n >= 5 && n < 20000) prices.push(n);
-    }
-    if (prices.length > 0) {
-      // Max $-amount in the header window — on real retailer product
-      // pages this is the list/sale price, not a coupon or shipping fee.
-      priceCents = Math.round(Math.max(...prices) * 100);
-    }
-  }
+  const priceCents = extractPrimaryPriceCents(head);
 
   // Rating: scope to head too (reviewer quotes mention "5 stars" often).
   const ratingMatch = head.match(/([0-5](?:\.\d)?)\s+out of\s+5(?:\s+stars)?/i);
@@ -390,6 +371,32 @@ export function parseJinaMarkdown(md: string): PageExtract {
     extractor: "regex",
     _md: md,
   };
+}
+
+function extractPrimaryPriceCents(head: string): number | undefined {
+  const candidates: Array<{ amount: number; score: number; line: number }> = [];
+  const lines = head.split(/\r?\n/).slice(0, 140);
+  const priceRe = /\$([0-9]{1,4}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/g;
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i] ?? "";
+    const line = rawLine.toLowerCase();
+    if (/\b(shipping|coupon|save|discount|monthly|per month|installment|financing|gift card|trade[-\s]?in)\b/.test(line)) {
+      continue;
+    }
+    let m: RegExpExecArray | null;
+    while ((m = priceRe.exec(rawLine)) !== null) {
+      const amount = Number.parseFloat(m[1]!.replace(/,/g, ""));
+      if (!Number.isFinite(amount) || amount < 5 || amount > 20_000) continue;
+      let score = 2;
+      if (/\b(price|current price|sale price|deal price|now|with deal|today)\b/.test(line)) score += 4;
+      if (/\b(list price|was|original|regular|msrp|strikethrough)\b/.test(line)) score -= 3;
+      if (i < 20) score += 1;
+      candidates.push({ amount, score, line: i });
+    }
+  }
+  if (candidates.length === 0) return undefined;
+  candidates.sort((a, b) => b.score - a.score || a.line - b.line || a.amount - b.amount);
+  return Math.round(candidates[0]!.amount * 100);
 }
 
 // Opus 4.7 structured extraction from Jina markdown. Called only when the
@@ -866,7 +873,8 @@ function toSkuId(p: ParsedUrl): string | null {
 
 export function parseRetailerUrl(raw: string): ParsedUrl {
   let url: URL;
-  try { url = new URL(raw); } catch { return { urlClean: raw }; }
+  const scrubbed = scrubTrackingParams(raw) ?? raw;
+  try { url = new URL(scrubbed); } catch { return { urlClean: raw }; }
   const host = url.hostname.toLowerCase().replace(/^www\./, "");
   const path = url.pathname;
   const out: ParsedUrl = { urlClean: `${url.protocol}//${host}${path}` };
@@ -883,7 +891,10 @@ export function parseRetailerUrl(raw: string): ParsedUrl {
   if (/(^|\.)amazon\./.test(host)) {
     out.retailer = "amazon";
     const asin = path.match(/\/(?:dp|gp\/product)\/([A-Z0-9]{10})/i)?.[1];
-    if (asin) out.id = asin.toUpperCase();
+    if (asin) {
+      out.id = asin.toUpperCase();
+      out.urlClean = `${url.protocol}//${host}/dp/${out.id}`;
+    }
     return out;
   }
 

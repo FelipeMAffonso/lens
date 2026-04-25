@@ -140,8 +140,8 @@ export const upcitemdbEnrichIngester: DatasetIngester = {
         if (!merchantSeen.has(merchantSourceId)) {
           merchantSeen.set(merchantSourceId, {
             label: off.merchant ?? off.domain ?? merchantSlug,
-            link: off.link,
-            domain: off.domain,
+            ...(off.link !== undefined ? { link: off.link } : {}),
+            ...(off.domain !== undefined ? { domain: off.domain } : {}),
           });
         }
         stmts.push(
